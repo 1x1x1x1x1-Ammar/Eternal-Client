@@ -1,0 +1,2 @@
+import fs from 'node:fs'; import path from 'node:path';
+const required=['package.json','electron/main.js','electron/preload.cjs','src/App.jsx','src/index.css','assets/logo.svg','eternal-core/build.gradle'];let fail=0;for(const p of required){const ok=fs.existsSync(path.resolve(p));console.log(`${ok?'PASS':'FAIL'} ${p}`);if(!ok)fail++;}console.log(`Node ${process.version}`);process.exitCode=fail?1:0;

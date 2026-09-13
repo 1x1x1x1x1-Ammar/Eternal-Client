@@ -1,0 +1,1 @@
+/** @type {import('tailwindcss').Config} */ export default {content:['./index.html','./src/**/*.{js,jsx}'],theme:{extend:{colors:{eternal:{500:'#e01414',400:'#ff2a2a',900:'#410909'}},boxShadow:{eternal:'0 0 30px rgba(224,20,20,.28)'}}},plugins:[]};
