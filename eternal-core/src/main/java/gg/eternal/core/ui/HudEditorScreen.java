@@ -1,3 +1,108 @@
 package gg.eternal.core.ui;
-import gg.eternal.core.config.CoreConfig; import gg.eternal.core.hud.HudRenderer; import net.minecraft.client.gui.GuiGraphics; import net.minecraft.client.gui.screens.Screen; import net.minecraft.network.chat.Component;
-public class HudEditorScreen extends Screen { private String drag; private int ox,oy; public HudEditorScreen(){super(Component.literal("Eternal HUD Editor"));} @Override public void render(GuiGraphics g,int mx,int my,float dt){renderBackground(g,mx,my,dt);g.drawCenteredString(font,"ETERNAL HUD EDITOR · drag modules · 4px snap",width/2,14,0xFFFF5252);int i=0;for(String n:HudRenderer.modules()){if(!CoreConfig.INSTANCE.on(n))continue;int[] p=CoreConfig.INSTANCE.pos(n,12,36+i*22);int ww=font.width(HudRenderer.value(n))+14;g.fill(p[0],p[1],p[0]+ww,p[1]+18,0xCC08090A);g.renderOutline(p[0],p[1],ww,18,drag!=null&&drag.equals(n)?0xFFFF3333:0x44FFFFFF);g.drawString(font,HudRenderer.value(n),p[0]+7,p[1]+5,0xFFFFFFFF,false);i++;}g.drawString(font,"R = Reset layout",12,height-20,0xFF88888F,false);super.render(g,mx,my,dt);} @Override public boolean mouseClicked(double mx,double my,int b){for(String n:HudRenderer.modules()){if(!CoreConfig.INSTANCE.on(n))continue;int[] p=CoreConfig.INSTANCE.pos(n,12,36);int ww=font.width(HudRenderer.value(n))+14;if(mx>=p[0]&&mx<=p[0]+ww&&my>=p[1]&&my<=p[1]+18){drag=n;ox=(int)mx-p[0];oy=(int)my-p[1];return true;}}return super.mouseClicked(mx,my,b);} @Override public boolean mouseDragged(double mx,double my,int b,double dx,double dy){if(drag!=null){int x=Math.round(((float)mx-ox)/4)*4,y=Math.round(((float)my-oy)/4)*4;CoreConfig.INSTANCE.pos(drag,Math.max(0,x),Math.max(0,y));return true;}return super.mouseDragged(mx,my,b);} @Override public boolean mouseReleased(double mx,double my,int b){drag=null;return super.mouseReleased(mx,my,b);} @Override public boolean keyPressed(int key,int scan,int mods){if(key==82){CoreConfig.INSTANCE.reset();return true;}return super.keyPressed(key,scan,mods);} @Override public boolean isPauseScreen(){return false;} }
+
+import gg.eternal.core.config.CoreConfig;
+import gg.eternal.core.hud.HudRenderer;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
+
+public final class HudEditorScreen extends Screen {
+    private String draggingModule;
+    private int dragOffsetX;
+    private int dragOffsetY;
+
+    public HudEditorScreen() {
+        super(Component.literal("Eternal HUD Editor"));
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        renderBackground(graphics, mouseX, mouseY, delta);
+        graphics.fill(0, 0, width, 44, 0xE6080809);
+        graphics.drawCenteredString(font, "ETERNAL HUD EDITOR", width / 2, 12, 0xFFFF525A);
+        graphics.drawCenteredString(font, "Drag enabled modules · 4px snap · R resets layout", width / 2, 25, 0xFF77777E);
+
+        int fallbackIndex = 0;
+        for (String name : HudRenderer.modules()) {
+            if (!CoreConfig.INSTANCE.on(name)) continue;
+
+            int[] position = CoreConfig.INSTANCE.pos(name, 12, 52 + fallbackIndex * 22);
+            String value = HudRenderer.value(name);
+            int boxWidth = font.width(value) + 16;
+            boolean dragging = name.equals(draggingModule);
+            boolean hover = mouseX >= position[0] && mouseX <= position[0] + boxWidth
+                    && mouseY >= position[1] && mouseY <= position[1] + 20;
+
+            graphics.fill(position[0], position[1], position[0] + boxWidth, position[1] + 20,
+                    dragging ? 0xEE240B0D : hover ? 0xE6171719 : 0xD80A0B0D);
+            graphics.fill(position[0], position[1], position[0] + 2, position[1] + 20, 0xFFFF303A);
+            graphics.renderOutline(position[0], position[1], boxWidth, 20,
+                    dragging ? 0xFFFF5962 : 0x55FFFFFF);
+            graphics.drawString(font, value, position[0] + 8, position[1] + 6, 0xFFFFFFFF, false);
+            fallbackIndex++;
+        }
+
+        graphics.drawString(font, "R  RESET LAYOUT", 12, height - 20, 0xFF8A8A91, false);
+        super.render(graphics, mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        int fallbackIndex = 0;
+        for (String name : HudRenderer.modules()) {
+            if (!CoreConfig.INSTANCE.on(name)) continue;
+
+            int[] position = CoreConfig.INSTANCE.pos(name, 12, 52 + fallbackIndex * 22);
+            int boxWidth = font.width(HudRenderer.value(name)) + 16;
+            if (event.x() >= position[0] && event.x() <= position[0] + boxWidth
+                    && event.y() >= position[1] && event.y() <= position[1] + 20) {
+                draggingModule = name;
+                dragOffsetX = (int) event.x() - position[0];
+                dragOffsetY = (int) event.y() - position[1];
+                return true;
+            }
+            fallbackIndex++;
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        if (draggingModule != null) {
+            int x = Math.round(((float) event.x() - dragOffsetX) / 4.0F) * 4;
+            int y = Math.round(((float) event.y() - dragOffsetY) / 4.0F) * 4;
+            CoreConfig.INSTANCE.setPos(
+                    draggingModule,
+                    Math.max(0, Math.min(width - 20, x)),
+                    Math.max(44, Math.min(height - 20, y))
+            );
+            return true;
+        }
+        return super.mouseDragged(event, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (draggingModule != null) {
+            draggingModule = null;
+            return true;
+        }
+        return super.mouseReleased(event);
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 82) { // GLFW_KEY_R
+            CoreConfig.INSTANCE.reset();
+            return true;
+        }
+        return super.keyPressed(event);
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+}
