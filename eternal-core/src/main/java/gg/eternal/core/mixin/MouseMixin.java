@@ -12,6 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MouseMixin {
     @Inject(method = "onButton", at = @At("HEAD"))
     private void eternal$mouse(long window, MouseButtonInfo info, int action, CallbackInfo ci) {
-        EternalCore.onMouse(info.button(), action != 0);
+        // GLFW mouse actions are release=0 / press=1. Ignore unknown values instead
+        // of treating any non-zero value as a press, keeping Core input state exact.
+        if (action != 0 && action != 1) return;
+        EternalCore.onMouse(info.button(), action == 1);
     }
 }
