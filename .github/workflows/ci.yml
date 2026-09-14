@@ -63,5 +63,6 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'release/win-unpacked/Eternal Client.exe'
           if (!(Test-Path $exe)) { throw "Packaged executable not found: $exe" }
-          & $exe --smoke-test
-          if ($LASTEXITCODE -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $LASTEXITCODE" }
+          $process = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $($process.ExitCode)" }
+          Write-Host "Packaged Eternal Client startup smoke test passed." -ForegroundColor Green
