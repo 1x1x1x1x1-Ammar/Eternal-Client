@@ -31,7 +31,7 @@ Eternal combines a real Minecraft launcher with a real Fabric client running ins
 - Real Downloads center for Minecraft preparation, Modrinth transfers and Eternal updater transfers. Unknown-size work remains indeterminate instead of using fake percentages.
 - Renewable Microsoft session state and a real stable GitHub updater.
 - Custom Eternal Minecraft title/start menu replacing the vanilla title screen while Core is loaded.
-- Crash-hardened Eternal UI opening: key-repeat suppression, Minecraft task-queue screen transitions and runtime diagnostics in `config/eternal-core.log`.
+- Crash-hardened Eternal UI opening: key-repeat suppression, normalized mouse actions, Minecraft task-queue screen transitions and runtime diagnostics in `config/eternal-core.log`.
 - Clean Core installs start with HUD/Zoom modules **disabled**. The player explicitly enables what they want.
 - Premium Eternal Start dashboard, Modules UI, HUD Editor, live HUD, notifications and upgraded WASD + LMB/RMB keystrokes.
 
@@ -67,7 +67,7 @@ ETERNAL CLIENT v1
 
 # Eternal Core v1
 
-Current certified target: **Minecraft Java 1.21.11 + Fabric + Java 21**.
+Automated build target: **Minecraft Java 1.21.11 + Fabric + Java 21**. Gradle compilation and release checks are required before publication; a real-machine gameplay pass is still the final compatibility gate for specific hardware/mod/server combinations.
 
 ## Eternal Minecraft start menu
 
@@ -184,7 +184,7 @@ When bytes are available Eternal shows actual transferred bytes, total bytes and
 - Delete/duplicate are blocked while an instance is running.
 - Multiple Minecraft processes are tracked by profile.
 
-Core support is intentionally narrower than launcher version selection: Eternal Core v1 is certified for **Fabric 1.21.11** only.
+Core support is intentionally narrower than launcher version selection: the v1 Core build targets **Fabric 1.21.11** only.
 
 # Mod Hub V1
 
