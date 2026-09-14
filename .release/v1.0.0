@@ -1,0 +1,3 @@
+Eternal Client v1.0.0 stable release trigger.
+
+This marker may reach main only after PR CI passes launcher tests/build, Eternal Core Gradle build, and packaged Windows startup smoke testing.
