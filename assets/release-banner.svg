@@ -1,79 +1,28 @@
 <svg width="1600" height="620" viewBox="0 0 1600 620" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="620" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#08090A"/>
-      <stop offset="0.48" stop-color="#0D0E10"/>
-      <stop offset="1" stop-color="#16080A"/>
-    </linearGradient>
-    <radialGradient id="redGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1290 130) rotate(140) scale(520 360)">
-      <stop stop-color="#E71C25" stop-opacity="0.42"/>
-      <stop offset="1" stop-color="#E71C25" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="button" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#FF373C"/><stop offset="1" stop-color="#D51118"/>
-    </linearGradient>
-    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="18"/></filter>
-  </defs>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="620"><stop stop-color="#050506"/><stop offset=".56" stop-color="#0A0B0D"/><stop offset="1" stop-color="#17070A"/></linearGradient>
+  <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1280 120) rotate(145) scale(560 360)"><stop stop-color="#F12A31" stop-opacity=".44"/><stop offset="1" stop-color="#F12A31" stop-opacity="0"/></radialGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FF4349"/><stop offset="1" stop-color="#D51119"/></linearGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="24"/></filter>
+</defs>
+<rect width="1600" height="620" rx="24" fill="url(#bg)"/><rect width="1600" height="620" rx="24" fill="url(#glow)"/>
+<g opacity=".16"><path d="M0 488L160 390L316 450L496 337L663 430L835 331L1030 438L1220 306L1415 400L1600 332V620H0V488Z" fill="#4B0A0F"/><path d="M0 535L190 458L350 502L520 418L705 494L900 412L1085 505L1286 414L1478 478L1600 440V620H0V535Z" fill="#16090B"/></g>
+<g opacity=".055" stroke="#FFFFFF"><path d="M0 80H1600M0 160H1600M0 240H1600M0 320H1600M0 400H1600M0 480H1600M0 560H1600"/><path d="M100 0V620M200 0V620M300 0V620M400 0V620M500 0V620M600 0V620M700 0V620M800 0V620M900 0V620M1000 0V620M1100 0V620M1200 0V620M1300 0V620M1400 0V620M1500 0V620"/></g>
 
-  <rect width="1600" height="620" rx="22" fill="url(#bg)"/>
-  <rect width="1600" height="620" rx="22" fill="url(#redGlow)"/>
-  <g opacity="0.18">
-    <path d="M0 480L210 365L350 438L520 316L705 422L864 332L1044 421L1214 298L1415 394L1600 328V620H0V480Z" fill="#410B0F"/>
-    <path d="M0 525L178 444L327 493L511 402L681 490L892 402L1075 502L1288 401L1468 470L1600 436V620H0V525Z" fill="#180B0D"/>
-  </g>
-  <g opacity="0.08" stroke="#FFFFFF">
-    <path d="M0 120H1600M0 180H1600M0 240H1600M0 300H1600M0 360H1600M0 420H1600M0 480H1600"/>
-    <path d="M120 0V620M240 0V620M360 0V620M480 0V620M600 0V620M720 0V620M840 0V620M960 0V620M1080 0V620M1200 0V620M1320 0V620M1440 0V620"/>
-  </g>
+<!-- Eternal emblem -->
+<g transform="translate(54 46) scale(.22)"><path d="M116 181C126 120 168 80 238 58C220 92 189 112 151 127C188 122 226 108 268 78C258 127 214 159 150 173L116 181Z" fill="#F1262E"/><path d="M145 206C168 168 213 146 294 118C278 161 239 190 185 205C224 203 265 194 313 170C293 211 251 237 187 243L145 206Z" fill="#E51A23"/><path d="M165 190C126 217 103 257 106 307C109 370 160 419 225 426C292 434 350 403 386 347L339 323C313 359 279 378 238 376C201 375 171 357 157 329H326L344 286H148C152 270 160 257 172 246H360L378 201H210C194 201 179 197 165 190Z" fill="#F1262E"/><path d="M223 274H318L299 318H205C196 318 191 309 196 301L213 279C215 276 219 274 223 274Z" fill="#13080A"/></g>
+<text x="150" y="88" fill="#F6F6F7" font-family="Arial, sans-serif" font-size="37" font-weight="700" letter-spacing="14">ETERNAL</text><text x="153" y="115" fill="#777A82" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="7">BEYOND SURVIVAL</text>
+<text x="1135" y="76" fill="#A2A4AB" font-family="Arial, sans-serif" font-size="12" letter-spacing="5">THE ULTIMATE MINECRAFT EXPERIENCE</text>
+<text x="1112" y="112" fill="#FF4449" font-family="Arial" font-size="11" font-weight="700" letter-spacing="5">LAUNCHER  |  IN-GAME CLIENT  |  YOUR WAY</text>
+<text x="1380" y="143" fill="#888A91" font-family="Arial" font-size="10" letter-spacing="3">v0.6.0-beta.6</text>
 
-  <g transform="translate(72 62)">
-    <g transform="scale(.19)">
-      <path d="M116 181C126 120 168 80 238 58C220 92 189 112 151 127C188 122 226 108 268 78C258 127 214 159 150 173L116 181Z" fill="#F1262E"/>
-      <path d="M145 206C168 168 213 146 294 118C278 161 239 190 185 205C224 203 265 194 313 170C293 211 251 237 187 243L145 206Z" fill="#E51A23"/>
-      <path d="M165 190C126 217 103 257 106 307C109 370 160 419 225 426C292 434 350 403 386 347L339 323C313 359 279 378 238 376C201 375 171 357 157 329H326L344 286H148C152 270 160 257 172 246H360L378 201H210C194 201 179 197 165 190Z" fill="#F1262E"/>
-      <path d="M223 274H318L299 318H205C196 318 191 309 196 301L213 279C215 276 219 274 223 274Z" fill="#13080A"/>
-    </g>
-    <text x="102" y="45" fill="#F7F7F8" font-family="Arial, sans-serif" font-size="36" font-weight="700" letter-spacing="12">ETERNAL</text>
-    <text x="105" y="75" fill="#7B7E86" font-family="Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="7">BEYOND SURVIVAL</text>
-  </g>
+<!-- Launcher window -->
+<g transform="translate(45 155)"><rect width="800" height="350" rx="14" fill="#090A0C" stroke="#3B3D43"/><rect x="14" y="14" width="160" height="322" rx="10" fill="#0D0E10" stroke="#292B30"/><circle cx="48" cy="48" r="17" fill="#351013"/><text x="77" y="53" fill="#FFF" font-family="Arial" font-size="13" font-weight="700" letter-spacing="3">ETERNAL</text><g fill="#A4A6AC" font-family="Arial" font-size="12"><text x="30" y="105">⌂  Home</text><text x="30" y="144">▣  Instances</text><text x="30" y="183">◇  Mods</text><text x="30" y="222">▤  Servers</text><text x="30" y="261">○  Accounts</text><text x="30" y="300">⚙  Settings</text></g><rect x="22" y="79" width="142" height="38" rx="6" fill="#5E1116" opacity=".55"/>
+<rect x="192" y="14" width="592" height="207" rx="10" fill="#111216" stroke="#2D2F34"/><circle cx="673" cy="70" r="70" fill="#410D12" opacity=".45"/><circle cx="673" cy="70" r="45" fill="#F02930" opacity=".20" filter="url(#blur)"/><text x="219" y="70" fill="#FFF" font-family="Arial" font-size="31" font-weight="700">Play Minecraft</text><text x="219" y="106" fill="#FFF" font-family="Arial" font-size="31" font-weight="700">Your Way.</text><text x="219" y="137" fill="#92959C" font-family="Arial" font-size="13">Fast. Clean. Powerful. Eternal.</text><rect x="219" y="161" width="128" height="42" rx="7" fill="url(#red)"/><text x="259" y="188" fill="#FFF" font-family="Arial" font-size="13" font-weight="700">▶  PLAY</text><rect x="358" y="161" width="202" height="42" rx="7" fill="#17181B" stroke="#34363B"/><text x="378" y="187" fill="#D0D2D7" font-family="Arial" font-size="12">1.21.11 · Fabric</text>
+<g transform="translate(192 232)"><rect width="140" height="104" rx="8" fill="#111216" stroke="#2D2F34"/><rect x="151" width="140" height="104" rx="8" fill="#111216" stroke="#2D2F34"/><rect x="302" width="140" height="104" rx="8" fill="#111216" stroke="#2D2F34"/><rect x="453" width="139" height="104" rx="8" fill="#111216" stroke="#2D2F34"/><g fill="#FFF" font-family="Arial" font-size="10" font-weight="700"><text x="16" y="48">LATEST RELEASE</text><text x="167" y="48">MODS</text><text x="318" y="48">SERVERS</text><text x="469" y="48">ACCOUNTS</text></g><g fill="#6F727A" font-family="Arial" font-size="8"><text x="16" y="67">Real instances</text><text x="167" y="67">Modrinth</text><text x="318" y="67">Status + join</text><text x="469" y="67">Microsoft/offline</text></g></g></g>
 
-  <g transform="translate(72 170)">
-    <text fill="#7B7E86" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="4">FIRST GITHUB BETA RELEASE</text>
-    <text y="76" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="56" font-weight="700">Launcher + real</text>
-    <text y="137" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="56" font-weight="700">in-game client.</text>
-    <text y="183" fill="#A6A8AE" font-family="Arial, sans-serif" font-size="18">Minecraft launcher, isolated instances, Modrinth and Eternal Core.</text>
-    <g transform="translate(0 218)">
-      <rect width="210" height="52" rx="8" fill="url(#button)" stroke="#FF6165"/>
-      <path d="M34 16L34 36L50 26L34 16Z" fill="white"/>
-      <text x="68" y="33" fill="white" font-family="Arial, sans-serif" font-size="15" font-weight="700">v0.5.0-beta.5</text>
-    </g>
-  </g>
+<!-- In-game client window -->
+<g transform="translate(875 155)"><rect width="680" height="350" rx="14" fill="#0A0B0D" stroke="#3B3D43"/><text x="22" y="34" fill="#FFF" font-family="Arial" font-size="18" font-weight="700">IN-GAME CLIENT</text><text x="23" y="55" fill="#777A82" font-family="Arial" font-size="9" letter-spacing="4">SAME FEEL. A HIGHER LEVEL.</text><rect x="118" y="78" width="445" height="215" rx="10" fill="#090A0C" stroke="#6B1519"/><rect x="131" y="91" width="122" height="189" rx="6" fill="#0E0F11"/><rect x="139" y="104" width="106" height="30" rx="5" fill="#72141A" opacity=".75"/><g fill="#BBBEC5" font-family="Arial" font-size="10"><text x="149" y="123">HUD</text><text x="149" y="154">PLAYER</text><text x="149" y="185">RENDER</text><text x="149" y="216">WORLD</text><text x="149" y="247">MISC</text></g><g fill="#D8DADF" font-family="Arial" font-size="10"><text x="275" y="115">FPS HUD</text><text x="275" y="146">CPS HUD</text><text x="275" y="177">Keystrokes</text><text x="275" y="208">Coordinates</text><text x="275" y="239">Ping</text><text x="275" y="270">Zoom</text></g><g fill="#F02A30"><circle cx="526" cy="111" r="7"/><circle cx="526" cy="142" r="7"/><circle cx="526" cy="173" r="7"/><circle cx="526" cy="204" r="7"/><circle cx="526" cy="235" r="7"/><circle cx="526" cy="266" r="7"/></g><text x="27" y="327" fill="#EE363C" font-family="Arial" font-size="11" font-weight="700">RIGHT SHIFT · CLICKGUI   H · HUD EDITOR   C · ZOOM</text></g>
 
-  <g transform="translate(760 105)">
-    <rect width="760" height="430" rx="16" fill="#090A0C" stroke="#34363B"/>
-    <rect x="18" y="18" width="164" height="394" rx="11" fill="#0D0E10" stroke="#26282D"/>
-    <circle cx="53" cy="55" r="18" fill="#350D10" stroke="#9B171D"/>
-    <text x="82" y="60" fill="#FFFFFF" font-family="Arial" font-size="14" font-weight="700" letter-spacing="3">ETERNAL</text>
-    <g fill="#A3A5AC" font-family="Arial" font-size="12">
-      <text x="42" y="116">⌂   Home</text><text x="42" y="158">▣   Instances</text><text x="42" y="200">◇   Mods</text><text x="42" y="242">▤   Servers</text><text x="42" y="284">○   Accounts</text><text x="42" y="326">⚙   Settings</text>
-    </g>
-    <rect x="202" y="18" width="540" height="242" rx="11" fill="#111215" stroke="#2D2F34"/>
-    <circle cx="615" cy="87" r="72" fill="#3A0B0F" opacity=".8"/>
-    <circle cx="615" cy="87" r="42" fill="#D81922" opacity=".22" filter="url(#glow)"/>
-    <text x="230" y="77" fill="#FFFFFF" font-family="Arial" font-size="31" font-weight="700">Play Minecraft</text>
-    <text x="230" y="113" fill="#FFFFFF" font-family="Arial" font-size="31" font-weight="700">Your Way.</text>
-    <text x="230" y="145" fill="#8D9097" font-family="Arial" font-size="13">Fast. Clean. Powerful. Eternal.</text>
-    <rect x="230" y="174" width="132" height="43" rx="7" fill="url(#button)"/><text x="273" y="201" fill="white" font-family="Arial" font-size="13" font-weight="700">▶  PLAY</text>
-    <rect x="373" y="174" width="190" height="43" rx="7" fill="#17181B" stroke="#303238"/><text x="394" y="201" fill="#C9CBD0" font-family="Arial" font-size="12">1.21.11 · Fabric</text>
-    <g transform="translate(202 276)">
-      <rect width="128" height="118" rx="9" fill="#111215" stroke="#2B2D32"/><rect x="140" width="128" height="118" rx="9" fill="#111215" stroke="#2B2D32"/><rect x="280" width="128" height="118" rx="9" fill="#111215" stroke="#2B2D32"/><rect x="420" width="120" height="118" rx="9" fill="#111215" stroke="#2B2D32"/>
-      <text x="18" y="35" fill="#F24A50" font-family="Arial" font-size="18">◆</text><text x="18" y="62" fill="#FFFFFF" font-family="Arial" font-size="11" font-weight="700">INSTANCES</text><text x="18" y="82" fill="#696C73" font-family="Arial" font-size="8">Isolated profiles</text>
-      <text x="158" y="35" fill="#F24A50" font-family="Arial" font-size="18">✦</text><text x="158" y="62" fill="#FFFFFF" font-family="Arial" font-size="11" font-weight="700">MODRINTH</text><text x="158" y="82" fill="#696C73" font-family="Arial" font-size="8">Compatible mods</text>
-      <text x="298" y="35" fill="#F24A50" font-family="Arial" font-size="18">▤</text><text x="298" y="62" fill="#FFFFFF" font-family="Arial" font-size="11" font-weight="700">SERVERS</text><text x="298" y="82" fill="#696C73" font-family="Arial" font-size="8">Real status + join</text>
-      <text x="438" y="35" fill="#F24A50" font-family="Arial" font-size="18">◎</text><text x="438" y="62" fill="#FFFFFF" font-family="Arial" font-size="11" font-weight="700">CORE</text><text x="438" y="82" fill="#696C73" font-family="Arial" font-size="8">Inside Minecraft</text>
-    </g>
-  </g>
-
-  <text x="76" y="585" fill="#F13C42" font-family="Arial" font-size="10" font-weight="700" letter-spacing="4">BIGGER. FASTER. BETTER.</text>
-  <text x="1248" y="585" fill="#666970" font-family="Arial" font-size="10" font-weight="700" letter-spacing="3">BUILT BY PLAYERS · FOR PLAYERS</text>
+<g transform="translate(50 545)" font-family="Arial"><text fill="#F13940" font-size="11" font-weight="700" letter-spacing="4">REFERENCE-LOCKED BETA</text><text x="320" fill="#74777E" font-size="10" letter-spacing="3">PACKAGED STARTUP SMOKE-TESTED</text><text x="820" fill="#74777E" font-size="10" letter-spacing="3">REAL LAUNCHER STATE</text><text x="1200" fill="#F13940" font-size="10" font-weight="700" letter-spacing="4">BIGGER. FASTER. BETTER.</text></g>
 </svg>
