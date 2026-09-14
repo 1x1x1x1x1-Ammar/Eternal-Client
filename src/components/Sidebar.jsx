@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Boxes, Download, Home, MessageCircle, Puzzle, Server, Settings, TerminalSquare, UserRound } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import MinecraftHead from './MinecraftHead.jsx';
+import eternalLogo from '../../assets/logo.svg';
 
 const primaryLinks = [
   ['/', Home, 'Home'],
@@ -41,7 +42,7 @@ export default function Sidebar() {
 
   return <aside className="sidebar release-sidebar">
     <div className="sidebar-brand">
-      <img src="/assets/logo.svg" alt="Eternal" />
+      <img src={eternalLogo} alt="Eternal" />
       <div><strong>ETERNAL</strong><small>CLIENT</small></div>
     </div>
 
