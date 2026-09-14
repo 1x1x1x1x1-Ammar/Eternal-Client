@@ -3,6 +3,7 @@ package gg.eternal.core.ui;
 import gg.eternal.core.EternalCore;
 import gg.eternal.core.config.CoreConfig;
 import gg.eternal.core.hud.HudRenderer;
+import gg.eternal.core.util.CoreLog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,6 +21,7 @@ public final class EternalHomeScreen extends Screen {
     private static final int GREEN = 0xFF58ED89;
 
     private final long openedAt = System.currentTimeMillis();
+    private boolean renderFailureLogged;
 
     public EternalHomeScreen() {
         super(Component.literal("Eternal Core Home"));
@@ -27,9 +29,25 @@ public final class EternalHomeScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics, mouseX, mouseY, delta);
-        int panelWidth = Math.min(840, width - 24);
-        int panelHeight = Math.min(468, height - 24);
+        try {
+            renderEternal(graphics, mouseX, mouseY, delta);
+        } catch (Throwable error) {
+            if (!renderFailureLogged) {
+                renderFailureLogged = true;
+                CoreLog.error("Eternal Start render failed", error);
+            }
+            renderFallback(graphics);
+        }
+    }
+
+    private void renderEternal(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        // Do not call Screen.renderBackground here. Eternal Start opens over an
+        // active world and owns its own dim/panel composition. This avoids the
+        // vanilla background/blur path being entered re-entrantly on some GPUs.
+        graphics.fill(0, 0, width, height, 0xB8050608);
+
+        int panelWidth = Math.min(840, Math.max(360, width - 24));
+        int panelHeight = Math.min(468, Math.max(300, height - 24));
         int x = (width - panelWidth) / 2;
         int y = (height - panelHeight) / 2;
         int accent = CoreConfig.INSTANCE.accentColor();
@@ -39,7 +57,7 @@ public final class EternalHomeScreen extends Screen {
 
         graphics.drawString(font, "ETERNAL", x + 22, y + 20, TEXT, false);
         graphics.drawString(font, "CORE", x + 22 + font.width("ETERNAL") + 6, y + 20, accent, false);
-        graphics.drawString(font, "V1 · IN-GAME CLIENT", x + 22, y + 36, DIM, false);
+        graphics.drawString(font, "V1.0.1 · IN-GAME CLIENT", x + 22, y + 36, DIM, false);
 
         int liveX = x + panelWidth - 122;
         graphics.fill(liveX, y + 16, liveX + 98, y + 38, 0xFF0B1110);
@@ -57,8 +75,8 @@ public final class EternalHomeScreen extends Screen {
         graphics.fill(heroX + 3, heroY, heroX + Math.min(heroW, 210), heroY + 1, 0x33FFFFFF);
         graphics.drawString(font, "YOUR CLIENT. YOUR HUD. YOUR RULES.", heroX + 18, heroY + 18, DIM, false);
         graphics.drawString(font, "ETERNAL START", heroX + 18, heroY + 38, TEXT, false);
-        graphics.drawString(font, "A premium control surface for real client modules, persistent HUD layouts and utility settings.", heroX + 18, heroY + 56, MUTED, false);
-        graphics.drawString(font, "Fresh installs start clean: modules stay OFF until you choose them.", heroX + 18, heroY + 76, 0xFF666D78, false);
+        graphics.drawString(font, "Real client modules, persistent HUD layouts, keybinds and utility controls.", heroX + 18, heroY + 56, MUTED, false);
+        graphics.drawString(font, "Fresh installs stay clean: modules are OFF until you enable them.", heroX + 18, heroY + 76, 0xFF666D78, false);
 
         button(graphics, mouseX, mouseY, heroX + 18, heroY + 91, 122, 25, "MODULES", true);
         button(graphics, mouseX, mouseY, heroX + 148, heroY + 91, 122, 25, "HUD EDITOR", false);
@@ -74,7 +92,7 @@ public final class EternalHomeScreen extends Screen {
 
         int controlY = statY + 74;
         int leftW = (heroW - 10) / 2;
-        panel(graphics, heroX, controlY, leftW, 126, "HUD SYSTEM", "Choose modules, then drag them exactly where you want", accent);
+        panel(graphics, heroX, controlY, leftW, 126, "HUD SYSTEM", "Enable modules, then place them exactly where you want", accent);
         graphics.drawString(font, enabledModules() + " HUD modules enabled", heroX + 16, controlY + 49, TEXT, false);
         graphics.drawString(font, "Opacity " + CoreConfig.INSTANCE.hudAlpha() + " · Snap " + CoreConfig.INSTANCE.snap() + "px", heroX + 16, controlY + 66, MUTED, false);
         button(graphics, mouseX, mouseY, heroX + 16, controlY + 88, 92, 24, "ENABLE ALL", false);
@@ -82,7 +100,7 @@ public final class EternalHomeScreen extends Screen {
         button(graphics, mouseX, mouseY, heroX + 216, controlY + 88, 100, 24, "EDIT HUD", false);
 
         int rightX = heroX + leftW + 10;
-        panel(graphics, rightX, controlY, leftW, 126, "UTILITY", "Persistent controls with real state", accent);
+        panel(graphics, rightX, controlY, leftW, 126, "UTILITY", "Persistent controls backed by real Core state", accent);
         graphics.drawString(font, "Zoom " + (CoreConfig.INSTANCE.on("Zoom") ? "ON" : "OFF") + " · FOV " + CoreConfig.INSTANCE.zoomFov(), rightX + 16, controlY + 49, TEXT, false);
         graphics.drawString(font, "Notifications " + (CoreConfig.INSTANCE.notifications() ? "ON" : "OFF"), rightX + 16, controlY + 66, MUTED, false);
         button(graphics, mouseX, mouseY, rightX + 16, controlY + 88, 112, 24, "TOGGLE ZOOM", false);
@@ -94,8 +112,23 @@ public final class EternalHomeScreen extends Screen {
         super.render(graphics, mouseX, mouseY, delta);
     }
 
+    private void renderFallback(GuiGraphics graphics) {
+        graphics.fill(0, 0, width, height, 0xF4050608);
+        int accent = CoreConfig.INSTANCE.accentColor();
+        int boxW = Math.min(520, Math.max(300, width - 48));
+        int boxH = 128;
+        int x = (width - boxW) / 2;
+        int y = (height - boxH) / 2;
+        graphics.fill(x, y, x + boxW, y + boxH, 0xFF0C0F13);
+        graphics.renderOutline(x, y, boxW, boxH, 0x66545B66);
+        graphics.fill(x, y, x + 3, y + boxH, accent);
+        graphics.drawCenteredString(font, "ETERNAL CORE SAFE MODE", width / 2, y + 25, TEXT);
+        graphics.drawCenteredString(font, "The premium screen hit a render error but Minecraft was kept alive.", width / 2, y + 50, MUTED);
+        graphics.drawCenteredString(font, "See config/eternal-core.log, then press ESC to return to the game.", width / 2, y + 71, 0xFF9CA2AC);
+        graphics.drawCenteredString(font, "v" + EternalCore.VERSION, width / 2, y + 95, accent);
+    }
+
     private void drawShell(GuiGraphics graphics, int x, int y, int w, int h, int accent, float intro) {
-        graphics.fill(0, 0, width, height, 0xB8000000);
         graphics.fill(x - 8, y - 8, x + w + 8, y + h + 8, 0x26000000);
         graphics.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0x4A000000);
         graphics.fill(x, y, x + w, y + h, BG);
@@ -136,49 +169,55 @@ public final class EternalHomeScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        int panelWidth = Math.min(840, width - 24);
-        int panelHeight = Math.min(468, height - 24);
-        int x = (width - panelWidth) / 2;
-        int y = (height - panelHeight) / 2;
-        int heroX = x + 22;
-        int heroY = y + 72;
-        int heroW = panelWidth - 44;
-        int statY = heroY + 134;
-        int controlY = statY + 74;
-        int leftW = (heroW - 10) / 2;
-        int rightX = heroX + leftW + 10;
-        int mouseX = (int) event.x();
-        int mouseY = (int) event.y();
+        try {
+            int panelWidth = Math.min(840, Math.max(360, width - 24));
+            int panelHeight = Math.min(468, Math.max(300, height - 24));
+            int x = (width - panelWidth) / 2;
+            int y = (height - panelHeight) / 2;
+            int heroX = x + 22;
+            int heroY = y + 72;
+            int heroW = panelWidth - 44;
+            int statY = heroY + 134;
+            int controlY = statY + 74;
+            int leftW = (heroW - 10) / 2;
+            int rightX = heroX + leftW + 10;
+            int mouseX = (int) event.x();
+            int mouseY = (int) event.y();
 
-        if (inside(mouseX, mouseY, heroX + 18, heroY + 91, 122, 25)) { EternalCore.openClickGui(); return true; }
-        if (inside(mouseX, mouseY, heroX + 148, heroY + 91, 122, 25)) { EternalCore.openHudEditor(); return true; }
-        if (inside(mouseX, mouseY, heroX + 278, heroY + 91, 104, 25)) { Minecraft.getInstance().setScreen(null); return true; }
+            if (inside(mouseX, mouseY, heroX + 18, heroY + 91, 122, 25)) { EternalCore.openClickGui(); return true; }
+            if (inside(mouseX, mouseY, heroX + 148, heroY + 91, 122, 25)) { EternalCore.openHudEditor(); return true; }
+            if (inside(mouseX, mouseY, heroX + 278, heroY + 91, 104, 25)) { Minecraft.getInstance().setScreen(null); return true; }
 
-        if (inside(mouseX, mouseY, heroX + 16, controlY + 88, 92, 24)) {
-            CoreConfig.INSTANCE.setAllModules(true);
-            NotificationCenter.push("HUD", "All HUD modules enabled");
+            if (inside(mouseX, mouseY, heroX + 16, controlY + 88, 92, 24)) {
+                CoreConfig.INSTANCE.setAllModules(true);
+                NotificationCenter.push("HUD", "All HUD modules enabled");
+                return true;
+            }
+            if (inside(mouseX, mouseY, heroX + 116, controlY + 88, 92, 24)) {
+                CoreConfig.INSTANCE.setAllModules(false);
+                NotificationCenter.push("HUD", "All HUD modules disabled");
+                return true;
+            }
+            if (inside(mouseX, mouseY, heroX + 216, controlY + 88, 100, 24)) {
+                EternalCore.openHudEditor();
+                return true;
+            }
+            if (inside(mouseX, mouseY, rightX + 16, controlY + 88, 112, 24)) {
+                CoreConfig.INSTANCE.toggle("Zoom");
+                NotificationCenter.push("ZOOM", CoreConfig.INSTANCE.on("Zoom") ? "Enabled" : "Disabled");
+                return true;
+            }
+            if (inside(mouseX, mouseY, rightX + 136, controlY + 88, 142, 24)) {
+                CoreConfig.INSTANCE.setNotifications(!CoreConfig.INSTANCE.notifications());
+                if (CoreConfig.INSTANCE.notifications()) NotificationCenter.push("NOTIFICATIONS", "Enabled");
+                return true;
+            }
+            return super.mouseClicked(event, doubleClick);
+        } catch (Throwable error) {
+            CoreLog.error("Eternal Start click action failed", error);
+            NotificationCenter.push("ETERNAL ERROR", "Action failed · check eternal-core.log");
             return true;
         }
-        if (inside(mouseX, mouseY, heroX + 116, controlY + 88, 92, 24)) {
-            CoreConfig.INSTANCE.setAllModules(false);
-            NotificationCenter.push("HUD", "All HUD modules disabled");
-            return true;
-        }
-        if (inside(mouseX, mouseY, heroX + 216, controlY + 88, 100, 24)) {
-            EternalCore.openHudEditor();
-            return true;
-        }
-        if (inside(mouseX, mouseY, rightX + 16, controlY + 88, 112, 24)) {
-            CoreConfig.INSTANCE.toggle("Zoom");
-            NotificationCenter.push("ZOOM", CoreConfig.INSTANCE.on("Zoom") ? "Enabled" : "Disabled");
-            return true;
-        }
-        if (inside(mouseX, mouseY, rightX + 136, controlY + 88, 142, 24)) {
-            CoreConfig.INSTANCE.setNotifications(!CoreConfig.INSTANCE.notifications());
-            if (CoreConfig.INSTANCE.notifications()) NotificationCenter.push("NOTIFICATIONS", "Enabled");
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
     }
 
     private int enabledModules() {
