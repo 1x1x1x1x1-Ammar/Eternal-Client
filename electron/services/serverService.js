@@ -1,4 +1,5 @@
 import net from 'node:net';
+import dns from 'node:dns/promises';
 import crypto from 'node:crypto';
 import { store } from './store.js';
 
@@ -35,13 +36,25 @@ function cleanPort(value) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Server port must be between 1 and 65535.');
   return port;
 }
+async function resolveEndpoint(host, port) {
+  if (port !== 25565 || net.isIP(host)) return { host, port, viaSrv: false };
+  try {
+    const records = await dns.resolveSrv(`_minecraft._tcp.${host}`);
+    const record = [...records].sort((a, b) => a.priority - b.priority || b.weight - a.weight)[0];
+    if (!record?.name || !record?.port) return { host, port, viaSrv: false };
+    return { host: record.name.replace(/\.$/, ''), port: cleanPort(record.port), viaSrv: true };
+  } catch {
+    return { host, port, viaSrv: false };
+  }
+}
 
 export async function pingServer({ host, port = 25565 }) {
   host = cleanHost(host);
   port = cleanPort(port);
+  const endpoint = await resolveEndpoint(host, port);
   return new Promise((resolve, reject) => {
     const started = Date.now();
-    const socket = net.createConnection({ host, port });
+    const socket = net.createConnection({ host: endpoint.host, port: endpoint.port });
     let data = Buffer.alloc(0);
     let settled = false;
     const finish = (error, value) => {
@@ -54,8 +67,8 @@ export async function pingServer({ host, port = 25565 }) {
     const timer = setTimeout(() => finish(new Error('Server ping timed out after 6.5 seconds.')), 6500);
     socket.on('error', error => finish(new Error(`Could not reach ${host}:${port} — ${error.message}`)));
     socket.on('connect', () => {
-      // -1 intentionally asks for status without pretending to be one fixed Minecraft client protocol.
-      const handshake = Buffer.concat([varInt(0), varInt(-1), str(host), Buffer.from([(port >> 8) & 255, port & 255]), varInt(1)]);
+      // Protocol -1 is intentionally neutral for status. The server still returns its real version/protocol.
+      const handshake = Buffer.concat([varInt(0), varInt(-1), str(host), Buffer.from([(endpoint.port >> 8) & 255, endpoint.port & 255]), varInt(1)]);
       socket.write(Buffer.concat([varInt(handshake.length), handshake, Buffer.from([1, 0])]));
     });
     socket.on('data', chunk => {
@@ -77,7 +90,10 @@ export async function pingServer({ host, port = 25565 }) {
           protocol: json.version?.protocol,
           players: json.players || { online: 0, max: 0 },
           description: json.description,
-          favicon: json.favicon || ''
+          favicon: json.favicon || '',
+          viaSrv: endpoint.viaSrv,
+          resolvedHost: endpoint.host,
+          resolvedPort: endpoint.port
         });
       } catch (error) {
         finish(new Error(`Server returned an invalid status packet: ${error.message}`));
