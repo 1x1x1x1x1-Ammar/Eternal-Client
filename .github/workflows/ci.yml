@@ -1,8 +1,10 @@
 name: Eternal CI
+
 on:
   push:
     branches: [main, develop]
   pull_request:
+
 jobs:
   launcher:
     runs-on: windows-latest
@@ -14,11 +16,12 @@ jobs:
       - run: npm install
       - run: npm run test
       - run: npm run build
+
   core-source:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -27,3 +30,38 @@ jobs:
           gradle-version: '9.5.1'
       - working-directory: eternal-core
         run: gradle build --stacktrace
+
+  packaged-smoke:
+    name: Packaged Windows startup smoke test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.1'
+      - name: Build Eternal Core
+        working-directory: eternal-core
+        run: gradle build --stacktrace
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install launcher dependencies
+        run: npm install
+      - name: Stage verified Eternal Core
+        run: node scripts/stage-core.mjs
+      - name: Tests and renderer build
+        run: npm run verify
+      - name: Package unpacked Windows app
+        run: npx electron-builder --win dir --x64 --publish never
+      - name: Smoke test packaged Electron main process
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'release/win-unpacked/Eternal Client.exe'
+          if (!(Test-Path $exe)) { throw "Packaged executable not found: $exe" }
+          & $exe --smoke-test
+          if ($LASTEXITCODE -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $LASTEXITCODE" }
