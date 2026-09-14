@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { call, api } from '../lib/api.js';
 
+const AUTO_CONSOLE_CHANNELS = new Set([
+  'instances:create', 'instances:duplicate', 'instances:launch',
+  'mods:install', 'servers:join', 'core:exportStandalone',
+  'accounts:loginMicrosoft', 'updater:download', 'updater:install'
+]);
+
 export const useEternalStore = create((set, get) => ({
   accounts: [],
   activeAccountId: null,
@@ -87,10 +93,13 @@ export const useEternalStore = create((set, get) => ({
     downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-140)
   })),
 
-  pushOperationEvent: event => set(state => ({
-    operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-180),
-    operationConsoleOpen: event?.state === 'STARTED' || event?.state === 'ERROR' ? true : state.operationConsoleOpen
-  })),
+  pushOperationEvent: event => set(state => {
+    const shouldOpen = event?.state === 'ERROR' || (event?.state === 'STARTED' && AUTO_CONSOLE_CHANNELS.has(event?.channel));
+    return {
+      operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-180),
+      operationConsoleOpen: shouldOpen ? true : state.operationConsoleOpen
+    };
+  }),
   setOperationConsoleOpen: open => set({ operationConsoleOpen: Boolean(open) }),
   clearOperationEvents: () => set({ operationEvents: [] }),
 
