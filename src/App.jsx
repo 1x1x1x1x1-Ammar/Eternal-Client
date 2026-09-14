@@ -38,8 +38,27 @@ export default function App() {
     const offLaunch = api.on.launch(pushLaunch);
     const offDownload = api.on.download(pushDownload);
     const offOperation = api.on.operation?.(pushOperation);
+    const offUpdate = api.on.update?.(event => {
+      const progress = event?.type === 'progress'
+        ? { current: Number(event.transferred || 0), total: Number(event.total || 0), bytesPerSecond: Number(event.bytesPerSecond || 0), type: 'launcher-update' }
+        : null;
+      pushDownload({
+        id: `updater-${event?.version || 'stable'}`,
+        type: 'update',
+        name: `Eternal Client ${event?.version || ''}`.trim(),
+        state: event?.type === 'ready' ? 'INSTALLED' : event?.type === 'error' ? 'ERROR' : event?.type === 'current' ? 'CURRENT' : 'DOWNLOADING',
+        message: event?.type === 'checking' ? 'Checking stable update channel…'
+          : event?.type === 'available' ? `Update ${event.version} is available.`
+          : event?.type === 'progress' ? 'Downloading Eternal Client update…'
+          : event?.type === 'ready' ? `Update ${event.version} downloaded and ready to install.`
+          : event?.type === 'current' ? `Eternal Client ${event.version} is current.`
+          : event?.message || 'Updater event',
+        progress,
+        warning: event?.type === 'error'
+      });
+    });
     const offApp = api.on.app?.(event => setAppNotice(event?.message || 'Eternal reported an application event.'));
-    return () => { offLaunch?.(); offDownload?.(); offOperation?.(); offApp?.(); };
+    return () => { offLaunch?.(); offDownload?.(); offOperation?.(); offUpdate?.(); offApp?.(); };
   }, []);
 
   useEffect(() => {
