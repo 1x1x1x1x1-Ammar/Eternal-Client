@@ -1,107 +1,138 @@
 # Eternal Client v1.0.0
 
-**The first stable Eternal release — real launcher, real in-game Core, stable update channel, premium UI.**
+**The first stable Eternal release — real launcher, real in-game Core, stable update channel, diagnostics and premium UI.**
 
-Eternal v1 promotes the project out of beta after a release-hardening pass across launcher lifecycle, instance management, Microsoft sessions, Modrinth discovery, Core persistence, stable updating, Windows packaging and both desktop/in-game UI systems.
+Eternal v1 promotes the project out of beta after release hardening across launcher lifecycle, instances, Microsoft sessions, Modrinth, downloads, Core screen/input safety, persistence, stable updating, Windows packaging and both desktop/in-game UI systems.
 
 ## Launcher reliability
 
-- Mojang's official version manifest backs the **complete version catalog**, not a hand-written list.
-- New instances can target official releases, snapshots, old beta and old alpha entries from Mojang metadata.
-- Vanilla and Fabric are the only launch paths advertised because they are the paths implemented in this release.
-- Fabric compatibility is resolved against Fabric's own metadata when a profile launches.
-- Java is detected/validated before launch and the Minecraft-required Java major is enforced.
-- Microsoft sessions keep encrypted MSAL cache state and attempt silent renewal before launch when the Minecraft access token is near expiry.
-- Microsoft ownership/profile checks still run through Xbox Live → XSTS → Minecraft Services.
-- Offline profiles keep Minecraft-compatible deterministic UUID behavior.
-- Launcher process errors are surfaced into real lifecycle state.
-- Eternal is single-instance on Windows; opening it again restores/focuses the existing window.
-- External windows are denied inside Electron and safe http/https destinations open through the system browser.
-- Renderer stays context-isolated, sandboxed and without Node integration.
+- Mojang's official version manifest backs the complete instance version catalog.
+- New instances can target official releases, snapshots, old beta and old alpha entries.
+- Vanilla and Fabric are the only launch paths advertised because they are the paths implemented in v1.
+- Fabric compatibility resolves against Fabric metadata when a profile launches.
+- Java is detected/validated before launch and Minecraft's required Java major is enforced.
+- Microsoft sessions retain encrypted MSAL cache state and attempt silent renewal before launch.
+- Microsoft ownership/profile checks use Xbox Live → XSTS → Minecraft Services.
+- Offline profiles use Minecraft-compatible deterministic UUID behavior.
+- Eternal is single-instance on Windows; launching it again focuses/restores the existing window.
+- Electron renderer remains context-isolated, sandboxed and without Node integration.
 
-## Real Eternal Console
+## Eternal Console
 
-V1 adds a launcher operation console that opens automatically when real work starts and can also be toggled with **Ctrl+J**.
+Open **Ctrl+J** for a backend/runtime console built from real events.
 
-The console receives events from Electron backend operations rather than generated demo text. It covers instance create/edit/duplicate/delete/open/launch/stop, Modrinth installs and mod state changes, account actions, server actions, Core export, settings writes and updater operations. Separate tabs expose Minecraft launch logs and transfer events.
+- Operations: instance/account/mod/server/Core/settings/updater actions.
+- Minecraft: launch lifecycle plus real stdout/debug lines.
+- Transfers: Modrinth/Minecraft/update activity.
+- Error/warning classification surfaces Minecraft exceptions, fatal/error lines, warning lines and abnormal process exits.
+- Major operations open the console automatically; runtime warnings/errors can surface it automatically.
+- Visible output can be copied for bug reports.
+
+## Downloads V1
+
+The Downloads tab is a real transfer center instead of a decorative progress page.
+
+- Minecraft download/preparation events come from the launcher pipeline.
+- Modrinth events use actual transferred/total bytes where available.
+- Eternal updater events include real transferred bytes, total bytes and bytes/second.
+- Unknown-size work is shown as indeterminate — Eternal never invents a percentage.
+- All / Active / Complete / Errors filters operate on actual session events.
 
 ## Instance system
 
-- Every profile gets an isolated `.minecraft` tree with mods, config, saves, resource packs, shader packs, screenshots and logs.
-- Create from Mojang's complete official version catalog.
-- Search/type a specific official Minecraft version instead of being limited to a small dropdown.
+- Every profile owns an isolated `.minecraft` tree.
+- Create from Mojang's complete official catalog.
+- Search/type a specific official version instead of using a tiny hard-coded list.
 - Edit profile name and RAM without mutating unsafe identity fields.
-- Duplicate an instance by copying its isolated files into a new profile.
-- Duplicate/delete are blocked while the profile is running to avoid inconsistent copies or destructive races.
-- Real playtime, last-played and running-process state remain visible on profile cards.
-
-## Stable updater
-
-V1 enables a real GitHub stable update feed. Settings exposes:
-
-- Check for updates
-- Available/current/error states
-- Download update
-- Real download percentage events
-- Ready-to-install state
-- Restart & install
-
-The stable GitHub release includes `latest.yml`, which is validated in CI before publication.
+- Duplicate copies isolated files into a new profile.
+- Duplicate/delete are blocked while the profile is running.
+- Real playtime, last-played and running-process state remain visible.
 
 ## Mod Hub V1
 
-- Modrinth search is filtered by the selected Minecraft version and loader.
-- Discovery supports relevance, downloads, follows, newest and recently-updated sorting.
-- Optional category filters such as optimization, utility, technology, adventure, worldgen and decoration are sent to Modrinth as real facets.
-- Results are paginated with a real **Load more** request instead of rendering a fake local catalog.
-- Project cards show real downloads/follows/categories supplied by Modrinth.
+- Modrinth discovery filters against selected Minecraft version and loader.
+- Relevance, downloads, follows, newest and recently-updated sorting.
+- Real Modrinth category facets.
+- Real Load More pagination.
+- Project cards use real downloads/follows/categories supplied by Modrinth.
 - Required dependencies resolve recursively.
-- SHA-512/SHA-1 hashes are verified when Modrinth supplies them.
-- Partial `.part` files are not treated as successful installs.
-- Vanilla profiles disable mod installation instead of pretending JARs can load.
-- Launcher-managed Eternal Core cannot be manually disabled or removed through Mod Hub.
+- SHA-512/SHA-1 hashes are verified when provided.
+- Partial `.part` files never count as installed.
+- Vanilla profiles disable mod install controls instead of pretending JARs load.
+- Launcher-managed Eternal Core cannot be disabled/removed through Mod Hub.
 
 ## Servers
 
 - Real Minecraft status handshake for online state, protocol, version, player count and latency.
 - Standard `_minecraft._tcp` SRV resolution.
-- Modern Quick Play and legacy `--server/--port` launch paths selected by Minecraft version.
-- Aternos standard mode stays honest: save, ping, quick-join and official dashboard access only unless an authorized partner API exists.
+- Modern Quick Play and legacy `--server/--port` launch paths are selected by Minecraft version.
+- Aternos standard mode stays honest: save, ping, quick join and official dashboard access only without an authorized partner API.
 
-## Eternal Core v1
+# Eternal Core v1
 
-Current certified target: **Minecraft Java 1.21.11 + Fabric + Java 21**.
+Certified target: **Minecraft Java 1.21.11 + Fabric + Java 21**.
 
-### Eternal Start
+## Right-Shift / input crash hardening
 
-Press the configured Core open key (default **Right Shift**) to open the new premium **Eternal Start** dashboard. It is an original Eternal control surface in the same premium black/charcoal/crimson direction as the launcher.
+The Core input/UI path was rebuilt after a real crash report.
 
-Eternal Start shows real live FPS, ping, session and server state and exposes working actions for Modules, HUD Editor, Resume, Enable All, Disable All, Reset Layout, Zoom and Notifications. The buttons change actual Core state; they are not a rendered mock menu.
+- GLFW key-repeat events are ignored for Eternal screen opening.
+- Screen changes are queued onto Minecraft's client task queue instead of being performed re-entrantly inside the keyboard hook.
+- Duplicate screen-open requests are blocked while one is pending.
+- Keyboard and mouse hooks are guarded so Eternal can write a diagnostic instead of silently losing the cause.
+- Core writes runtime diagnostics to stdout/stderr and `config/eternal-core.log`.
+- The launcher Minecraft console classifies error/warning lines and shows abnormal process exits with the preceding runtime output.
+
+This hardening is release-gated by Core compilation and regression tests. Real-machine gameplay remains an important final compatibility check.
+
+## Eternal Minecraft title screen
+
+With Eternal Core loaded, the vanilla title screen is replaced by an original premium Eternal start menu.
+
+Working destinations:
+
+- Singleplayer → Minecraft world selection
+- Multiplayer → Minecraft server browser
+- Modules → Eternal module manager
+- HUD Editor → Eternal placement workspace
+- Options → Minecraft settings
+- Quit Game → Minecraft shutdown
+
+The design follows Eternal's black/charcoal/crimson identity. It does not ship Dawn assets or code.
+
+## Eternal Start
+
+Press the configured Core key (default **Right Shift**) in-game to open Eternal Start. It shows real FPS, ping, session/server state and working actions for Modules, HUD Editor, Resume, module bulk actions, Zoom and notifications.
+
+## Modules are opt-in
+
+Clean installs start with all HUD/Zoom modules **disabled**. The user chooses which modules appear. Existing saved configs continue to load.
 
 ### In-game module UI
 
-- V1 ClickGUI with premium black/charcoal/crimson chrome.
+- Premium black/charcoal/crimson ClickGUI.
 - Three-column live module surface.
-- Animated open/section detail, status pulse and premium interaction states.
 - Real module toggles and Enable All / Disable All.
-- Real configurable ClickGUI/HUD/Zoom bindings with duplicate-bind protection.
+- Persistent configurable ClickGUI/HUD/Zoom keybinds with duplicate-bind protection.
 - Zoom FOV control.
 - Notifications toggle.
 - Accent presets, HUD opacity and snap grid.
 - Default / Compact / Corners real layout presets.
-- One-click transition into the real HUD Editor.
+- Direct access to the HUD Editor.
 
 ### HUD Editor
 
-- Drag modules.
-- Grid snapping.
+- Dedicated **Modules** button to enable hidden modules.
+- Active modules render directly on the placement canvas.
+- Drag and grid snap.
 - Arrow-key nudging.
 - Real coordinate inspector.
-- Default/Compact/Corners presets.
+- Default/Compact/Corners saved presets.
 - Delete disables the selected module.
+- Responsive top controls for narrower GUI sizes.
 - Positions persist locally.
 
-### Live Core modules
+### Live modules
 
 - Watermark
 - FPS
@@ -120,63 +151,69 @@ Eternal Start shows real live FPS, ping, session and server state and exposes wo
 - Clock
 - Zoom
 
-The HUD data is read from live Minecraft/JVM state, not generated demo values.
+Keystrokes V1 now renders premium WASD keys plus live LMB/RMB pressed state and real left/right CPS. HUD telemetry is sourced from Minecraft/JVM state, not demo values.
 
-### Core persistence hardening
+### Core persistence
 
-`config/eternal-core.json` uses a temporary write followed by atomic replacement when supported. Invalid config is backed up as `eternal-core.corrupt-<timestamp>.json` instead of silently disappearing into a catch block.
+`config/eternal-core.json` uses temporary writes followed by atomic replacement when supported. Invalid config is backed up as `eternal-core.corrupt-<timestamp>.json`.
+
+`config/eternal-core.log` records Eternal Core runtime diagnostics.
 
 ## Standalone Core
 
-The release publishes:
+The stable release publishes:
 
 `Eternal-Core-Standalone-1.0.0.jar`
 
-It is the same Core binary the launcher verifies and installs. It works in a compatible Fabric 1.21.11 profile without the Eternal launcher running.
+It is the same Core binary verified/installed by the launcher and can run in a compatible Fabric 1.21.11 profile without the Eternal launcher running.
 
-## Premium UI/UX
+# Premium UI/UX
 
-V1 keeps one coherent Eternal visual system across launcher and game:
+V1 keeps one coherent visual system across launcher and game:
 
-- cinematic launch hero and animated Eternal emblem
+- cinematic launcher hero + Eternal red-E identity
 - compact crimson/charcoal shell
-- real live status hierarchy
-- premium instance command center and profile cards
-- full-version creation flow
-- real operation console
-- upgraded Mod Hub discovery/results/filtering
-- server/account/settings/download/developer polish
-- real stable-update progress UI
-- route transitions and controlled micro-motion
-- Eternal Start + matching Core ClickGUI/HUD/HUD Editor/notifications
-- responsive layouts
-- reduced-motion support
+- real state hierarchy and controlled micro-motion
+- premium full-catalog instance workflow
+- premium Mod Hub discovery/filtering/results
+- real Eternal Console
+- real Downloads telemetry
+- server/account/settings/developer/update polish
+- custom Eternal Minecraft title screen
+- Eternal Start + matching ClickGUI/HUD/HUD Editor/notifications
+- responsive behavior
+- reduced-motion support in the desktop launcher
 
 No visual state is allowed to invent runtime data.
 
-## Stable release gate
+# Stable release gate
 
-The v1 release workflow rebuilds from the exact release commit and must pass:
+The v1 workflow rebuilds the exact release commit and must pass:
 
 1. Java 21 + clean Eternal Core Gradle build.
 2. Core JAR metadata, mod id, icon and `1.0.0` version validation.
 3. Node dependency install.
-4. full source/runtime/UI regression tests.
+4. Full source/runtime/UI regression tests.
 5. Vite production renderer build.
 6. Eternal Windows brand checks.
 7. Windows NSIS/Electron packaging.
 8. `latest.yml` updater metadata validation.
-9. packaged `Eternal Client.exe --smoke-test` startup.
-10. standalone Core JAR generation.
+9. Packaged `Eternal Client.exe --smoke-test` startup.
+10. Standalone Core JAR generation.
 11. SHA-256 checksum generation.
-12. normal GitHub release publication marked **latest** — not prerelease.
+12. Normal GitHub release publication marked **latest** — not prerelease.
 
-### Release files
+## Release files
 
-V1 intentionally does **not** publish a portable ZIP. The stable release contains the Windows installer, standalone Eternal Core JAR, updater metadata and SHA-256 checksums.
+V1 intentionally does **not** publish a portable ZIP:
+
+- `Eternal.Client.Setup.1.0.0.exe`
+- `Eternal-Core-Standalone-1.0.0.jar`
+- `latest.yml`
+- `SHA256SUMS.txt`
 
 ## Scope
 
-Eternal v1 does not claim unsupported functionality. Core is certified for Fabric 1.21.11; the launcher implements Vanilla and Fabric profiles across Mojang's official catalog where the underlying launch/loader metadata is available. Microsoft login requires your own Entra/Azure public-client application ID.
+Core is certified for Fabric 1.21.11. The launcher implements Vanilla and Fabric profiles across Mojang's official catalog where the underlying launch/loader metadata is available. Microsoft login requires your own Entra/Azure public-client application ID.
 
-Passing CI proves the exact release source builds, packages and boots in the automated Windows environment. It cannot prove every PC, driver, network, Microsoft account or third-party server combination is bug-free, so real failures should be reported and fixed rather than hidden behind a “100% bug-free” label.
+Passing CI proves the exact source builds, packages and starts in the automated environment. It cannot prove every PC, driver, server, account or third-party mod combination is bug-free, so failures are logged and fixed rather than hidden behind a “100% bug-free” label.
