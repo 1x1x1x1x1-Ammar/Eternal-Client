@@ -70,7 +70,25 @@ export function runningState() {
   return [...processes.entries()].map(([instanceId, children]) => ({ instanceId, pids: [...children].map(child => child.pid), count: children.size }));
 }
 
-export async function launchInstance({ instanceId, server = null, requireCore = false, emit = () => {} }) {
+export async function launchInstance(options) {
+  const emit = options?.emit || (() => {});
+  const instanceId = options?.instanceId;
+  try {
+    return await launchInstanceInternal({ ...options, emit });
+  } catch (error) {
+    emit({
+      instanceId,
+      state: 'ERROR',
+      level: 'error',
+      warning: true,
+      source: 'minecraft',
+      message: error?.message || String(error)
+    });
+    throw error;
+  }
+}
+
+async function launchInstanceInternal({ instanceId, server = null, requireCore = false, emit = () => {} }) {
   const instance = await getInstance(instanceId);
   if (!['vanilla', 'fabric'].includes(instance.loader)) throw new Error(`Loader ${instance.loader} is not implemented by this Eternal build.`);
   if (requireCore && !(instance.loader === 'fabric' && instance.minecraftVersion === '1.21.11')) {
@@ -81,28 +99,28 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   const account = activeAccount();
   if (!account) throw new Error('Add and select an account before launching.');
 
-  emit({ instanceId, state: 'VALIDATING', message: 'Validating profile, account and Java…' });
+  emit({ instanceId, state: 'VALIDATING', message: 'Validating profile, account and Java…', source: 'minecraft' });
   const java = await resolveJava(instance);
   const authorization = await launcherAuthorization(account);
   let versionCustom = '';
 
   if (instance.loader === 'fabric') {
-    emit({ instanceId, state: 'RESOLVING_LOADER', message: 'Resolving Fabric loader from official metadata…' });
+    emit({ instanceId, state: 'RESOLVING_LOADER', message: 'Resolving Fabric loader from official metadata…', source: 'minecraft' });
     const fabric = await installFabricProfile(gameRoot, instance.minecraftVersion, instance.loaderVersion);
     versionCustom = fabric.id;
 
     if (instance.minecraftVersion === '1.21.11') {
-      emit({ instanceId, state: 'PREPARING_MODS', message: 'Verifying Eternal Core…' });
+      emit({ instanceId, state: 'PREPARING_MODS', message: 'Verifying Eternal Core…', source: 'minecraft' });
       const core = await prepareCore(instanceId);
       if (!core.installed && requireCore) throw new Error(core.reason || 'Eternal Core could not be prepared.');
-      if (!core.installed) emit({ instanceId, state: 'PREPARING_MODS', message: core.reason, warning: true });
-      else emit({ instanceId, state: 'PREPARING_MODS', message: core.changed ? `Eternal Core ${core.version} repaired/updated.` : `Eternal Core ${core.version} verified.` });
+      if (!core.installed) emit({ instanceId, state: 'PREPARING_MODS', message: core.reason, warning: true, level: 'warning', source: 'minecraft' });
+      else emit({ instanceId, state: 'PREPARING_MODS', message: core.changed ? `Eternal Core ${core.version} repaired/updated.` : `Eternal Core ${core.version} verified.`, source: 'minecraft' });
     } else if (requireCore) {
       throw new Error('Eternal Core is not certified for this Minecraft version.');
     }
   }
 
-  emit({ instanceId, state: 'STARTING_JVM', message: `Starting Minecraft with Java ${java.major}…` });
+  emit({ instanceId, state: 'STARTING_JVM', message: `Starting Minecraft with Java ${java.major}…`, source: 'minecraft' });
   const Client = await clientClass();
   const client = new Client();
   const settings = store.get('settings');
@@ -125,11 +143,11 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading Minecraft files…', progress, source: 'minecraft' }));
   client.on('debug', value => {
     const line = classifyGameMessage(value, true);
-    emit({ instanceId, state: 'DEBUG', ...line });
+    emit({ instanceId, state: 'DEBUG', ...line, source: 'minecraft' });
   });
   client.on('data', value => {
     const line = classifyGameMessage(value, false);
-    emit({ instanceId, state: 'LOG', ...line });
+    emit({ instanceId, state: 'LOG', ...line, source: 'minecraft' });
   });
 
   const child = await client.launch(options);
@@ -138,11 +156,11 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   processes.get(instanceId).add(child);
 
   const started = Date.now();
-  emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, remaining: processes.get(instanceId).size });
+  emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, remaining: processes.get(instanceId).size, source: 'minecraft' });
   await patchInstance(instanceId, { lastPlayedAt: new Date().toISOString() });
 
   child.once('error', error => {
-    emit({ instanceId, state: 'PROCESS_ERROR', level: 'error', warning: true, message: `Minecraft process error: ${error?.message || error}`, pid: child.pid });
+    emit({ instanceId, state: 'PROCESS_ERROR', level: 'error', warning: true, message: `Minecraft process error: ${error?.message || error}`, pid: child.pid, source: 'minecraft' });
   });
   child.once('close', async code => {
     const set = processes.get(instanceId);
@@ -157,6 +175,7 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
       state: 'STOPPED',
       level: failed ? 'error' : 'info',
       warning: failed,
+      source: 'minecraft',
       message: failed ? `Minecraft exited with code ${code}. Open Console → Minecraft for the preceding error/warning lines.` : `Minecraft exited (${code ?? 'unknown'}).`,
       code,
       pid: child.pid,
