@@ -10,7 +10,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
 
 public final class EternalCore implements ClientModInitializer {
-    public static final String VERSION = "0.8.0-beta.8";
+    public static final String VERSION = "1.0.0";
     private static long sessionStarted;
     private static boolean zoomed;
     private static int previousFov = 70;
@@ -19,7 +19,7 @@ public final class EternalCore implements ClientModInitializer {
     public void onInitializeClient() {
         sessionStarted = System.currentTimeMillis();
         HudRenderer.install();
-        NotificationCenter.push("ETERNAL CORE", "Beta 8 ready · press your Core key to open");
+        NotificationCenter.push("ETERNAL CORE", "v1 ready · press " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()) + " to open");
     }
 
     public static long sessionMillis() {
