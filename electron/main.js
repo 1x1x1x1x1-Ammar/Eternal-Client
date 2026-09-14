@@ -50,7 +50,13 @@ function sanitizeSettingsPatch(patch = {}) {
 async function openExternal(urlValue) {
   const url = new URL(String(urlValue || ''));
   if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Eternal only opens http/https links.');
-  return shell.openExternal(url.toString());
+  await shell.openExternal(url.toString());
+  return true;
+}
+async function openFolder(folder) {
+  const error = await shell.openPath(folder);
+  if (error) throw new Error(error);
+  return true;
 }
 
 function createWindow() {
@@ -118,7 +124,7 @@ handle('app:diagnostics', async () => ({
   dataRoot: dataRoot()
 }));
 handle('app:openExternal', openExternal);
-handle('app:openDataFolder', async () => shell.openPath(dataRoot()));
+handle('app:openDataFolder', async () => openFolder(dataRoot()));
 
 handle('window:minimize', () => mainWindow?.minimize());
 handle('window:maximize', () => mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize());
@@ -154,9 +160,12 @@ handle('accounts:loginMicrosoft', () => accounts.loginMicrosoft(code => send('ac
 
 handle('instances:list', () => instances.listInstances());
 handle('instances:versions', options => versions.listMinecraftVersions(options));
-handle('instances:create', data => instances.createInstance(data));
+handle('instances:create', async data => {
+  await versions.assertMinecraftVersion(data?.minecraftVersion);
+  return instances.createInstance(data);
+});
 handle('instances:remove', id => instances.removeInstance(id));
-handle('instances:openFolder', async id => shell.openPath(instances.instanceDir(id)));
+handle('instances:openFolder', async id => openFolder(instances.instanceDir(id)));
 handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event) }));
 handle('instances:stop', id => launcher.stopInstance(id));
 
