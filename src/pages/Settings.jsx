@@ -75,13 +75,15 @@ export default function Settings() {
           {accounts.map(account => <div className={`account-row ${account.id === active ? 'selected' : ''}`} key={account.id}>
             <div className="avatar"><MinecraftHead skinUrl={account.skinUrl || ''} username={account.username} size={34}/></div>
             <div><b>{account.username}</b><span>{account.type === 'microsoft' ? 'Microsoft / Minecraft' : 'Offline'}</span></div>
-            {account.id === active ? <Check/> : <button onClick={() => act(async () => { await call(api.accounts.activate(account.id)); await refresh(); }, `Using ${account.username}`)}>Use</button>}
-            <button className="icon-btn" title="Remove account" onClick={() => act(async () => { await call(api.accounts.remove(account.id)); await refresh(); })}><Trash2/></button>
+            {account.id === active ? <Check/> : <button onClick={async () => act(async () => { await call(api.accounts.activate(account.id)); await refresh(); }, `Using ${account.username}`)}>Use</button>}
+            <button className="icon-btn" onClick={async () => act(async () => { await call(api.accounts.remove(account.id)); await refresh(); }, `${account.username} removed.`)}><Trash2/></button>
           </div>)}
-          {!accounts.length && <div className="empty-card">No Minecraft account added.</div>}
         </div>
-        <div className="inline-form"><input value={offline} onChange={e => setOffline(e.target.value)} onKeyDown={e => e.key === 'Enter' && offline && act(async () => { await call(api.accounts.addOffline(offline)); setOffline(''); await refresh(); }, 'Offline account added.')} placeholder="Offline username"/><button disabled={!offline.trim()} onClick={() => act(async () => { await call(api.accounts.addOffline(offline)); setOffline(''); await refresh(); }, 'Offline account added.')}><UserPlus/>Add</button></div>
-        <button className="primary wide" onClick={() => act(async () => { await call(api.accounts.loginMicrosoft()); await refresh(); }, 'Microsoft account connected.')}><LogIn/>Sign in with Microsoft</button>
+        <div className="inline-form">
+          <input value={offline} onChange={e => setOffline(e.target.value)} placeholder="Offline username" onKeyDown={e => e.key === 'Enter' && offline.trim() && act(async () => { await call(api.accounts.addOffline(offline)); setOffline(''); await refresh(); }, 'Offline account added.')}/>
+          <button disabled={!offline.trim()} onClick={async () => act(async () => { await call(api.accounts.addOffline(offline)); setOffline(''); await refresh(); }, 'Offline account added.')}><UserPlus/>Add</button>
+        </div>
+        <button className="primary wide" onClick={async () => act(async () => { await call(api.accounts.loginMicrosoft()); await refresh(); }, 'Microsoft account connected.')}><LogIn/>Sign in with Microsoft</button>
       </section>
 
       <section className="settings-card beta8-settings-card">
@@ -108,14 +110,14 @@ export default function Settings() {
       <section className="settings-card beta8-settings-card">
         <div className="beta8-card-title"><FolderOpen/><div><h3>Storage</h3><small>Managed instance root</small></div></div>
         <label>Eternal data folder<input value={settings.dataDir || ''} readOnly placeholder="Default Electron user data"/></label>
-        <div className="beta8-button-row"><button className="secondary" onClick={async () => { const selected = await act(() => call(api.dialog.folder())); if (selected) { await patch({ dataDir: selected }); setSaved('Managed data root updated. Refresh Instances to read the new root.'); } }}><FolderOpen/>Choose folder</button><button className="secondary" onClick={() => act(() => api.app.openDataFolder())}><ExternalLink/>Open current</button></div>
+        <div className="beta8-button-row"><button className="secondary" onClick={async () => { const selected = await act(() => call(api.dialog.folder())); if (selected) { await patch({ dataDir: selected }); setSaved('Managed data root updated. Refresh Instances to read the new root.'); } }}><FolderOpen/>Choose folder</button><button className="secondary" onClick={() => act(() => call(api.app.openDataFolder()))}><ExternalLink/>Open current</button></div>
         <small className="muted">Changing the root never deletes or migrates existing files automatically.</small>
       </section>
 
       <section className="settings-card integration-settings-card beta8-settings-card">
         <div className="beta8-card-title"><MessageCircle/><div><h3>Discord shortcut</h3><small>Optional external integration</small></div></div>
         <label>Discord invite URL<input value={settings.discordInvite || ''} onChange={e => patch({ discordInvite: e.target.value })} placeholder="https://discord.gg/your-server"/></label>
-        <div className={`integration-setting-status ${settings.discordInvite && !discordValid ? 'invalid' : ''}`}><MessageCircle/><span>{!settings.discordInvite ? 'Sidebar shortcut stays hidden until a real invite is configured.' : discordValid ? 'Valid Discord invite. Sidebar shortcut is enabled.' : 'Invite must use https://discord.gg or https://discord.com.'}</span>{discordValid && <button className="icon-btn" onClick={() => api.app.openExternal(settings.discordInvite)} title="Open configured invite"><ExternalLink/></button>}</div>
+        <div className={`integration-setting-status ${settings.discordInvite && !discordValid ? 'invalid' : ''}`}><MessageCircle/><span>{!settings.discordInvite ? 'Sidebar shortcut stays hidden until a real invite is configured.' : discordValid ? 'Valid Discord invite. Sidebar shortcut is enabled.' : 'Invite must use https://discord.gg or https://discord.com.'}</span>{discordValid && <button className="icon-btn" onClick={() => act(() => call(api.app.openExternal(settings.discordInvite)))} title="Open configured invite"><ExternalLink/></button>}</div>
       </section>
     </div>
   </div>;
