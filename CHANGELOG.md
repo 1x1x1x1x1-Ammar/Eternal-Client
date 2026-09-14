@@ -1,87 +1,48 @@
-# Eternal Client Changelog
+# Changelog
 
-## v1.0.0
-
-### Stable launcher
-- Promoted Eternal Client and Eternal Core to stable `1.0.0` versioning.
-- Added renewable Microsoft session state using encrypted MSAL cache data and silent token renewal before launch.
-- Added single-instance Electron lifecycle behavior and safer external-window handling.
-- Added real GitHub stable updater actions: check, download, progress, ready, restart/install.
-- Kept Mojang version validation, Java validation, real Vanilla/Fabric launch paths, Modrinth dependency/hash validation, Minecraft SRV ping and Core SHA-256 verification.
-
-### Premium launcher UI/UX
-- Added final `v1.css` presentation layer loaded after the premium beta layers.
-- Promoted Home to a stable V1 cinematic command surface with advanced micro-motion and real runtime status.
-- Added stable update UI/progress in Settings.
-- Further polished Instances, Mod Hub, Servers, Accounts, Core, Downloads and Developer surfaces without inventing runtime state.
-- Kept responsive and reduced-motion behavior.
-
-### Eternal Core v1
-- Expanded live modules with Health, Armor, Food and Server telemetry.
-- Rebuilt ClickGUI HUD module surface to a three-column V1 layout.
-- Added V1 open/section animation details and live status pulses.
-- Kept real configurable Core/HUD/Zoom keybinds, Zoom FOV, notifications, accent, opacity, snap grid and layout presets.
-- Kept real HUD drag/snap/nudge/delete/preset behavior.
-- Hardened Core config persistence with temp-file writes, atomic replace when available and corrupt-config backup.
-- Standalone and launcher-managed modes continue to use the same Core binary.
-
-### Stable release pipeline
-- Added a dedicated non-prerelease `Eternal Stable Release` workflow.
-- Rebuilds Core and launcher from the exact release commit.
-- Validates Core metadata, icon, mod id and v1 version.
-- Runs full regression suite and Vite production build.
-- Packages Windows and boots packaged `Eternal Client.exe --smoke-test`.
-- Validates `latest.yml` for stable auto-update.
-- Publishes installer, portable ZIP, standalone Core JAR, updater metadata and SHA-256 checksums as the latest normal GitHub release.
-
-## v0.7.0-beta.7
-
-### Eternal Core
-- Rebuilt in-game ClickGUI with HUD / Utility / Style / About sections.
-- Added persistent accent color, HUD opacity, Zoom FOV and snap-grid settings.
-- Added Default / Compact / Corners HUD layout presets.
-- Added real in-game notification feedback.
-- Added Watermark and Clock HUD modules.
-- Improved draggable HUD editor and persistent layout handling.
-- Made the same Eternal Core JAR an explicit standalone Fabric mod as well as the launcher-managed Core.
-- Embedded the Eternal icon in Fabric mod metadata.
+## 1.0.0 — Stable candidate
 
 ### Launcher
-- Added real standalone Core export through Electron IPC + save dialog.
-- Added Windows AppUserModelID `gg.eternal.client`.
-- Switched Windows packaging to the Eternal vector icon source.
-- Fixed renderer logo paths so Vite bundles them for packaged `file://` builds.
-- Rebuilt the launcher Core page around real status, launch and export actions.
+- Promoted launcher/Core versions to stable `1.0.0`.
+- Premium Eternal black/charcoal/crimson UI system across Home, Instances, Mod Hub, Servers, Accounts, Downloads, Developer, Core and Settings.
+- Complete Mojang official version catalog for instance creation, including releases, snapshots, old beta and old alpha entries.
+- Real isolated instance create/edit/duplicate/delete/open/launch/stop flows.
+- Real Eternal Console (`Ctrl+J`) for backend operations, Minecraft runtime output, warnings/errors and transfer activity.
+- Real Downloads center with backend bytes/progress/speed when measurable and indeterminate states when total size is unknown.
+- Mod Hub V1: Modrinth sort/category filters, real pagination, dependency resolution and hash verification.
+- Stable GitHub updater: check/download/progress/ready/restart-install.
+- Renewable encrypted Microsoft session cache and pre-launch silent renewal.
+- Single-instance Electron lifecycle, safe external links and packaged startup smoke testing.
+- Windows package keeps Eternal branding instead of generic Electron branding.
 
-### Release pipeline
-- Added standalone Core metadata/icon validation.
-- Added branded Windows asset validation before packaging.
-- Release publishes installer, portable launcher, standalone Core JAR and SHA256 sums.
-- Packaged Windows EXE startup smoke test remains a mandatory release gate.
+### Eternal Core
+- Certified build target remains Minecraft Java 1.21.11 + Fabric + Java 21.
+- Replaces the vanilla Minecraft title screen with an original Eternal premium start menu wired to real Singleplayer, Multiplayer, Modules, HUD Editor, Options and Quit destinations.
+- Right Shift opens a dedicated Eternal Start dashboard; H opens the HUD Editor.
+- Crash hardening: ignores GLFW key repeats, normalizes mouse actions, queues screen transitions on the Minecraft client task queue, prevents duplicate screen-open requests and logs Core handler failures.
+- Core runtime diagnostics are written to stdout/stderr and `config/eternal-core.log`.
+- Clean installations keep HUD and Zoom modules disabled until explicitly enabled.
+- HUD modules: Watermark, FPS, CPS, Keystrokes, Coordinates, Ping, Speed, Direction, Health, Armor, Food, Server, Memory, Session and Clock; Zoom remains a utility module.
+- Premium keystrokes now include live WASD + LMB/RMB pressed states and real CPS.
+- HUD Editor includes a Modules button, live placement canvas, drag/snap, arrow nudging, coordinate inspector, presets and Delete-to-disable.
+- Persistent keybinds, accent, HUD opacity, snap grid, Zoom FOV, module states and positions.
+- Atomic config replacement where supported and malformed-config backup.
+- Same verified Core JAR works launcher-managed or standalone.
 
-## v0.6.0-beta.6
+### Stable release
+- Normal/latest GitHub release, not a prerelease.
+- Publishes `Eternal.Client.Setup.1.0.0.exe`, `Eternal-Core-Standalone-1.0.0.jar`, `latest.yml`, and `SHA256SUMS.txt`.
+- Stable v1 intentionally does **not** publish a portable ZIP.
+- Release gate rebuilds Core/launcher, runs regression tests, validates branding/updater metadata, packages Windows and starts the packaged `Eternal Client.exe --smoke-test` before publication.
 
-### Added / changed
-- Reference-locked black/crimson launcher direction.
-- Wider labelled sidebar, cinematic Home hero, real instance selector and dashboard panels.
-- Packaged Windows EXE startup smoke-test gate.
+## 0.8.0-beta.8
+- Reality pass across launcher UI, Mojang/Java validation, Modrinth verification, Core integrity and in-game controls.
 
-### Fixed
-- `electron-updater` CommonJS/ESM import crash that prevented Beta 5 from opening.
+## 0.7.0-beta.7
+- Standalone Eternal Core artifact, Windows Eternal identity and expanded in-game UI.
 
-## v0.5.0-beta.5
+## 0.6.0-beta.6
+- Fixed packaged `electron-updater` import crash and added packaged EXE startup smoke testing.
 
-### Added
-- Original red Eternal **E** emblem used by the launcher and README.
-- Premium launcher layout and crimson motion system.
-- Real `Ctrl + K` Command Center.
-- Real isolated Vanilla/Fabric instance creation and process tracking.
-- Microsoft device-code/Xbox/XSTS/Minecraft ownership flow source.
-- Modrinth compatibility-filtered search/install path.
-- Genuine Minecraft TCP status ping.
-- Eternal Core 1.21.11 source with ClickGUI, draggable HUD, live telemetry and hold-C FOV zoom.
-- Minecraft `Gui.render` mixin for the real in-game HUD.
-
-### Fixed
-- Electron crash from `tar` default ESM import; now uses namespace import.
-- Updated 1.21.11 keyboard/mouse mixins to the current input signatures.
+## 0.5.0-beta.5
+- First GitHub-packaged beta with launcher/Core release artifacts and Command Center/HUD expansion.
