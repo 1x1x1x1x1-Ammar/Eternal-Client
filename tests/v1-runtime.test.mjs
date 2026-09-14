@@ -6,11 +6,14 @@ import path from 'node:path';
 const root = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('Core key handling ignores GLFW repeats and opens screens on the Minecraft task queue', () => {
+test('Core input handling ignores repeats/unknown actions and opens screens on the Minecraft task queue', () => {
   const keyboard = read('eternal-core/src/main/java/gg/eternal/core/mixin/KeyboardMixin.java');
+  const mouse = read('eternal-core/src/main/java/gg/eternal/core/mixin/MouseMixin.java');
   const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
   assert.match(keyboard, /if \(action == 2\) return/);
   assert.match(keyboard, /action == 1/);
+  assert.match(mouse, /action != 0 && action != 1/);
+  assert.match(mouse, /action == 1/);
   assert.match(core, /screenOpenQueued/);
   assert.match(core, /mc\.execute/);
   assert.match(core, /queueScreen/);
@@ -34,7 +37,7 @@ test('Eternal replaces the vanilla title screen with its own real navigation sur
   for (const label of ['SINGLEPLAYER', 'MULTIPLAYER', 'MODULES', 'HUD EDITOR', 'OPTIONS', 'QUIT GAME']) assert.match(title, new RegExp(label));
   assert.match(title, /SelectWorldScreen/);
   assert.match(title, /JoinMultiplayerScreen/);
-  assert.match(title, /OptionsScreen/);
+  assert.match(title, /screens\.options\.OptionsScreen/);
   assert.match(title, /EternalCore\.openClickGui/);
   assert.match(title, /EternalCore\.openHudEditor/);
 });
