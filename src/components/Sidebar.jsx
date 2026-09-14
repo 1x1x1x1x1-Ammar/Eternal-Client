@@ -1,14 +1,19 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Boxes, Puzzle, Server, Gem, Settings, MessageCircle } from 'lucide-react';
+import { Boxes, Download, Home, MessageCircle, Puzzle, Server, Settings, TerminalSquare, UserRound } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import MinecraftHead from './MinecraftHead.jsx';
 
-const links = [
+const primaryLinks = [
   ['/', Home, 'Home'],
   ['/library', Boxes, 'Instances'],
-  ['/mods', Puzzle, 'Mod Hub'],
+  ['/mods', Puzzle, 'Mods'],
   ['/servers', Server, 'Servers'],
-  ['/core', Gem, 'Eternal Core']
+  ['/accounts', UserRound, 'Accounts'],
+  ['/settings', Settings, 'Settings']
+];
+const secondaryLinks = [
+  ['/downloads', Download, 'Downloads'],
+  ['/developer', TerminalSquare, 'Developer']
 ];
 
 function validDiscordInvite(value) {
@@ -21,6 +26,12 @@ function validDiscordInvite(value) {
   }
 }
 
+function LinkRow({ to, Icon, label }) {
+  return <NavLink key={to} to={to} end={to === '/'} data-tip={label} className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
+    <Icon size={17} /><span>{label}</span>
+  </NavLink>;
+}
+
 export default function Sidebar() {
   const accounts = useEternalStore(s => s.accounts);
   const activeId = useEternalStore(s => s.activeAccountId);
@@ -28,33 +39,23 @@ export default function Sidebar() {
   const account = accounts.find(x => x.id === activeId);
   const discordReady = validDiscordInvite(settings.discordInvite);
 
-  return <aside className="sidebar">
-    <div className="logo-orb"><img src="/assets/logo.svg" alt="Eternal" /></div>
-    <nav>
-      {links.map(([to, Icon, label]) => <NavLink
-        key={to}
-        to={to}
-        end={to === '/'}
-        data-tip={label}
-        className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}
-      ><Icon size={20} /></NavLink>)}
-    </nav>
+  return <aside className="sidebar release-sidebar">
+    <div className="sidebar-brand">
+      <img src="/assets/logo.svg" alt="Eternal" />
+      <div><strong>ETERNAL</strong><small>CLIENT</small></div>
+    </div>
+
+    <nav className="sidebar-primary">{primaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
+    <div className="sidebar-divider" />
+    <nav className="sidebar-secondary">{secondaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
 
     <div className="sidebar-spacer" />
+    {discordReady && <button className="nav-icon" data-tip="Discord" onClick={() => window.eternal.app.openExternal(settings.discordInvite)}><MessageCircle size={17} /><span>Discord</span></button>}
 
-    {discordReady && <button
-      className="nav-icon"
-      data-tip="Discord"
-      onClick={() => window.eternal.app.openExternal(settings.discordInvite)}
-    ><MessageCircle size={20} /></button>}
-
-    <NavLink to="/settings" data-tip="Settings" className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
-      <Settings size={20} />
-    </NavLink>
-
-    <div className="account-dot" title={account ? `${account.username} · ${account.type}` : 'No account selected'}>
-      <MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={38} />
+    <NavLink to="/accounts" className="sidebar-account" title={account ? `${account.username} · ${account.type}` : 'No account selected'}>
+      <MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={34} />
+      <div><b>{account?.username || 'No account'}</b><span>{account ? (account.type === 'microsoft' ? 'Microsoft' : 'Offline') : 'Add account'}</span></div>
       <i className={account ? 'online' : ''} />
-    </div>
+    </NavLink>
   </aside>;
 }
