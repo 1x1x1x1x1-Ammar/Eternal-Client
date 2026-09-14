@@ -2,14 +2,17 @@ appId: gg.eternal.client
 productName: Eternal Client
 directories:
   output: release
+  buildResources: build
 files:
   - dist/renderer/**/*
   - electron/**/*
   - assets/**/*
   - package.json
 asar: true
+artifactName: Eternal.Client.Setup.${version}.${ext}
 win:
-  icon: assets/icon.png
+  icon: build/icon.svg
+  executableName: Eternal Client
   target:
     - target: nsis
       arch: [x64]
