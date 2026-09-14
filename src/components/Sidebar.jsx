@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Boxes, Download, Home, MessageCircle, Puzzle, Server, Settings, TerminalSquare, UserRound } from 'lucide-react';
+import { Boxes, Download, Home, MessageCircle, Puzzle, Server, Settings, ShieldCheck, TerminalSquare, UserRound } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import MinecraftHead from './MinecraftHead.jsx';
 import eternalLogo from '../../assets/logo.svg';
@@ -9,6 +9,7 @@ const primaryLinks = [
   ['/library', Boxes, 'Instances'],
   ['/mods', Puzzle, 'Mods'],
   ['/servers', Server, 'Servers'],
+  ['/core', ShieldCheck, 'Eternal Core'],
   ['/accounts', UserRound, 'Accounts'],
   ['/settings', Settings, 'Settings']
 ];
@@ -28,7 +29,7 @@ function validDiscordInvite(value) {
 }
 
 function LinkRow({ to, Icon, label }) {
-  return <NavLink key={to} to={to} end={to === '/'} data-tip={label} className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
+  return <NavLink to={to} end={to === '/'} data-tip={label} className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
     <Icon size={17} /><span>{label}</span>
   </NavLink>;
 }
@@ -46,9 +47,9 @@ export default function Sidebar() {
       <div><strong>ETERNAL</strong><small>CLIENT</small></div>
     </div>
 
-    <nav className="sidebar-primary">{primaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
+    <nav className="sidebar-primary" aria-label="Main navigation">{primaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
     <div className="sidebar-divider" />
-    <nav className="sidebar-secondary">{secondaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
+    <nav className="sidebar-secondary" aria-label="Utility navigation">{secondaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
 
     <div className="sidebar-spacer" />
     {discordReady && <button className="nav-icon" data-tip="Discord" onClick={() => window.eternal.app.openExternal(settings.discordInvite)}><MessageCircle size={17} /><span>Discord</span></button>}
