@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { autoUpdater } from 'electron-updater';
+import updaterPackage from 'electron-updater';
 import { store, dataRoot } from './services/store.js';
 import * as accounts from './services/accountService.js';
 import * as instances from './services/instanceService.js';
@@ -11,6 +11,9 @@ import * as mods from './services/modService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
 import { coreStatus } from './services/coreService.js';
+
+const { autoUpdater } = updaterPackage;
+if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let mainWindow;
@@ -21,14 +24,15 @@ function send(channel, payload) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1320,
-    height: 820,
-    minWidth: 1040,
-    minHeight: 650,
+    width: 1460,
+    height: 900,
+    minWidth: 1120,
+    minHeight: 720,
     frame: false,
-    backgroundColor: '#070708',
+    backgroundColor: '#050506',
     show: false,
     icon: path.join(__dirname, '../assets/icon.png'),
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -36,7 +40,10 @@ function createWindow() {
       sandbox: true
     }
   });
+
   mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.on('unresponsive', () => send('app:event', { type: 'unresponsive', message: 'The launcher window stopped responding.' }));
+
   if (process.env.VITE_DEV_SERVER_URL) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   else mainWindow.loadFile(path.join(__dirname, '../dist/renderer/index.html'));
 }
