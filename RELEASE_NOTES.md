@@ -70,20 +70,19 @@ The Downloads tab is a real transfer center instead of a decorative progress pag
 
 # Eternal Core v1
 
-Certified target: **Minecraft Java 1.21.11 + Fabric + Java 21**.
+Automated target: **Minecraft Java 1.21.11 + Fabric + Java 21**. The exact release must compile under that target and pass the release gates; user-hardware gameplay remains the final compatibility check for a specific PC/mod/server combination.
 
 ## Right-Shift / input crash hardening
 
 The Core input/UI path was rebuilt after a real crash report.
 
 - GLFW key-repeat events are ignored for Eternal screen opening.
+- Mouse actions are normalized to exact press/release values.
 - Screen changes are queued onto Minecraft's client task queue instead of being performed re-entrantly inside the keyboard hook.
 - Duplicate screen-open requests are blocked while one is pending.
 - Keyboard and mouse hooks are guarded so Eternal can write a diagnostic instead of silently losing the cause.
 - Core writes runtime diagnostics to stdout/stderr and `config/eternal-core.log`.
 - The launcher Minecraft console classifies error/warning lines and shows abnormal process exits with the preceding runtime output.
-
-This hardening is release-gated by Core compilation and regression tests. Real-machine gameplay remains an important final compatibility check.
 
 ## Eternal Minecraft title screen
 
@@ -151,7 +150,7 @@ Clean installs start with all HUD/Zoom modules **disabled**. The user chooses wh
 - Clock
 - Zoom
 
-Keystrokes V1 now renders premium WASD keys plus live LMB/RMB pressed state and real left/right CPS. HUD telemetry is sourced from Minecraft/JVM state, not demo values.
+Keystrokes V1 renders WASD keys plus live LMB/RMB pressed state and real left/right CPS. HUD telemetry is sourced from Minecraft/JVM state, not demo values.
 
 ### Core persistence
 
@@ -214,6 +213,6 @@ V1 intentionally does **not** publish a portable ZIP:
 
 ## Scope
 
-Core is certified for Fabric 1.21.11. The launcher implements Vanilla and Fabric profiles across Mojang's official catalog where the underlying launch/loader metadata is available. Microsoft login requires your own Entra/Azure public-client application ID.
+The Core v1 build targets Fabric 1.21.11. The launcher implements Vanilla and Fabric profiles across Mojang's official catalog where the underlying launch/loader metadata is available. Microsoft login requires your own Entra/Azure public-client application ID.
 
 Passing CI proves the exact source builds, packages and starts in the automated environment. It cannot prove every PC, driver, server, account or third-party mod combination is bug-free, so failures are logged and fixed rather than hidden behind a “100% bug-free” label.
