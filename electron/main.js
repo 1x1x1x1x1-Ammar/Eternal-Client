@@ -10,6 +10,7 @@ import * as java from './services/javaService.js';
 import * as mods from './services/modService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
+import * as versions from './services/versionService.js';
 import { coreStatus, exportStandalone } from './services/coreService.js';
 
 const { autoUpdater } = updaterPackage;
@@ -25,14 +26,46 @@ let mainWindow;
 function send(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
 }
+function clamp(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(min, Math.min(max, number)) : fallback;
+}
+function sanitizeSettingsPatch(patch = {}) {
+  const allowed = {};
+  if ('dataDir' in patch) allowed.dataDir = String(patch.dataDir || '');
+  if ('javaPath' in patch) allowed.javaPath = String(patch.javaPath || '');
+  if ('azureClientId' in patch) allowed.azureClientId = String(patch.azureClientId || '').trim();
+  if ('discordInvite' in patch) allowed.discordInvite = String(patch.discordInvite || '').trim();
+  if ('ramMb' in patch) allowed.ramMb = Math.round(clamp(patch.ramMb, 1024, 32768, 6144));
+  if ('reducedMotion' in patch) allowed.reducedMotion = Boolean(patch.reducedMotion);
+  if ('resolution' in patch) {
+    const current = store.get('settings.resolution') || { width: 1280, height: 720 };
+    allowed.resolution = {
+      width: Math.round(clamp(patch.resolution?.width, 640, 7680, current.width)),
+      height: Math.round(clamp(patch.resolution?.height, 360, 4320, current.height))
+    };
+  }
+  return allowed;
+}
+async function openExternal(urlValue) {
+  const url = new URL(String(urlValue || ''));
+  if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Eternal only opens http/https links.');
+  await shell.openExternal(url.toString());
+  return true;
+}
+async function openFolder(folder) {
+  const error = await shell.openPath(folder);
+  if (error) throw new Error(error);
+  return true;
+}
 
 function createWindow() {
   const iconPath = path.join(__dirname, '../assets/icon.png');
   mainWindow = new BrowserWindow({
     width: 1460,
     height: 900,
-    minWidth: 1120,
-    minHeight: 720,
+    minWidth: 980,
+    minHeight: 650,
     frame: false,
     backgroundColor: '#050506',
     show: false,
@@ -90,21 +123,28 @@ handle('app:diagnostics', async () => ({
   userData: app.getPath('userData'),
   dataRoot: dataRoot()
 }));
-handle('app:openExternal', url => shell.openExternal(String(url)));
-handle('app:openDataFolder', async () => shell.openPath(dataRoot()));
+handle('app:openExternal', openExternal);
+handle('app:openDataFolder', async () => openFolder(dataRoot()));
 
-handle('window:minimize', () => mainWindow.minimize());
-handle('window:maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
-handle('window:close', () => mainWindow.close());
+handle('window:minimize', () => mainWindow?.minimize());
+handle('window:maximize', () => mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize());
+handle('window:close', () => mainWindow?.close());
 
 handle('settings:get', () => store.get('settings'));
 handle('settings:patch', patch => {
-  store.set('settings', { ...store.get('settings'), ...patch });
+  store.set('settings', { ...store.get('settings'), ...sanitizeSettingsPatch(patch) });
   return store.get('settings');
 });
 
 handle('dialog:folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory', 'createDirectory'] });
+  return result.canceled ? '' : result.filePaths[0];
+});
+handle('dialog:java', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: process.platform === 'win32' ? [{ name: 'Java runtime', extensions: ['exe'] }] : undefined
+  });
   return result.canceled ? '' : result.filePaths[0];
 });
 handle('dialog:jars', async () => {
@@ -119,19 +159,24 @@ handle('accounts:activate', id => accounts.activateAccount(id));
 handle('accounts:loginMicrosoft', () => accounts.loginMicrosoft(code => send('account:event', { type: 'device-code', message: code.message, userCode: code.userCode, verificationUri: code.verificationUri })));
 
 handle('instances:list', () => instances.listInstances());
-handle('instances:create', data => instances.createInstance(data));
+handle('instances:versions', options => versions.listMinecraftVersions(options));
+handle('instances:create', async data => {
+  await versions.assertMinecraftVersion(data?.minecraftVersion);
+  return instances.createInstance(data);
+});
 handle('instances:remove', id => instances.removeInstance(id));
-handle('instances:openFolder', async id => shell.openPath(instances.instanceDir(id)));
+handle('instances:openFolder', async id => openFolder(instances.instanceDir(id)));
 handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event) }));
 handle('instances:stop', id => launcher.stopInstance(id));
 
 handle('java:detect', () => java.detectJava());
+handle('java:validate', value => java.validateJava(value));
 handle('mods:list', id => mods.listMods(id));
 handle('mods:add', data => mods.addMods(data.instanceId, data.files));
 handle('mods:remove', data => mods.removeMod(data.instanceId, data.filename));
 handle('mods:toggle', data => mods.toggleMod(data.instanceId, data.filename, data.enabled));
 handle('mods:search', data => mods.searchModrinth(data));
-handle('mods:install', data => mods.installModrinth(data));
+handle('mods:install', data => mods.installModrinth({ ...data, emit: event => send('download:event', event) }));
 
 handle('servers:list', () => servers.listServers());
 handle('servers:save', server => servers.saveServer(server));

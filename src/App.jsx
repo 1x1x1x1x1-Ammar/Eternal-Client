@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import Sidebar from './components/Sidebar.jsx';
 import TitleBar from './components/TitleBar.jsx';
 import CommandCenter from './components/CommandCenter.jsx';
@@ -16,6 +17,7 @@ import Developer from './pages/Developer.jsx';
 import Settings from './pages/Settings.jsx';
 import { useEternalStore } from './store/useEternalStore.js';
 import { api } from './lib/api.js';
+import eternalLogo from '../assets/logo.svg';
 
 export default function App() {
   const location = useLocation();
@@ -24,14 +26,17 @@ export default function App() {
   const pushLaunch = useEternalStore(s => s.pushLaunchEvent);
   const pushDownload = useEternalStore(s => s.pushDownloadEvent);
   const loading = useEternalStore(s => s.loading);
+  const bootstrapError = useEternalStore(s => s.bootstrapError);
   const reducedMotion = useEternalStore(s => s.settings?.reducedMotion);
   const [command, setCommand] = useState(false);
+  const [appNotice, setAppNotice] = useState('');
 
   useEffect(() => {
-    bootstrap().catch(console.error);
+    bootstrap().catch(() => {});
     const offLaunch = api.on.launch(pushLaunch);
     const offDownload = api.on.download(pushDownload);
-    return () => { offLaunch?.(); offDownload?.(); };
+    const offApp = api.on.app?.(event => setAppNotice(event?.message || 'Eternal reported an application event.'));
+    return () => { offLaunch?.(); offDownload?.(); offApp?.(); };
   }, []);
 
   useEffect(() => {
@@ -45,12 +50,20 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  if (loading) return <div className="splash"><img src="/assets/logo.svg" alt="Eternal"/><div className="loader-ring"/><b>ETERNAL</b><span>Loading real launcher state…</span></div>;
+  if (loading) return <div className="splash beta8-splash"><img src={eternalLogo} alt="Eternal"/><div className="loader-ring"/><b>ETERNAL</b><span>Loading launcher state…</span></div>;
+  if (bootstrapError) return <div className="beta8-fatal-state">
+    <img src={eternalLogo} alt="Eternal"/>
+    <AlertTriangle />
+    <h1>Eternal could not load its launcher state</h1>
+    <p>{bootstrapError}</p>
+    <button className="primary" onClick={() => bootstrap().catch(() => {})}><RefreshCw/>Retry</button>
+  </div>;
 
   return <div className="app-shell">
     <TitleBar onSearch={() => setCommand(true)} />
     <Sidebar />
     <main className="content">
+      {appNotice && <button className="beta8-app-notice" onClick={() => setAppNotice('')}><AlertTriangle/><span>{appNotice}</span><b>Dismiss</b></button>}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={location.pathname}

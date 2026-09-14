@@ -10,27 +10,36 @@ export const useEternalStore = create((set, get) => ({
   appVersion: null,
   running: [],
   launchEvents: {},
+  launchLogs: {},
   downloadEvents: [],
   loading: true,
+  bootstrapError: '',
 
   bootstrap: async () => {
-    const [accounts, instances, servers, settings, state] = await Promise.all([
-      call(api.accounts.list()),
-      call(api.instances.list()),
-      call(api.servers.list()),
-      call(api.settings.get()),
-      call(api.app.state())
-    ]);
-    set({
-      accounts: accounts.accounts,
-      activeAccountId: accounts.activeId,
-      instances,
-      servers,
-      settings,
-      appVersion: state.version,
-      running: state.running,
-      loading: false
-    });
+    set({ loading: true, bootstrapError: '' });
+    try {
+      const [accounts, instances, servers, settings, state] = await Promise.all([
+        call(api.accounts.list()),
+        call(api.instances.list()),
+        call(api.servers.list()),
+        call(api.settings.get()),
+        call(api.app.state())
+      ]);
+      set({
+        accounts: accounts.accounts,
+        activeAccountId: accounts.activeId,
+        instances,
+        servers,
+        settings,
+        appVersion: state.version,
+        running: state.running,
+        loading: false,
+        bootstrapError: ''
+      });
+    } catch (error) {
+      set({ loading: false, bootstrapError: error?.message || String(error) });
+      throw error;
+    }
   },
 
   refreshInstances: async () => set({ instances: await call(api.instances.list()) }),
@@ -39,8 +48,24 @@ export const useEternalStore = create((set, get) => ({
     set({ accounts: value.accounts, activeAccountId: value.activeId });
   },
   refreshServers: async () => set({ servers: await call(api.servers.list()) }),
+  refreshRuntime: async () => {
+    const state = await call(api.app.state());
+    set({ appVersion: state.version, running: state.running });
+    return state;
+  },
 
   pushLaunchEvent: event => set(state => {
+    const receivedAt = Date.now();
+    if (event.state === 'LOG' || event.state === 'DEBUG') {
+      const previous = state.launchLogs[event.instanceId] || [];
+      return {
+        launchLogs: {
+          ...state.launchLogs,
+          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-80)
+        }
+      };
+    }
+
     let running = state.running;
     if (event.state === 'RUNNING' && event.pid) {
       const current = running.find(row => row.instanceId === event.instanceId);
@@ -53,11 +78,11 @@ export const useEternalStore = create((set, get) => ({
         ? [...running.filter(row => row.instanceId !== event.instanceId), { instanceId: event.instanceId, pids, count: pids.length }]
         : running.filter(row => row.instanceId !== event.instanceId);
     }
-    return { launchEvents: { ...state.launchEvents, [event.instanceId]: event }, running };
+    return { launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } }, running };
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-60)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-100)
   })),
 
   patchSettings: async patch => {
