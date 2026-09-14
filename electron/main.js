@@ -29,6 +29,7 @@ let operationSequence = 0;
 
 const tracedOperations = new Set([
   'accounts:addOffline', 'accounts:loginMicrosoft', 'accounts:remove', 'accounts:activate',
+  'accounts:refreshProfile', 'accounts:setSkin', 'accounts:resetSkin',
   'instances:create', 'instances:patch', 'instances:duplicate', 'instances:remove', 'instances:openFolder', 'instances:launch', 'instances:stop',
   'mods:add', 'mods:remove', 'mods:toggle', 'mods:install',
   'servers:save', 'servers:remove', 'servers:ping', 'servers:join',
@@ -87,7 +88,7 @@ function operationCopy(channel, payload, result, success = false) {
     case 'instances:stop': return success ? 'Minecraft processes stopped.' : 'Stopping Minecraft processes';
     case 'mods:add': return success ? 'Local mod files added.' : 'Adding local mod files';
     case 'mods:remove': return success ? 'Mod removed.' : 'Removing mod';
-    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : `Changing mod state`;
+    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : 'Changing mod state';
     case 'mods:install': return success ? 'Modrinth install verified.' : 'Resolving and installing Modrinth project';
     case 'servers:ping': return success ? 'Minecraft server status received.' : 'Pinging Minecraft server';
     case 'servers:join': return success ? 'Server launch request accepted.' : 'Preparing server quick-join';
@@ -97,6 +98,9 @@ function operationCopy(channel, payload, result, success = false) {
     case 'accounts:loginMicrosoft': return success ? 'Microsoft account authenticated.' : 'Starting Microsoft device-code authentication';
     case 'accounts:activate': return success ? 'Active account changed.' : 'Switching active account';
     case 'accounts:remove': return success ? 'Account removed.' : 'Removing account';
+    case 'accounts:refreshProfile': return success ? 'Minecraft profile and cosmetics refreshed.' : 'Refreshing Minecraft profile and cosmetics';
+    case 'accounts:setSkin': return success ? `Skin applied (${result?.scope === 'minecraft' ? 'Minecraft account' : 'local preview'}).` : `Applying ${payload?.variant || 'classic'} skin`;
+    case 'accounts:resetSkin': return success ? 'Skin reset completed.' : 'Resetting skin';
     case 'core:exportStandalone': return success ? 'Standalone Eternal Core exported and verified.' : 'Exporting standalone Eternal Core';
     case 'settings:patch': return success ? 'Launcher settings saved.' : 'Saving launcher settings';
     case 'updater:check': return success ? 'Update check completed.' : 'Checking stable update channel';
@@ -235,12 +239,24 @@ handle('dialog:jars', async () => {
   const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile', 'multiSelections'], filters: [{ name: 'Java mods', extensions: ['jar'] }] });
   return result.canceled ? [] : result.filePaths;
 });
+handle('dialog:skin', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Choose Minecraft skin PNG',
+    properties: ['openFile'],
+    filters: [{ name: 'Minecraft skin PNG', extensions: ['png'] }]
+  });
+  return result.canceled ? '' : result.filePaths[0];
+});
 
 handle('accounts:list', () => ({ accounts: accounts.listAccounts(), activeId: store.get('activeAccountId') }));
 handle('accounts:addOffline', username => accounts.addOffline(username));
 handle('accounts:remove', id => accounts.removeAccount(id));
 handle('accounts:activate', id => accounts.activateAccount(id));
 handle('accounts:loginMicrosoft', () => accounts.loginMicrosoft(code => send('account:event', { type: 'device-code', message: code.message, userCode: code.userCode, verificationUri: code.verificationUri })));
+handle('accounts:refreshProfile', id => accounts.refreshAccountProfile(id));
+handle('accounts:skinPreview', id => accounts.accountSkinPreview(id));
+handle('accounts:setSkin', data => accounts.setAccountSkin(data || {}));
+handle('accounts:resetSkin', id => accounts.resetAccountSkin(id));
 
 handle('instances:list', () => instances.listInstances());
 handle('instances:versions', options => versions.listMinecraftVersions(options));
