@@ -44,7 +44,7 @@ export async function getInstance(id) {
 }
 
 export async function createInstance(data) {
-  const loader = ['vanilla', 'fabric'].includes(data.loader) ? data.loader : 'vanilla';
+  const loader = ['vanilla','fabric'].includes(data.loader) ? data.loader : 'vanilla';
   const version = String(data.minecraftVersion || '').trim();
   if (!version) throw new Error('Minecraft version is required.');
   const name = safeName(data.name || `${version} ${loader}`);
