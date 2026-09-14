@@ -144,7 +144,7 @@ export default function Accounts() {
     if (!studio) return;
     setSkinBusy(true);
     try {
-      const result = await run(() => call(api.accounts.resetSkin(studio.id));
+      const result = await run(() => call(api.accounts.resetSkin(studio.id)));
       if (!result) return;
       await refreshAccounts();
       setPreviews(value => ({ ...value, [studio.id]: result.preview || { dataUrl: '' } }));
