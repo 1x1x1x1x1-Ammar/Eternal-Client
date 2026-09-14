@@ -67,7 +67,11 @@ contextBridge.exposeInMainWorld('eternal', {
     status: (id) => invoke('core:status', id),
     exportStandalone: () => invoke('core:exportStandalone')
   },
-  updater: { check: () => invoke('updater:check') },
+  updater: {
+    check: () => invoke('updater:check'),
+    download: () => invoke('updater:download'),
+    install: () => invoke('updater:install')
+  },
   on: {
     launch: (cb) => on('launch:event', cb),
     download: (cb) => on('download:event', cb),
