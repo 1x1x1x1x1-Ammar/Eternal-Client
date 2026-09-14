@@ -63,7 +63,6 @@ jobs:
           foreach ($required in @('fabric.mod.json','assets/eternal-core/icon.png','gg/eternal/core/EternalCore.class')) {
             if ($entries -notcontains $required) { throw "Standalone Core is missing $required" }
           }
-          $tmp = Join-Path $env:RUNNER_TEMP 'eternal-core-fabric.mod.json'
           Push-Location $env:RUNNER_TEMP
           & jar xf "$env:GITHUB_WORKSPACE/assets/eternal-core.jar" fabric.mod.json
           if ($LASTEXITCODE -ne 0) { throw 'Could not extract fabric.mod.json.' }
@@ -113,12 +112,14 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Select-Object -First 1
+          $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Where-Object { $_.Name -notlike '*blockmap*' } | Select-Object -First 1
           if (-not $installer) { throw 'NSIS installer was not produced.' }
           Copy-Item assets/eternal-core.jar "release/Eternal-Core-Standalone-$env:CORE_VERSION.jar" -Force
-          if (!(Test-Path 'release/win-unpacked')) { throw 'win-unpacked output is missing.' }
-          Compress-Archive -Path 'release/win-unpacked/*' -DestinationPath "release/Eternal-Client-$env:CORE_VERSION-portable.zip" -Force
-          $targets = Get-ChildItem release -File | Where-Object { $_.Extension -in '.exe','.jar','.zip','.yml' }
+          $targets = @(
+            $installer,
+            (Get-Item "release/Eternal-Core-Standalone-$env:CORE_VERSION.jar"),
+            (Get-Item 'release/latest.yml')
+          )
           $lines = foreach ($file in $targets) {
             $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
             "$hash  $($file.Name)"
@@ -133,7 +134,6 @@ jobs:
           if-no-files-found: error
           path: |
             release/*.exe
-            release/*-portable.zip
             release/Eternal-Core-Standalone-1.0.0.jar
             release/latest.yml
             release/SHA256SUMS.txt
@@ -144,10 +144,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Select-Object -First 1
+          $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Where-Object { $_.Name -notlike '*blockmap*' } | Select-Object -First 1
           $core = Get-Item "release/Eternal-Core-Standalone-$env:CORE_VERSION.jar"
-          $portable = Get-ChildItem -Path release -Filter '*-portable.zip' -File | Select-Object -First 1
           $latest = Get-Item 'release/latest.yml'
           $checksum = Get-Item 'release/SHA256SUMS.txt'
-          $files = @($installer.FullName, $core.FullName, $portable.FullName, $latest.FullName, $checksum.FullName)
+          $files = @($installer.FullName, $core.FullName, $latest.FullName, $checksum.FullName)
           gh release create $env:RELEASE_TAG $files --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Eternal Client v1.0.0" --notes-file RELEASE_NOTES.md --latest
