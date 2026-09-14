@@ -29,7 +29,9 @@ test('skin pipeline uses validated PNGs and official Minecraft Services endpoint
   assert.match(skin, /PNG_SIGNATURE/);
   assert.match(skin, /width !== 64/);
   assert.match(skin, /\[32, 64\]/);
-  assert.match(accounts, /api\.minecraftservices\.com\/minecraft\/profile\/skins/);
+  assert.match(accounts, /MINECRAFT_PROFILE = 'https:\/\/api\.minecraftservices\.com\/minecraft\/profile'/);
+  assert.match(accounts, /MINECRAFT_SKINS = `\$\{MINECRAFT_PROFILE\}\/skins`/);
+  assert.match(accounts, /fetch\(MINECRAFT_SKINS/);
   assert.match(accounts, /FormData/);
   assert.match(accounts, /new Blob/);
   assert.match(accounts, /method:'DELETE'/);
