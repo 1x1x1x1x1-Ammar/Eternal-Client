@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 
 public final class EternalHomeScreen extends Screen {
     private static final int BG = 0xF707080B;
-    private static final int PANEL = 0xFC0B0D11;
     private static final int SURFACE = 0xFF111419;
     private static final int SURFACE_HOVER = 0xFF181C22;
     private static final int LINE = 0x33464C56;
@@ -59,7 +58,7 @@ public final class EternalHomeScreen extends Screen {
         graphics.drawString(font, "YOUR CLIENT. YOUR HUD. YOUR RULES.", heroX + 18, heroY + 18, DIM, false);
         graphics.drawString(font, "ETERNAL START", heroX + 18, heroY + 38, TEXT, false);
         graphics.drawString(font, "A premium control surface for real client modules, persistent HUD layouts and utility settings.", heroX + 18, heroY + 56, MUTED, false);
-        graphics.drawString(font, "Right Shift opens here · every control below changes real Core state", heroX + 18, heroY + 76, 0xFF666D78, false);
+        graphics.drawString(font, "Fresh installs start clean: modules stay OFF until you choose them.", heroX + 18, heroY + 76, 0xFF666D78, false);
 
         button(graphics, mouseX, mouseY, heroX + 18, heroY + 91, 122, 25, "MODULES", true);
         button(graphics, mouseX, mouseY, heroX + 148, heroY + 91, 122, 25, "HUD EDITOR", false);
@@ -75,15 +74,15 @@ public final class EternalHomeScreen extends Screen {
 
         int controlY = statY + 74;
         int leftW = (heroW - 10) / 2;
-        panel(graphics, mouseX, mouseY, heroX, controlY, leftW, 126, "HUD SYSTEM", "Persistent modules + layout", accent);
+        panel(graphics, heroX, controlY, leftW, 126, "HUD SYSTEM", "Choose modules, then drag them exactly where you want", accent);
         graphics.drawString(font, enabledModules() + " HUD modules enabled", heroX + 16, controlY + 49, TEXT, false);
         graphics.drawString(font, "Opacity " + CoreConfig.INSTANCE.hudAlpha() + " · Snap " + CoreConfig.INSTANCE.snap() + "px", heroX + 16, controlY + 66, MUTED, false);
         button(graphics, mouseX, mouseY, heroX + 16, controlY + 88, 92, 24, "ENABLE ALL", false);
         button(graphics, mouseX, mouseY, heroX + 116, controlY + 88, 92, 24, "DISABLE ALL", false);
-        button(graphics, mouseX, mouseY, heroX + 216, controlY + 88, 100, 24, "RESET LAYOUT", false);
+        button(graphics, mouseX, mouseY, heroX + 216, controlY + 88, 100, 24, "EDIT HUD", false);
 
         int rightX = heroX + leftW + 10;
-        panel(graphics, mouseX, mouseY, rightX, controlY, leftW, 126, "UTILITY", "Real persistent client controls", accent);
+        panel(graphics, rightX, controlY, leftW, 126, "UTILITY", "Persistent controls with real state", accent);
         graphics.drawString(font, "Zoom " + (CoreConfig.INSTANCE.on("Zoom") ? "ON" : "OFF") + " · FOV " + CoreConfig.INSTANCE.zoomFov(), rightX + 16, controlY + 49, TEXT, false);
         graphics.drawString(font, "Notifications " + (CoreConfig.INSTANCE.notifications() ? "ON" : "OFF"), rightX + 16, controlY + 66, MUTED, false);
         button(graphics, mouseX, mouseY, rightX + 16, controlY + 88, 112, 24, "TOGGLE ZOOM", false);
@@ -117,7 +116,7 @@ public final class EternalHomeScreen extends Screen {
         graphics.drawString(font, value, x + 12, y + 32, TEXT, false);
     }
 
-    private void panel(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int w, int h, String title, String sub, int accent) {
+    private void panel(GuiGraphics graphics, int x, int y, int w, int h, String title, String sub, int accent) {
         graphics.fill(x, y, x + w, y + h, SURFACE);
         graphics.renderOutline(x, y, w, h, LINE);
         graphics.fill(x, y, x + 2, y + h, 0x55000000 | (accent & 0x00FFFFFF));
@@ -151,8 +150,8 @@ public final class EternalHomeScreen extends Screen {
         int mouseX = (int) event.x();
         int mouseY = (int) event.y();
 
-        if (inside(mouseX, mouseY, heroX + 18, heroY + 91, 122, 25)) { Minecraft.getInstance().setScreen(new ClickGuiScreen()); return true; }
-        if (inside(mouseX, mouseY, heroX + 148, heroY + 91, 122, 25)) { Minecraft.getInstance().setScreen(new HudEditorScreen()); return true; }
+        if (inside(mouseX, mouseY, heroX + 18, heroY + 91, 122, 25)) { EternalCore.openClickGui(); return true; }
+        if (inside(mouseX, mouseY, heroX + 148, heroY + 91, 122, 25)) { EternalCore.openHudEditor(); return true; }
         if (inside(mouseX, mouseY, heroX + 278, heroY + 91, 104, 25)) { Minecraft.getInstance().setScreen(null); return true; }
 
         if (inside(mouseX, mouseY, heroX + 16, controlY + 88, 92, 24)) {
@@ -166,8 +165,7 @@ public final class EternalHomeScreen extends Screen {
             return true;
         }
         if (inside(mouseX, mouseY, heroX + 216, controlY + 88, 100, 24)) {
-            CoreConfig.INSTANCE.applyPreset("DEFAULT", width, height);
-            NotificationCenter.push("HUD", "Default layout restored");
+            EternalCore.openHudEditor();
             return true;
         }
         if (inside(mouseX, mouseY, rightX + 16, controlY + 88, 112, 24)) {
