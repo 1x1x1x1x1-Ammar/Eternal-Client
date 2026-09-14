@@ -64,13 +64,15 @@ export const useEternalStore = create((set, get) => ({
 
   pushLaunchEvent: event => set(state => {
     const receivedAt = Date.now();
+    const runtimeProblem = event?.warning || event?.level === 'error' || event?.level === 'warning' || event?.state === 'PROCESS_ERROR';
     if (event.state === 'LOG' || event.state === 'DEBUG') {
       const previous = state.launchLogs[event.instanceId] || [];
       return {
         launchLogs: {
           ...state.launchLogs,
-          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-120)
-        }
+          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-180)
+        },
+        operationConsoleOpen: runtimeProblem ? true : state.operationConsoleOpen
       };
     }
 
@@ -86,17 +88,21 @@ export const useEternalStore = create((set, get) => ({
         ? [...running.filter(row => row.instanceId !== event.instanceId), { instanceId: event.instanceId, pids, count: pids.length }]
         : running.filter(row => row.instanceId !== event.instanceId);
     }
-    return { launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } }, running };
+    return {
+      launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } },
+      running,
+      operationConsoleOpen: runtimeProblem ? true : state.operationConsoleOpen
+    };
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-140)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-180)
   })),
 
   pushOperationEvent: event => set(state => {
     const shouldOpen = event?.state === 'ERROR' || (event?.state === 'STARTED' && AUTO_CONSOLE_CHANNELS.has(event?.channel));
     return {
-      operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-180),
+      operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-220),
       operationConsoleOpen: shouldOpen ? true : state.operationConsoleOpen
     };
   }),
