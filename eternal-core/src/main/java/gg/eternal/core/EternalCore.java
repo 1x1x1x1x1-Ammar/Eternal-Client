@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public final class EternalCore implements ClientModInitializer {
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
     private static long sessionStarted;
     private static boolean zoomed;
     private static int previousFov = 70;
