@@ -1,6 +1,6 @@
 {
   "name": "eternal-client",
-  "version": "0.8.0-beta.8",
+  "version": "1.0.0",
   "description": "Eternal Client — a real Minecraft launcher and standalone in-game client.",
   "type": "module",
   "main": "electron/main.js",
