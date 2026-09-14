@@ -10,6 +10,7 @@ export const useEternalStore = create((set, get) => ({
   appVersion: null,
   running: [],
   launchEvents: {},
+  launchLogs: {},
   downloadEvents: [],
   loading: true,
   bootstrapError: '',
@@ -54,6 +55,17 @@ export const useEternalStore = create((set, get) => ({
   },
 
   pushLaunchEvent: event => set(state => {
+    const receivedAt = Date.now();
+    if (event.state === 'LOG' || event.state === 'DEBUG') {
+      const previous = state.launchLogs[event.instanceId] || [];
+      return {
+        launchLogs: {
+          ...state.launchLogs,
+          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-80)
+        }
+      };
+    }
+
     let running = state.running;
     if (event.state === 'RUNNING' && event.pid) {
       const current = running.find(row => row.instanceId === event.instanceId);
@@ -66,7 +78,7 @@ export const useEternalStore = create((set, get) => ({
         ? [...running.filter(row => row.instanceId !== event.instanceId), { instanceId: event.instanceId, pids, count: pids.length }]
         : running.filter(row => row.instanceId !== event.instanceId);
     }
-    return { launchEvents: { ...state.launchEvents, [event.instanceId]: event }, running };
+    return { launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } }, running };
   }),
 
   pushDownloadEvent: event => set(state => ({
