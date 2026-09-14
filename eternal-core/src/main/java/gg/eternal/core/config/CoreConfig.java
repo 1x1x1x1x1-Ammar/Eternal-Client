@@ -18,12 +18,18 @@ public final class CoreConfig {
     public final Map<String, Boolean> enabled = new LinkedHashMap<>();
     public final Map<String, int[]> positions = new LinkedHashMap<>();
 
+    private int accentColor = 0xFFFF3038;
+    private int hudAlpha = 196;
+    private int zoomFov = 30;
+    private int snap = 4;
+    private boolean notifications = true;
+
     private final Path file = FabricLoader.getInstance().getConfigDir().resolve("eternal-core.json");
 
     private CoreConfig() {
         for (String name : new String[]{
-                "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
-                "Speed", "Direction", "Memory", "Session", "Zoom"
+                "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
+                "Speed", "Direction", "Memory", "Session", "Clock", "Zoom"
         }) {
             enabled.put(name, true);
         }
@@ -48,8 +54,72 @@ public final class CoreConfig {
         save();
     }
 
+    public int accentColor() { return accentColor; }
+    public int hudAlpha() { return hudAlpha; }
+    public int zoomFov() { return zoomFov; }
+    public int snap() { return snap; }
+    public boolean notifications() { return notifications; }
+
+    public void setAccentColor(int color) {
+        accentColor = 0xFF000000 | (color & 0x00FFFFFF);
+        save();
+    }
+
+    public void setHudAlpha(int value) {
+        hudAlpha = clamp(value, 80, 245);
+        save();
+    }
+
+    public void setZoomFov(int value) {
+        zoomFov = clamp(value, 10, 60);
+        save();
+    }
+
+    public void setSnap(int value) {
+        snap = value <= 2 ? 2 : value <= 4 ? 4 : 8;
+        save();
+    }
+
+    public void setNotifications(boolean value) {
+        notifications = value;
+        save();
+    }
+
     public void reset() {
         positions.clear();
+        save();
+    }
+
+    public void applyPreset(String preset, int screenWidth, int screenHeight) {
+        positions.clear();
+        int right = Math.max(12, screenWidth - 190);
+        int lower = Math.max(70, screenHeight - 82);
+
+        if ("COMPACT".equalsIgnoreCase(preset)) {
+            positions.put("Watermark", new int[]{10, 10});
+            positions.put("FPS", new int[]{10, 31});
+            positions.put("Ping", new int[]{10, 52});
+            positions.put("Coordinates", new int[]{10, 73});
+            positions.put("Speed", new int[]{right, 10});
+            positions.put("Direction", new int[]{right, 31});
+            positions.put("Memory", new int[]{right, 52});
+            positions.put("Clock", new int[]{right, 73});
+            positions.put("CPS", new int[]{10, lower});
+            positions.put("Keystrokes", new int[]{10, lower + 21});
+            positions.put("Session", new int[]{right, lower});
+        } else if ("CORNERS".equalsIgnoreCase(preset)) {
+            positions.put("Watermark", new int[]{10, 10});
+            positions.put("FPS", new int[]{10, 31});
+            positions.put("CPS", new int[]{10, 52});
+            positions.put("Coordinates", new int[]{right, 10});
+            positions.put("Ping", new int[]{right, 31});
+            positions.put("Clock", new int[]{right, 52});
+            positions.put("Keystrokes", new int[]{10, lower});
+            positions.put("Speed", new int[]{right, lower});
+            positions.put("Direction", new int[]{right, lower + 21});
+            positions.put("Memory", new int[]{10, lower - 21});
+            positions.put("Session", new int[]{right, lower - 21});
+        }
         save();
     }
 
@@ -72,6 +142,12 @@ public final class CoreConfig {
                     }
                 }
             }
+
+            if (root.has("accentColor")) accentColor = 0xFF000000 | (root.get("accentColor").getAsInt() & 0x00FFFFFF);
+            if (root.has("hudAlpha")) hudAlpha = clamp(root.get("hudAlpha").getAsInt(), 80, 245);
+            if (root.has("zoomFov")) zoomFov = clamp(root.get("zoomFov").getAsInt(), 10, 60);
+            if (root.has("snap")) setSnapWithoutSave(root.get("snap").getAsInt());
+            if (root.has("notifications")) notifications = root.get("notifications").getAsBoolean();
         } catch (Exception ignored) {
             // A corrupt config should never prevent Minecraft from launching.
         }
@@ -95,9 +171,22 @@ public final class CoreConfig {
 
             root.add("enabled", enabledJson);
             root.add("positions", positionsJson);
+            root.addProperty("accentColor", accentColor);
+            root.addProperty("hudAlpha", hudAlpha);
+            root.addProperty("zoomFov", zoomFov);
+            root.addProperty("snap", snap);
+            root.addProperty("notifications", notifications);
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
         } catch (Exception ignored) {
             // Runtime config persistence is best-effort and must not crash the game.
         }
+    }
+
+    private void setSnapWithoutSave(int value) {
+        snap = value <= 2 ? 2 : value <= 4 ? 4 : 8;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 }
