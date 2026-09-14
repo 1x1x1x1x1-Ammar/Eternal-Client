@@ -59,6 +59,7 @@ export async function skinPreviewData({ localPath = '', remoteUrl = '' } = {}) {
   if (!remoteUrl) return { dataUrl: '', source: 'none' };
   let url;
   try { url = new URL(remoteUrl); } catch { return { dataUrl: '', source: 'none' }; }
+  if (url.protocol === 'http:' && url.hostname === 'textures.minecraft.net') url.protocol = 'https:';
   if (url.protocol !== 'https:') throw new Error('Remote Minecraft skin URL must use HTTPS.');
   const response = await fetch(url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'EternalClient/1.0.1' } });
   if (!response.ok) throw new Error(`Could not download Minecraft skin preview (${response.status}).`);
