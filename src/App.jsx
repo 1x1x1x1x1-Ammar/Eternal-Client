@@ -1,7 +1,81 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import Sidebar from './components/Sidebar.jsx'; import TitleBar from './components/TitleBar.jsx'; import CommandCenter from './components/CommandCenter.jsx'; import ActivityDock from './components/ActivityDock.jsx';
-import Home from './pages/Home.jsx'; import Library from './pages/Library.jsx'; import Mods from './pages/Mods.jsx'; import Servers from './pages/Servers.jsx'; import Core from './pages/Core.jsx'; import Settings from './pages/Settings.jsx';
-import { useEternalStore } from './store/useEternalStore.js'; import { api } from './lib/api.js';
-export default function App(){const location=useLocation();const navigate=useNavigate();const bootstrap=useEternalStore(s=>s.bootstrap);const push=useEternalStore(s=>s.pushLaunchEvent);const loading=useEternalStore(s=>s.loading);const [command,setCommand]=useState(false);useEffect(()=>{bootstrap().catch(console.error);return api.on.launch(push)},[]);useEffect(()=>{const h=e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setCommand(v=>!v)}};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h)},[]);if(loading)return <div className="splash"><img src="/assets/logo.svg"/><div className="loader-ring"/><b>ETERNAL</b><span>Loading real launcher state…</span></div>;return <div className="app-shell"><TitleBar onSearch={()=>setCommand(true)}/><Sidebar/><main className="content"><AnimatePresence mode="wait"><motion.div key={location.pathname} initial={{opacity:0,x:12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-8}} transition={{duration:.18}} className="page-motion"><Routes location={location}><Route path="/" element={<Home/>}/><Route path="/library" element={<Library/>}/><Route path="/mods" element={<Mods/>}/><Route path="/servers" element={<Servers/>}/><Route path="/core" element={<Core/>}/><Route path="/settings" element={<Settings/>}/><Route path="*" element={<Navigate to="/"/>}/></Routes></motion.div></AnimatePresence></main><ActivityDock/><CommandCenter open={command} onClose={()=>setCommand(false)} navigate={navigate}/></div>}
+import Sidebar from './components/Sidebar.jsx';
+import TitleBar from './components/TitleBar.jsx';
+import CommandCenter from './components/CommandCenter.jsx';
+import ActivityDock from './components/ActivityDock.jsx';
+import Home from './pages/Home.jsx';
+import Library from './pages/Library.jsx';
+import Mods from './pages/Mods.jsx';
+import Servers from './pages/Servers.jsx';
+import Core from './pages/Core.jsx';
+import Accounts from './pages/Accounts.jsx';
+import Downloads from './pages/Downloads.jsx';
+import Developer from './pages/Developer.jsx';
+import Settings from './pages/Settings.jsx';
+import { useEternalStore } from './store/useEternalStore.js';
+import { api } from './lib/api.js';
+
+export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const bootstrap = useEternalStore(s => s.bootstrap);
+  const pushLaunch = useEternalStore(s => s.pushLaunchEvent);
+  const pushDownload = useEternalStore(s => s.pushDownloadEvent);
+  const loading = useEternalStore(s => s.loading);
+  const reducedMotion = useEternalStore(s => s.settings?.reducedMotion);
+  const [command, setCommand] = useState(false);
+
+  useEffect(() => {
+    bootstrap().catch(console.error);
+    const offLaunch = api.on.launch(pushLaunch);
+    const offDownload = api.on.download(pushDownload);
+    return () => { offLaunch?.(); offDownload?.(); };
+  }, []);
+
+  useEffect(() => {
+    const handler = event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommand(value => !value);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  if (loading) return <div className="splash"><img src="/assets/logo.svg" alt="Eternal"/><div className="loader-ring"/><b>ETERNAL</b><span>Loading real launcher state…</span></div>;
+
+  return <div className="app-shell">
+    <TitleBar onSearch={() => setCommand(true)} />
+    <Sidebar />
+    <main className="content">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={location.pathname}
+          initial={reducedMotion ? false : { opacity: 0, y: 8, scale: .995 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reducedMotion ? undefined : { opacity: 0, y: -5, scale: .998 }}
+          transition={{ duration: reducedMotion ? 0 : .18, ease: [0.2, 0.8, 0.2, 1] }}
+          className="page-motion"
+        >
+          <Routes location={location}>
+            <Route path="/" element={<Home />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/mods" element={<Mods />} />
+            <Route path="/servers" element={<Servers />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/downloads" element={<Downloads />} />
+            <Route path="/developer" element={<Developer />} />
+            <Route path="/core" element={<Core />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
+    </main>
+    <ActivityDock />
+    <CommandCenter open={command} onClose={() => setCommand(false)} navigate={navigate} />
+  </div>;
+}
