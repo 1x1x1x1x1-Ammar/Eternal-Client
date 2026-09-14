@@ -1,53 +1,79 @@
-# Eternal Client v0.8.0-beta.8
+# Eternal Client v1.0.0
 
-**Reality Pass — bug fixing, real controls, premium launcher UI, and a stronger in-game Core.**
+**The first stable Eternal release — real launcher, real in-game Core, stable update channel, premium UI.**
 
-Beta 8 is deliberately less about adding decorative feature labels and more about making existing Eternal features honest, resilient and polished. A visible control should either execute a real action or be disabled with a clear reason.
+Eternal v1 promotes the project out of beta after a release-hardening pass across launcher lifecycle, Microsoft sessions, Core persistence, stable updating, Windows packaging and both desktop/in-game UI systems.
 
 ## Launcher reliability
 
-- Minecraft instance creation now validates the selected release against Mojang's official version manifest.
-- Configured Java paths are executed and version-checked before launch instead of being trusted blindly.
-- Minecraft launch rejects loaders this build does not actually implement.
-- Fabric profiles resolve loader metadata through Fabric's official metadata API.
-- Modern server Quick Play and older `--server/--port` launch arguments are selected by Minecraft version.
-- Launcher lifecycle state is no longer overwritten by noisy Minecraft log/debug lines.
-- Bootstrap failures now produce a real retry screen instead of leaving an endless loading splash.
-- External links and folder-opening actions surface backend errors to the UI.
-- Existing packaged Electron startup smoke testing remains mandatory.
+- Official Mojang release metadata validates instance versions.
+- Vanilla and Fabric are the only launch paths advertised because they are the paths implemented in this release.
+- Java is detected/validated before launch and the Minecraft-required Java major is enforced.
+- Microsoft sessions now keep encrypted MSAL cache state and attempt silent renewal before launch when the Minecraft access token is near expiry.
+- Microsoft ownership/profile checks still run through Xbox Live → XSTS → Minecraft Services.
+- Offline profiles keep Minecraft-compatible deterministic UUID behavior.
+- Launcher process errors are surfaced into real lifecycle state.
+- Eternal is single-instance on Windows; opening it again restores/focuses the existing window.
+- External windows are denied inside Electron and safe http/https destinations open through the system browser.
+- Renderer stays context-isolated, sandboxed and without Node integration.
 
-## Mod Hub — real install hardening
+## Stable updater
 
-- Modrinth search remains filtered by selected Minecraft version + loader.
-- Required Modrinth dependencies are resolved recursively.
-- Downloaded Modrinth files are verified using supplied SHA-512/SHA-1 hashes before installation.
-- Partial `.part` files are cleaned up after failures.
-- Existing mod files are skipped only when their real hash matches the expected Modrinth file.
-- Vanilla profiles disable mod-install/add controls instead of pretending JAR files will work.
-- Launcher-managed `eternal-core.jar` is protected from manual toggle/remove/overwrite operations in Mod Hub.
-- Real byte progress is emitted into Eternal's activity/download UI.
+V1 enables a real GitHub stable update feed. Settings now exposes:
+
+- Check for updates
+- Available/current/error states
+- Download update
+- Real download percentage events
+- Ready-to-install state
+- Restart & install
+
+The stable GitHub release includes `latest.yml`, which is validated in CI before publication.
+
+## Mod Hub
+
+- Modrinth search is filtered by the selected Minecraft version and loader.
+- Required dependencies resolve recursively.
+- SHA-512/SHA-1 hashes are verified when Modrinth supplies them.
+- Partial `.part` files are not treated as successful installs.
+- Vanilla profiles disable mod installation instead of pretending JARs can load.
+- Launcher-managed Eternal Core cannot be manually disabled or removed through Mod Hub.
 
 ## Servers
 
-- Real Minecraft status handshake remains the source of player count, version, protocol and latency.
-- Standard `_minecraft._tcp` SRV records are now resolved before connecting.
-- SRV-resolved endpoint information is shown in the server UI.
-- Quick Join launches the selected real Minecraft instance.
-- Aternos integration remains honest: save, ping, join and official dashboard links are available; privileged start/stop/console controls are not faked without an authorized API.
+- Real Minecraft status handshake for online state, protocol, version, player count and latency.
+- Standard `_minecraft._tcp` SRV resolution.
+- Modern Quick Play and legacy `--server/--port` launch paths selected by Minecraft version.
+- Aternos standard mode stays honest: save, ping, quick-join and official dashboard access only unless an authorized partner API exists.
 
-## Eternal Core — Beta 8 in-game UI
+## Eternal Core v1
 
-- ClickGUI receives a larger black/crimson premium layout with improved hover states, switches, spacing and subtle animated detail.
-- HUD page has real **Enable All / Disable All** actions.
-- ClickGUI open key, HUD Editor key and Zoom key are now **actually rebindable inside Minecraft**.
-- Keybinds persist to `config/eternal-core.json` and duplicate Eternal bindings are rejected.
-- Zoom FOV, notifications, accent, HUD opacity, snap grid and layout presets remain real persistent controls.
-- HUD Editor keeps real drag + snap and adds arrow-key nudging.
-- Pressing **Delete** in HUD Editor disables the selected module for real.
-- Inspector shows actual saved module coordinates and snap size.
-- Eternal Core remains a standalone Fabric mod and the exact same binary is used by launcher-managed profiles.
+Current certified target: **Minecraft Java 1.21.11 + Fabric + Java 21**.
 
-### Current live Core modules
+### In-game UI
+
+- V1 ClickGUI with premium black/charcoal/crimson chrome.
+- Three-column live module surface.
+- Animated open/section detail, status pulse and premium interaction states.
+- Real module toggles and Enable All / Disable All.
+- Real configurable ClickGUI/HUD/Zoom bindings with duplicate-bind protection.
+- Zoom FOV control.
+- Notifications toggle.
+- Accent presets, HUD opacity and snap grid.
+- Default / Compact / Corners real layout presets.
+- One-click transition into the real HUD Editor.
+
+### HUD Editor
+
+- Drag modules.
+- Grid snapping.
+- Arrow-key nudging.
+- Real coordinate inspector.
+- Default/Compact/Corners presets.
+- Delete disables the selected module.
+- Positions persist locally.
+
+### Live Core modules
 
 - Watermark
 - FPS
@@ -57,51 +83,66 @@ Beta 8 is deliberately less about adding decorative feature labels and more abou
 - Ping
 - Speed
 - Direction
+- Health
+- Armor
+- Food
+- Server
 - JVM Memory
 - Session time
 - Clock
 - Zoom
 
-Default Core keys are Right Shift / H / C, but Beta 8 lets you rebind them from inside Core.
+The HUD data is read from live Minecraft/JVM state, not generated demo values.
 
-## Core integrity
+### Core persistence hardening
 
-- Launcher-managed Core is validated as an Eternal Core JAR using `fabric.mod.json`.
-- Staged and installed Core JARs receive SHA-256 hashes.
-- Launcher reports whether installed Core is an exact match.
-- **Launch with Core** refuses unsupported profiles and repairs/replaces a mismatched Core before starting Minecraft.
-- Standalone export is copied through a temporary file, metadata-checked, SHA-256 compared and only then committed to the chosen destination.
+`config/eternal-core.json` now uses a temporary write followed by atomic replacement when supported. Invalid config is backed up as `eternal-core.corrupt-<timestamp>.json` instead of silently disappearing into a catch block.
 
-## Launcher UI / UX
+## Standalone Core
 
-- New Beta 8 visual layer across Home, Core, Instances, Mods, Servers, Accounts, Settings, Developer and Command Center.
-- Tighter Dawn-inspired desktop-client proportions while retaining original Eternal branding/assets/code.
-- Refined cinematic hero, red-E lighting, glass/dark surfaces, compact sidebar, hover motion and status hierarchy.
-- Responsive layouts for narrower windows.
-- Reduced-motion preference is respected.
-- Activity Dock uses real lifecycle/download state and never invents a percentage when total bytes are unavailable.
-- Account/device-code flow, Java validation, Modrinth state, server state and Core integrity now expose explicit busy/error/success states.
+The release publishes:
 
-## Release gate
+`Eternal-Core-Standalone-1.0.0.jar`
 
-Beta 8 is only published after GitHub Actions passes:
+It is the same Core binary the launcher verifies and installs. It works in a compatible Fabric 1.21.11 profile without the Eternal launcher running.
 
-1. Eternal Core Gradle compile on Java 21.
-2. standalone JAR metadata + embedded icon validation.
-3. launcher dependency install.
-4. Beta 8 source/runtime regression tests.
+## Premium UI/UX
+
+V1 keeps the premium Eternal direction across launcher and game:
+
+- cinematic launch hero and animated Eternal emblem
+- compact crimson/charcoal shell
+- real live status hierarchy
+- richer instance cards and running states
+- premium Mod Hub discovery/results
+- server/account/settings polish
+- real stable-update progress UI
+- route transitions and controlled micro-motion
+- matching Core ClickGUI/HUD/HUD Editor/notifications
+- responsive layouts
+- reduced-motion support
+
+No visual state is allowed to invent runtime data.
+
+## Stable release gate
+
+The v1 release workflow rebuilds from the exact release commit and must pass:
+
+1. Java 21 + clean Eternal Core Gradle build.
+2. Core JAR metadata, mod id, icon and `1.0.0` version validation.
+3. Node dependency install.
+4. full source/runtime/UI regression tests.
 5. Vite production renderer build.
-6. branded Windows resource validation.
-7. Windows NSIS packaging.
-8. **packaged `Eternal Client.exe` startup smoke test**.
-9. installer / portable / standalone Core artifact generation.
-10. SHA-256 checksum generation.
-11. GitHub pre-release publication.
+6. Eternal Windows brand checks.
+7. Windows NSIS/Electron packaging.
+8. `latest.yml` updater metadata validation.
+9. packaged `Eternal Client.exe --smoke-test` startup.
+10. portable ZIP + standalone Core JAR generation.
+11. SHA-256 checksum generation.
+12. normal GitHub release publication marked **latest** — not prerelease.
 
-## Certification boundary
+## Scope
 
-Eternal Core is currently certified for **Minecraft 1.21.11 + Fabric + Java 21**. The launcher creates and launches Vanilla/Fabric release profiles, but no other loader is labeled implemented until its real path exists and passes tests.
+Eternal v1 does not claim unsupported functionality. Core is certified for Fabric 1.21.11; the launcher implements Vanilla and Fabric profiles. Microsoft login requires your own Entra/Azure public-client application ID.
 
-Microsoft login requires your own Entra/Azure public-client application ID. Eternal does not borrow another launcher's OAuth identity.
-
-> **Beta 8 rule:** if a button looks usable, it must run a real code path. If Eternal cannot perform an action, the UI should disable it or explain why instead of faking success.
+Passing CI proves the exact release source builds, packages and boots in the automated Windows environment. It cannot prove every PC, driver, network, Microsoft account or third-party server combination is bug-free, so real failures should be reported and fixed rather than hidden behind a “100% bug-free” label.
