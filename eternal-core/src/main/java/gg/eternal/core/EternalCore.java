@@ -19,7 +19,7 @@ public final class EternalCore implements ClientModInitializer {
     public void onInitializeClient() {
         sessionStarted = System.currentTimeMillis();
         HudRenderer.install();
-        NotificationCenter.push("ETERNAL CORE", "Beta 8 ready · Right Shift opens Core");
+        NotificationCenter.push("ETERNAL CORE", "Beta 8 ready · press your Core key to open");
     }
 
     public static long sessionMillis() {
@@ -40,23 +40,24 @@ public final class EternalCore implements ClientModInitializer {
     public static void onKey(int key, boolean down) {
         InputState.key(key, down);
         Minecraft mc = Minecraft.getInstance();
+        CoreConfig config = CoreConfig.INSTANCE;
 
-        if (key == 67) {
+        if (key == config.zoomKey()) {
             if (!down && zoomed) {
                 restoreZoom();
                 return;
             }
-            if (down && CoreConfig.INSTANCE.on("Zoom") && !zoomed && mc.screen == null) {
+            if (down && config.on("Zoom") && !zoomed && mc.screen == null) {
                 previousFov = mc.options.fov().get();
-                mc.options.fov().set(CoreConfig.INSTANCE.zoomFov());
+                mc.options.fov().set(config.zoomFov());
                 zoomed = true;
             }
             return;
         }
 
         if (!down || mc.screen != null) return;
-        if (key == 344) mc.setScreen(new ClickGuiScreen());
-        if (key == 72) mc.setScreen(new HudEditorScreen());
+        if (key == config.openKey()) mc.setScreen(new ClickGuiScreen());
+        else if (key == config.hudEditorKey()) mc.setScreen(new HudEditorScreen());
     }
 
     public static void onMouse(int button, boolean down) {
