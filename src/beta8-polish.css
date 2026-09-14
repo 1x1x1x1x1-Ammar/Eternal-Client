@@ -289,8 +289,11 @@ input,select{max-width:100%}
 
 @media(max-width:900px){
   .command-pill{min-width:0;max-width:330px}
-  .beta8-server-card{grid-template-columns:10px minmax(0,1fr) auto auto}
-  .beta8-server-card>.icon-btn{display:none}
+  .beta8-server-card{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+  .beta8-server-card .server-light{flex:0 0 8px}
+  .beta8-server-card .server-info{flex:1 1 280px}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn,.beta8-server-card .icon-btn{flex:0 0 auto;display:inline-flex}
+  .beta8-server-card .icon-btn{display:grid}
   .beta8-account-grid,.account-page-grid{grid-template-columns:1fr!important}
   .beta8-download-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
@@ -311,9 +314,9 @@ input,select{max-width:100%}
   .beta8-download-summary{grid-template-columns:1fr 1fr 1fr}
   .beta8-download-summary>div{min-height:62px;padding:10px}
   .beta8-download-summary b{font-size:12px}
-  .beta8-server-card{grid-template-columns:9px minmax(0,1fr) auto}
-  .beta8-server-card .secondary{display:none}
-  .beta8-server-card .play-btn{min-width:82px}
+  .beta8-server-card .server-info{flex-basis:calc(100% - 18px)}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn{flex:1 1 120px}
+  .beta8-server-card .icon-btn{flex:0 0 34px}
   .beta8-library-grid .profile-card{height:auto;min-height:66px;flex-wrap:wrap}
   .beta8-library-grid .profile-status{order:5;flex:1 0 calc(100% - 48px);padding-left:48px}
   .beta8-settings-grid{grid-template-columns:1fr!important}
@@ -332,10 +335,10 @@ input,select{max-width:100%}
   .beta8-mod-summary{grid-template-columns:1fr!important}
   .beta8-hero .release-launch-row{flex-wrap:wrap}
   .beta8-hero .release-launch-row select{order:3;flex:1 0 100%;width:100%;max-width:none}
-  .beta8-server-card{grid-template-columns:8px minmax(0,1fr)}
-  .beta8-server-card .play-btn{grid-column:2;width:100%}
-  .account-page-row{grid-template-columns:42px minmax(0,1fr) auto!important}
-  .account-page-row .danger-icon{display:none}
+  .beta8-server-card .server-info{flex-basis:calc(100% - 18px)}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn{flex:1 1 calc(50% - 8px)}
+  .beta8-server-card .icon-btn{flex:1 1 34px}
+  .account-page-row{grid-template-columns:42px minmax(0,1fr) auto 34px!important}
 }
 
 /* Short screens need density too, not just narrow windows. */
