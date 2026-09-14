@@ -36,11 +36,14 @@ public final class CoreConfig {
     private final Path file = FabricLoader.getInstance().getConfigDir().resolve("eternal-core.json");
 
     private CoreConfig() {
-        for (String name : MODULES) enabled.put(name, true);
+        // Clean installs start with every module disabled. The player explicitly chooses
+        // what appears on-screen from Modules or the HUD editor instead of Eternal
+        // covering a fresh Minecraft session with telemetry immediately.
+        for (String name : MODULES) enabled.put(name, false);
         load();
     }
 
-    public boolean on(String name) { return enabled.getOrDefault(name, true); }
+    public boolean on(String name) { return enabled.getOrDefault(name, false); }
     public void toggle(String name) { enabled.put(name, !on(name)); save(); }
     public void setAllModules(boolean value) {
         for (String name : enabled.keySet()) if (!"Zoom".equals(name)) enabled.put(name, value);
