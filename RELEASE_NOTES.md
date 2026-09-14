@@ -1,34 +1,65 @@
-# Eternal Client v0.6.0-beta.6
+# Eternal Client v0.7.0-beta.7
 
-**Reference-locked UI + packaged-startup reliability beta.**
+**Core Evolution beta — standalone Eternal Core, stronger in-game UI, and branded Windows packaging.**
 
-This release focuses on two things: making Eternal look much closer to the supplied black/crimson premium Minecraft-client reference, and preventing packaged builds from shipping when the Electron main process cannot actually start.
+Beta 7 focuses on the experience after Minecraft starts. Eternal Core now behaves as a much more complete in-game client and the exact same JAR can also be used without the Eternal launcher.
 
-## Critical fix from beta 5
+## Eternal Core UI
 
-Beta 5 could crash immediately with:
+- Rebuilt ClickGUI with **HUD / Utility / Style / About** sections.
+- Premium black/crimson visual language matching the Eternal launcher.
+- Persistent module toggles and settings.
+- Persistent accent-color selection.
+- Persistent HUD opacity.
+- Configurable Zoom FOV.
+- Configurable HUD snap grid.
+- Default / Compact / Corners HUD presets.
+- Core notifications for module and setting changes.
+- Improved draggable HUD editor.
+
+## Current real Core modules
+
+- Watermark
+- FPS
+- CPS
+- Keystrokes
+- Coordinates
+- Ping
+- Speed
+- Direction
+- JVM Memory
+- Session time
+- Clock
+- configurable hold-C Zoom
+
+Keybinds remain:
+
+- **Right Shift** — Eternal Core ClickGUI
+- **H** — HUD Editor
+- **Hold C** — Zoom
+
+## Standalone Core
+
+The release now publishes:
 
 ```text
-SyntaxError: Named export 'autoUpdater' not found. The requested module 'electron-updater' is a CommonJS module.
+Eternal-Core-Standalone-0.7.0-beta.7.jar
 ```
 
-Beta 6 fixes that by loading `electron-updater` through its CommonJS default export. The release pipeline now also launches the **packaged Windows executable** with a dedicated `--smoke-test` mode before publishing the GitHub release. If the real packaged main process cannot import its dependencies or load the renderer, the release fails instead of shipping a broken installer.
+It is the **same Core binary used by launcher-managed profiles**. For standalone use, place it into a compatible Minecraft 1.21.11 Fabric profile's `mods` folder and launch Minecraft normally with Java 21. No Eternal launcher process is required while the game is running.
 
-## UI / UX — beta 6
+The launcher also has a real **Export standalone JAR** action backed by Electron IPC and a save dialog.
 
-- Launcher proportions and visual language reworked around the supplied Eternal reference image.
-- Wider premium left rail with labelled Home / Instances / Mods / Servers / Accounts / Settings / Downloads / Developer navigation.
-- Cinematic black/crimson Home hero with Eternal emblem, direct Play action and a **real instance selector**.
-- Reference-style four-panel dashboard:
-  - **Command Center** — every action calls a real route or launcher API.
-  - **HUD Editor preview** — clearly marked as preview; actual editing still happens inside Minecraft with `H`.
-  - **Accounts** — real Microsoft/offline account state.
-  - **Instances** — actual profiles and real running-state indicators.
-- Bottom capability strip wired to real Eternal pages rather than decorative cards.
-- Improved animations, glows, panel depth, hover states, spacing and responsive behavior.
-- New Eternal Core page styled like the in-game side of the reference while only listing implemented Core features.
+## Branding / icon reliability
 
-## Real launcher functions retained
+- Windows AppUserModelID is explicitly set to `gg.eternal.client`.
+- The Eternal red-E mark is used as the application identity instead of falling back to Electron branding.
+- electron-builder receives the Eternal vector mark as the Windows icon source.
+- The launcher validates branding assets before packaging.
+- Eternal Core embeds the Eternal icon into its Fabric mod metadata.
+- Renderer logo imports are bundled through Vite, avoiding broken `/assets/...` paths in packaged `file://` builds.
+
+## Launcher functions retained
 
 - Isolated Minecraft instances.
 - Vanilla + Fabric launch paths.
@@ -39,45 +70,28 @@ Beta 6 fixes that by loading `electron-updater` through its CommonJS default exp
 - Real Minecraft server status, player count, protocol and latency handling.
 - Real quick-play server launch path.
 - Actual launcher/download activity state — no fake random progress.
+- Packaged Windows startup smoke testing.
 
-## Eternal Core
+## Beta 7 release gate
 
-Current certified target: **Minecraft 1.21.11 + Fabric**.
+This pre-release only publishes after:
 
-Current implemented in-game features include:
+1. Eternal Core Gradle compile.
+2. standalone JAR metadata validation.
+3. standalone JAR embedded-icon validation.
+4. launcher dependency install.
+5. source/runtime tests.
+6. Vite production renderer build.
+7. Eternal Windows icon-source validation.
+8. Windows NSIS packaging.
+9. **packaged executable startup smoke test**.
+10. installer / portable / standalone Core artifact creation.
+11. SHA256 generation.
 
-- Right Shift ClickGUI
-- draggable HUD editor (`H`)
-- hold-C zoom
-- FPS
-- CPS
-- keystrokes
-- coordinates
-- ping
-- movement speed
-- direction
-- JVM memory
-- session time
+## Current certification
 
-## New release gate
+Eternal Core is currently certified for **Minecraft 1.21.11 + Fabric + Java 21** only. Other versions/loaders are not marked supported until their real code paths are implemented and tested.
 
-Beta 6 will only publish after all of these pass:
-
-1. Eternal Core Gradle build.
-2. launcher dependency install.
-3. source/runtime tests.
-4. renderer production build.
-5. Windows Electron packaging.
-6. **packaged executable startup smoke test**.
-7. installer / portable artifact creation.
-8. SHA256 generation.
-
-## Important beta notes
-
-Microsoft login still requires your own Entra/Azure public client ID. Additional loader/version combinations are not called supported until they are actually implemented and tested.
-
-Aternos privileged controls are not faked. Without an authorized API, Eternal only exposes legitimate standard-mode server status, quick-join and dashboard behavior.
-
-## Eternal rule
+Microsoft login still requires your own Entra/Azure public-client application ID. Aternos privileged controls are not faked without an authorized API.
 
 > If a control looks functional, it must perform a real action. If a feature is unavailable, Eternal must say so instead of pretending.
