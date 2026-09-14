@@ -16,6 +16,7 @@ const { autoUpdater } = updaterPackage;
 if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const smokeTest = process.argv.includes('--smoke-test');
 let mainWindow;
 
 function send(channel, payload) {
@@ -41,7 +42,14 @@ function createWindow() {
     }
   });
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => { if (!smokeTest) mainWindow.show(); });
+  mainWindow.webContents.once('did-finish-load', () => {
+    if (smokeTest) setTimeout(() => app.exit(0), 750);
+  });
+  mainWindow.webContents.once('did-fail-load', (_event, code, description) => {
+    console.error(`[renderer] load failed ${code}: ${description}`);
+    if (smokeTest) app.exit(91);
+  });
   mainWindow.on('unresponsive', () => send('app:event', { type: 'unresponsive', message: 'The launcher window stopped responding.' }));
 
   if (process.env.VITE_DEV_SERVER_URL) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
