@@ -23,4 +23,8 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Eternal Client
-publish: null
+publish:
+  provider: github
+  owner: 1x1x1x1x1-Ammar
+  repo: Eternal-Client
+  releaseType: release
