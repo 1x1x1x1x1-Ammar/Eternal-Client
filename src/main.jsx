@@ -9,6 +9,7 @@ import './beta6.css';
 import './beta6-core.css';
 import './beta7-core.css';
 import './beta8.css';
+import './beta8-polish.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode><HashRouter><App /></HashRouter></React.StrictMode>

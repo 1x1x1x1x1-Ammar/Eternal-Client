@@ -1,0 +1,357 @@
+/* Eternal Client Beta 8 — polish pass 2
+   Loaded after beta8.css. This file fixes layout mismatches, compact-window behavior,
+   missed page styling, and cross-page consistency without changing backend behavior. */
+
+:root{
+  --release-sidebar:188px;
+  --e8-topbar:46px;
+  --e8-radius:9px;
+  --e8-card-shadow:0 16px 42px rgba(0,0,0,.18);
+}
+
+.app-shell{
+  grid-template-columns:var(--release-sidebar) minmax(0,1fr);
+  grid-template-rows:var(--e8-topbar) minmax(0,1fr);
+}
+
+.titlebar{height:var(--e8-topbar)}
+.brand-mini{width:var(--release-sidebar);min-width:var(--release-sidebar)}
+.release-sidebar{width:var(--release-sidebar);min-width:var(--release-sidebar);top:var(--e8-topbar)}
+.content{min-width:0;margin-left:0!important;scrollbar-gutter:stable;padding-bottom:48px}
+.page-motion{width:100%;min-width:0}
+.command-backdrop,.modal-backdrop{left:var(--release-sidebar);top:var(--e8-topbar)}
+
+/* Titlebar context — makes the current section obvious without adding visual clutter. */
+.titlebar-context{
+  height:24px;
+  min-width:94px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 10px;
+  margin-left:8px;
+  border-left:1px solid rgba(255,255,255,.065);
+  color:#747984;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:1.6px;
+  white-space:nowrap;
+}
+.titlebar-context i{
+  width:5px;height:5px;border-radius:50%;
+  background:#ef343b;
+  box-shadow:0 0 9px rgba(255,52,59,.65);
+  flex:0 0 auto;
+}
+.command-pill{min-width:280px;max-width:560px}
+.command-pill>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Sidebar hierarchy and collapsed-state clarity. */
+.sidebar-group-label{
+  padding:7px 11px 5px;
+  color:#4e525b;
+  font-size:6px;
+  font-weight:800;
+  letter-spacing:1.8px;
+  user-select:none;
+}
+.sidebar-discord{margin-top:4px}
+.release-sidebar .nav-icon{position:relative;overflow:visible}
+.release-sidebar .nav-icon.active:after{opacity:0}
+.release-sidebar .nav-icon svg{transition:transform .16s ease,color .16s ease,filter .16s ease}
+.release-sidebar .nav-icon:hover svg{transform:translateX(1px)}
+.release-sidebar .nav-icon.active svg{transform:none}
+.sidebar-account{transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.sidebar-account:hover{transform:translateY(-1px)}
+
+/* Cross-page spacing and long-content resilience. */
+.beta8-page,.release-page,.beta8-core-page{min-width:0}
+.page-head,.beta8-page-head{gap:18px}
+.page-head>div:first-child,.beta8-page-head>div:first-child{min-width:0}
+.head-actions{flex-wrap:wrap;justify-content:flex-end}
+.head-actions>*{min-width:0}
+input,select{max-width:100%}
+.muted{line-height:1.55}
+.release-panel,.settings-card,.beta6-console,.library-item,.server-card,.mod-result,.account-page-row{min-width:0}
+
+/* Small visual affordances that help dense launcher screens read more clearly. */
+.beta8-library-summary>div,
+.beta8-mod-summary>div,
+.beta8-settings-card,
+.beta8-account-manager,
+.beta8-auth-card,
+.beta8-developer-panel,
+.beta8-developer-actions,
+.beta8-download-panel{
+  position:relative;
+  overflow:hidden;
+}
+.beta8-library-summary>div:after,
+.beta8-mod-summary>div:after,
+.beta8-settings-card:after,
+.beta8-download-panel:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);
+  pointer-events:none;
+}
+
+/* Download page was the last page still visually stuck on the older release skin. */
+.beta8-downloads-page{gap:12px}
+.beta8-download-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.beta8-download-summary>div{
+  min-height:70px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:8px;
+  background:linear-gradient(180deg,#111316,#0a0b0d);
+  box-shadow:0 12px 30px rgba(0,0,0,.14);
+}
+.beta8-download-summary>div>svg{
+  width:20px;height:20px;
+  color:#e83b42;
+  flex:0 0 auto;
+}
+.beta8-download-summary>div>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.beta8-download-summary b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beta8-download-summary small{font-size:7px;color:#737781;letter-spacing:1px;text-transform:uppercase}
+.beta8-download-panel{
+  border-color:rgba(255,255,255,.075)!important;
+  border-radius:9px!important;
+  background:linear-gradient(180deg,#111316,#0a0b0d)!important;
+  box-shadow:var(--e8-card-shadow);
+}
+.beta8-download-list{gap:7px}
+.beta8-download-row{
+  min-height:68px;
+  border-color:rgba(255,255,255,.06)!important;
+  background:linear-gradient(180deg,#101215,#0c0d0f)!important;
+  border-radius:7px!important;
+  transition:border-color .16s ease,transform .16s ease,background .16s ease;
+}
+.beta8-download-row:hover{
+  border-color:rgba(255,64,70,.18)!important;
+  background:#121417!important;
+  transform:translateY(-1px);
+}
+.beta8-download-row .download-state-icon{
+  background:linear-gradient(180deg,#2b0c10,#1b0a0c);
+  border:1px solid rgba(255,66,72,.10);
+}
+.beta8-download-row .download-page-copy{min-width:0}
+.beta8-download-row .download-page-copy b,
+.beta8-download-row .download-page-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beta8-download-row .download-bar{height:3px;background:#202226}
+.beta8-download-row .download-bar i{background:linear-gradient(90deg,#d3131a,#ff484f);box-shadow:0 0 12px rgba(255,52,59,.34)}
+.beta8-download-row .download-page-meta{min-width:70px;text-align:right}
+.beta8-download-row .download-page-meta strong{color:#f0f1f3}
+.beta8-download-row .download-page-meta small{color:#6f737c}
+.beta8-download-footnote{
+  min-height:42px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:8px;
+  background:#0b0c0e;
+  color:#737780;
+  padding:10px 12px;
+}
+.beta8-download-footnote svg{color:#a93238}
+
+/* Home polish: better scale on common 1366x768 / 1440x900 laptop screens. */
+.beta8-hero .release-launch-row{max-width:620px}
+.beta8-hero .release-launch-row select{min-width:0;flex:0 1 270px}
+.beta8-hero .release-feature-row button{min-width:0}
+.beta8-hero .release-feature-row button span{min-width:0}
+.beta8-hero .release-feature-row small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.beta8-console-grid .beta6-console{min-width:0}
+.beta6-command-list button span,.beta6-mini-list button span{min-width:0}
+
+/* Library + profile cards keep their actions aligned when names or versions are long. */
+.beta8-library-grid .profile-card{min-width:0}
+.beta8-library-grid .profile-copy{min-width:0;flex:0 1 260px}
+.beta8-library-grid .profile-copy b,
+.beta8-library-grid .profile-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beta8-library-grid .profile-status{min-width:90px}
+.beta8-library-grid .profile-status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Mod Hub: make result cards feel deliberately designed rather than raw API rows. */
+.beta8-mod-result{position:relative;overflow:hidden}
+.beta8-mod-result:after{
+  content:"";position:absolute;inset:auto 0 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,55,62,.28),transparent);
+  opacity:0;transition:opacity .16s ease;
+}
+.beta8-mod-result:hover:after{opacity:1}
+.beta8-mod-result>div{min-width:0}
+.beta8-mod-result b,.beta8-mod-result span,.beta8-mod-result small{overflow:hidden;text-overflow:ellipsis}
+.beta8-mod-result span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.beta8-mod-result small{white-space:nowrap}
+.beta8-mod-actions{flex:0 0 auto}
+
+/* Server rows get a predictable desktop grid instead of depending on content width. */
+.beta8-server-card{
+  display:grid;
+  grid-template-columns:10px minmax(210px,1fr) auto auto auto auto;
+  align-items:center;
+  gap:7px;
+  padding:9px 10px;
+}
+.beta8-server-card .server-info{min-width:0}
+.beta8-server-card .server-info b,
+.beta8-server-card .server-info span,
+.beta8-server-card .server-info small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beta8-server-card .secondary,.beta8-server-card .play-btn{height:34px}
+.beta8-server-card .icon-btn{width:34px;height:34px}
+
+/* Account manager: long UUIDs / names should never force the entire page wider. */
+.beta8-account-manager .account-page-row{min-width:0}
+.beta8-account-manager .account-page-copy{min-width:0}
+.beta8-account-manager .account-page-copy b,
+.beta8-account-manager .account-page-copy span,
+.beta8-account-manager .account-page-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Settings / diagnostics: better dense-data handling. */
+.beta8-settings-card label{min-width:0}
+.beta8-settings-card input,.beta8-settings-card select{width:100%;min-width:0}
+.beta8-runtime-picker button{min-width:0}
+.beta8-runtime-picker button>*{min-width:0}
+.diagnostic-table>div{min-width:0}
+.diagnostic-table span{min-width:100px}
+.diagnostic-table b{min-width:0}
+
+/* Command center feels more like a launcher command palette. */
+.command-backdrop{background:rgba(0,0,0,.62);backdrop-filter:blur(9px)}
+.beta8-command-center{transform-origin:top center;animation:e8-command-in .14s cubic-bezier(.2,.8,.2,1)}
+@keyframes e8-command-in{from{opacity:0;transform:translateY(-5px) scale(.992)}to{opacity:1;transform:none}}
+.beta8-command-center .command-results button{position:relative}
+.beta8-command-center .command-results button.selected:before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:2px;border-radius:2px;background:#ff3a41;
+  box-shadow:0 0 10px rgba(255,58,65,.48);
+}
+
+/* Activity dock: clean long backend messages without growing beyond the viewport. */
+.beta8-activity-dock{max-height:calc(100vh - 90px);overflow:hidden}
+.beta8-activity-dock .activity-row{min-width:0}
+.beta8-activity-dock .activity-copy{min-width:0}
+
+/* 1180–1081: keep expanded sidebar but save horizontal room. */
+@media(max-width:1180px) and (min-width:1081px){
+  :root{--release-sidebar:172px}
+  .sidebar-brand{padding-left:13px;padding-right:13px}
+  .release-sidebar .nav-icon{padding-left:10px}
+  .beta8-hero .release-hero-copy{width:58%}
+  .beta8-hero .release-hero-emblem{right:15px;transform:scale(.84)}
+  .beta8-server-card{grid-template-columns:10px minmax(180px,1fr) auto auto auto auto}
+}
+
+/* Compact rail. Fixes the old 72px sidebar / 180px grid-column mismatch. */
+@media(max-width:1080px){
+  :root{--release-sidebar:72px}
+  .app-shell{grid-template-columns:var(--release-sidebar) minmax(0,1fr)}
+  .content{margin-left:0!important;padding-left:14px;padding-right:14px}
+  .brand-mini{width:var(--release-sidebar);min-width:var(--release-sidebar);padding:0;justify-content:center}
+  .brand-mini strong,.brand-mini span{display:none}
+  .titlebar-context{display:none}
+  .release-sidebar{width:var(--release-sidebar);min-width:var(--release-sidebar);padding-left:8px;padding-right:8px}
+  .sidebar-brand{padding:0;justify-content:center}
+  .sidebar-brand>div,.sidebar-group-label,.release-sidebar .nav-icon span,.sidebar-account>div,.sidebar-account>i{display:none}
+  .release-sidebar .nav-icon{justify-content:center;padding:0;width:100%}
+  .release-sidebar .nav-icon:after{
+    display:block;
+    left:58px;
+    top:50%;
+    transform:translate(4px,-50%);
+    opacity:0;
+    padding:7px 9px;
+    background:#17191d;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:6px;
+    color:#e7e8eb;
+    box-shadow:0 12px 30px rgba(0,0,0,.45);
+    font-size:8px;
+    letter-spacing:.3px;
+    z-index:120;
+  }
+  .release-sidebar .nav-icon:hover:after{opacity:1;transform:translate(0,-50%)}
+  .release-sidebar .nav-icon.active:after{opacity:0}
+  .sidebar-divider{margin-left:10px;margin-right:10px}
+  .sidebar-account{display:flex;justify-content:center;padding:7px;margin-left:0;margin-right:0}
+  .command-backdrop,.modal-backdrop{left:var(--release-sidebar)}
+  .beta8-server-card{grid-template-columns:10px minmax(150px,1fr) auto auto auto auto}
+}
+
+@media(max-width:900px){
+  .command-pill{min-width:0;max-width:330px}
+  .beta8-server-card{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+  .beta8-server-card .server-light{flex:0 0 8px}
+  .beta8-server-card .server-info{flex:1 1 280px}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn,.beta8-server-card .icon-btn{flex:0 0 auto;display:inline-flex}
+  .beta8-server-card .icon-btn{display:grid}
+  .beta8-account-grid,.account-page-grid{grid-template-columns:1fr!important}
+  .beta8-download-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media(max-width:820px){
+  :root{--release-sidebar:64px}
+  .content{padding:11px 11px 36px}
+  .command-pill{height:28px;max-width:220px;padding:0 8px}
+  .command-pill>span{display:none}
+  .command-pill:after{content:"Search / commands";font-size:8px;color:#8f939c}
+  .command-pill kbd{display:none}
+  .window-actions button{width:38px}
+  .page-head,.beta8-page-head{align-items:stretch;flex-direction:column;margin-bottom:10px}
+  .head-actions{justify-content:flex-start}
+  .head-actions>*{flex:1 1 auto}
+  .beta8-page-head h1{font-size:27px}
+  .beta8-page-head p{max-width:none}
+  .beta8-download-summary{grid-template-columns:1fr 1fr 1fr}
+  .beta8-download-summary>div{min-height:62px;padding:10px}
+  .beta8-download-summary b{font-size:12px}
+  .beta8-server-card .server-info{flex-basis:calc(100% - 18px)}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn{flex:1 1 120px}
+  .beta8-server-card .icon-btn{flex:0 0 34px}
+  .beta8-library-grid .profile-card{height:auto;min-height:66px;flex-wrap:wrap}
+  .beta8-library-grid .profile-status{order:5;flex:1 0 calc(100% - 48px);padding-left:48px}
+  .beta8-settings-grid{grid-template-columns:1fr!important}
+  .beta8-runtime-picker button{grid-template-columns:60px minmax(0,1fr)}
+  .beta8-runtime-picker button small{display:none}
+  .beta8-command-center{width:min(620px,calc(100vw - var(--release-sidebar) - 24px))}
+  .command-backdrop{padding-top:52px}
+}
+
+@media(max-width:700px){
+  :root{--release-sidebar:58px}
+  .content{padding-left:9px;padding-right:9px}
+  .window-actions button{width:34px}
+  .command-pill:after{content:"Search"}
+  .beta8-download-summary{grid-template-columns:1fr}
+  .beta8-mod-summary{grid-template-columns:1fr!important}
+  .beta8-hero .release-launch-row{flex-wrap:wrap}
+  .beta8-hero .release-launch-row select{order:3;flex:1 0 100%;width:100%;max-width:none}
+  .beta8-server-card .server-info{flex-basis:calc(100% - 18px)}
+  .beta8-server-card .secondary,.beta8-server-card .play-btn{flex:1 1 calc(50% - 8px)}
+  .beta8-server-card .icon-btn{flex:1 1 34px}
+  .account-page-row{grid-template-columns:42px minmax(0,1fr) auto 34px!important}
+}
+
+/* Short screens need density too, not just narrow windows. */
+@media(max-height:760px) and (min-width:821px){
+  .content{padding-top:10px}
+  .beta8-hero{height:388px}
+  .beta8-hero .release-hero-copy{top:30px}
+  .beta8-hero .release-feature-row{height:84px}
+  .beta8-hero .release-hero-emblem{top:22px;transform:scale(.88)}
+  .beta8-page{gap:10px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .beta8-command-center,.beta8-download-row,.release-sidebar .nav-icon svg,.sidebar-account{animation:none!important;transition:none!important}
+  .beta8-download-row:hover,.sidebar-account:hover{transform:none!important}
+}
