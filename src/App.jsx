@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar.jsx';
 import TitleBar from './components/TitleBar.jsx';
 import CommandCenter from './components/CommandCenter.jsx';
 import ActivityDock from './components/ActivityDock.jsx';
+import OperationConsole from './components/OperationConsole.jsx';
 import Home from './pages/Home.jsx';
 import Library from './pages/Library.jsx';
 import Mods from './pages/Mods.jsx';
@@ -25,6 +26,7 @@ export default function App() {
   const bootstrap = useEternalStore(s => s.bootstrap);
   const pushLaunch = useEternalStore(s => s.pushLaunchEvent);
   const pushDownload = useEternalStore(s => s.pushDownloadEvent);
+  const pushOperation = useEternalStore(s => s.pushOperationEvent);
   const loading = useEternalStore(s => s.loading);
   const bootstrapError = useEternalStore(s => s.bootstrapError);
   const reducedMotion = useEternalStore(s => s.settings?.reducedMotion);
@@ -35,8 +37,9 @@ export default function App() {
     bootstrap().catch(() => {});
     const offLaunch = api.on.launch(pushLaunch);
     const offDownload = api.on.download(pushDownload);
+    const offOperation = api.on.operation?.(pushOperation);
     const offApp = api.on.app?.(event => setAppNotice(event?.message || 'Eternal reported an application event.'));
-    return () => { offLaunch?.(); offDownload?.(); offApp?.(); };
+    return () => { offLaunch?.(); offDownload?.(); offOperation?.(); offApp?.(); };
   }, []);
 
   useEffect(() => {
@@ -89,6 +92,7 @@ export default function App() {
       </AnimatePresence>
     </main>
     <ActivityDock />
+    <OperationConsole />
     <CommandCenter open={command} onClose={() => setCommand(false)} navigate={navigate} />
   </div>;
 }
