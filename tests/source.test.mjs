@@ -19,6 +19,13 @@ test('packaged smoke-test mode exists', () => {
   assert.match(main, /did-finish-load/);
   assert.match(main, /app\.exit\(91\)/);
 });
+test('Core staging derives version dynamically', () => {
+  const stage = read('scripts/stage-core.mjs');
+  assert.match(stage, /gradle\.properties/);
+  assert.match(stage, /mod_version/);
+  assert.match(stage, /packageJson\.version !== expectedVersion/);
+  assert.doesNotMatch(stage, /metadata\.version\s*!==\s*['\"]0\.5\.0-beta\.5['\"]/);
+});
 test('renderer has command center', () => { assert.match(read('src/App.jsx'), /CommandCenter/); assert.match(read('src/components/CommandCenter.jsx'), /Launch/); });
 test('release routes are real pages', () => {
   const app = read('src/App.jsx');
