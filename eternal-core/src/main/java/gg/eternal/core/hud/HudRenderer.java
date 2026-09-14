@@ -6,6 +6,7 @@ import gg.eternal.core.state.InputState;
 import gg.eternal.core.ui.NotificationCenter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.item.ItemStack;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +14,8 @@ import java.time.format.DateTimeFormatter;
 public final class HudRenderer {
     private static final String[] MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
-            "Speed", "Direction", "Memory", "Session", "Clock"
+            "Speed", "Direction", "Health", "Armor", "Food", "Server",
+            "Memory", "Session", "Clock"
     };
     private static final int TEXT = 0xFFF7F8FA;
     private static final int MUTED = 0xFF949AA4;
@@ -70,7 +72,9 @@ public final class HudRenderer {
             return;
         }
 
-        graphics.fill(x + 8, y + 9, x + 11, y + 12, accent);
+        int pulse = 150 + (int) (75 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 360.0)));
+        int dot = (pulse << 24) | (accent & 0x00FFFFFF);
+        graphics.fill(x + 8, y + 9, x + 11, y + 12, dot);
         graphics.drawString(mc.font, value(name), x + 16, y + 7, TEXT, true);
     }
 
@@ -85,7 +89,9 @@ public final class HudRenderer {
     }
 
     private static void drawWatermark(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int accent) {
-        graphics.fill(x + 9, y + 9, x + 14, y + 14, accent);
+        long now = System.currentTimeMillis();
+        int pulse = 150 + (int) (90 * (0.5 + 0.5 * Math.sin(now / 420.0)));
+        graphics.fill(x + 9, y + 9, x + 14, y + 14, (pulse << 24) | (accent & 0x00FFFFFF));
         graphics.drawString(mc.font, "ETERNAL", x + 20, y + 8, TEXT, true);
         int brandWidth = mc.font.width("ETERNAL");
         graphics.drawString(mc.font, "CORE", x + 25 + brandWidth, y + 8, accent, true);
@@ -134,6 +140,10 @@ public final class HudRenderer {
                     mc.player.getDeltaMovement().x * mc.player.getDeltaMovement().x
                             + mc.player.getDeltaMovement().z * mc.player.getDeltaMovement().z) * 20.0);
             case "Direction" -> "DIR  " + direction(mc.player.getYRot());
+            case "Health" -> String.format("HP  %.1f / %.1f", mc.player.getHealth(), mc.player.getMaxHealth());
+            case "Armor" -> "ARMOR  " + mc.player.getArmorValue() + " / 20";
+            case "Food" -> "FOOD  " + mc.player.getFoodData().getFoodLevel() + " / 20";
+            case "Server" -> mc.getCurrentServer() != null ? "SERVER  " + mc.getCurrentServer().ip : "SERVER  LOCAL WORLD";
             case "Memory" -> {
                 Runtime runtime = Runtime.getRuntime();
                 yield "MEM  " + ((runtime.totalMemory() - runtime.freeMemory()) / 1048576)
