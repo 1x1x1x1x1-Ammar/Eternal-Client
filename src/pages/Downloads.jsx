@@ -43,9 +43,6 @@ export default function Downloads() {
   const [filter, setFilter] = useState('all');
 
   const rows = useMemo(() => {
-    // DOWNLOADING events are retained in downloadEvents by the store so the
-    // transfer center keeps real history. The lifecycle list intentionally
-    // excludes DOWNLOADING here to avoid drawing the latest transfer twice.
     const pipeline = Object.values(launchEvents)
       .filter(event => ['RESOLVING_LOADER', 'PREPARING_MODS', 'STARTING_JVM', 'VALIDATING', 'PROCESS_ERROR', 'STOPPED'].includes(event.state))
       .map(event => ({ ...event, type: event.type || 'minecraft', source: event.source || 'minecraft', name: instances.find(i => i.id === event.instanceId)?.name || 'Minecraft' }));
@@ -78,7 +75,7 @@ export default function Downloads() {
         </div>
       </div>
       <div className="download-page-list beta8-download-list v1-download-list">
-        {visible.length === 0 && <div className="empty-downloads beta8-empty"><DownloadCloud /><b>No matching real transfer events</b><span>Launch a version, install from Mod Hub or download an Eternal update. Backend activity will appear here automatically.</span></div>}
+        {visible.length === 0 && <div className="empty-downloads beta8-empty"><DownloadCloud /><b>No matching transfer events</b><span>Launch a version, install from Mod Hub or download an Eternal update. Backend activity will appear here automatically.</span></div>}
         {visible.map((event, index) => {
           const percent = progressValue(event.progress);
           const bytes = bytePair(event.progress);
