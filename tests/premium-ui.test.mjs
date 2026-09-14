@@ -70,3 +70,16 @@ test('HUD editor premium surface preserves drag, snap, nudge, preset and disable
   assert.match(editor, /apply\("CORNERS"\)/);
   assert.match(editor, /event\.key\(\) == 261/);
 });
+
+test('premium live HUD still renders genuine Minecraft and JVM values', () => {
+  const hud = read('eternal-core/src/main/java/gg/eternal/core/hud/HudRenderer.java');
+  assert.match(hud, /drawWatermark/);
+  assert.match(hud, /drawKeystrokes/);
+  assert.match(hud, /mc\.getFps\(\)/);
+  assert.match(hud, /InputState\.leftCps\(\)/);
+  assert.match(hud, /mc\.player\.getX\(\)/);
+  assert.match(hud, /getLatency\(\)/);
+  assert.match(hud, /Runtime\.getRuntime\(\)/);
+  assert.match(hud, /EternalCore\.sessionMillis\(\)/);
+  assert.doesNotMatch(hud, /Math\.random/);
+});
