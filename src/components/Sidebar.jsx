@@ -47,12 +47,14 @@ export default function Sidebar() {
       <div><strong>ETERNAL</strong><small>CLIENT</small></div>
     </div>
 
+    <div className="sidebar-group-label">PLAY</div>
     <nav className="sidebar-primary" aria-label="Main navigation">{primaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
     <div className="sidebar-divider" />
+    <div className="sidebar-group-label">SYSTEM</div>
     <nav className="sidebar-secondary" aria-label="Utility navigation">{secondaryLinks.map(([to, Icon, label]) => <LinkRow key={to} to={to} Icon={Icon} label={label} />)}</nav>
 
     <div className="sidebar-spacer" />
-    {discordReady && <button className="nav-icon" data-tip="Discord" onClick={() => window.eternal.app.openExternal(settings.discordInvite)}><MessageCircle size={17} /><span>Discord</span></button>}
+    {discordReady && <button className="nav-icon sidebar-discord" data-tip="Discord" onClick={() => window.eternal.app.openExternal(settings.discordInvite)}><MessageCircle size={17} /><span>Discord</span></button>}
 
     <NavLink to="/accounts" className="sidebar-account" title={account ? `${account.username} · ${account.type}` : 'No account selected'}>
       <MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={34} />
