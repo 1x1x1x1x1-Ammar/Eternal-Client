@@ -24,22 +24,24 @@ public final class HudEditorScreen extends Screen {
         int accent = CoreConfig.INSTANCE.accentColor();
         int snap = CoreConfig.INSTANCE.snap();
 
-        graphics.fill(0, 0, width, 52, 0xF507080A);
-        graphics.fill(0, 51, width, 52, 0x55383A40);
-        graphics.fill(0, 0, 3, 52, accent);
+        graphics.fill(0, 0, width, 54, 0xF507080A);
+        graphics.fill(0, 53, width, 54, 0x55383A40);
+        graphics.fill(0, 0, 3, 54, accent);
+        int sweep = (int) ((System.currentTimeMillis() / 8L) % Math.max(1, width));
+        graphics.fill(sweep, 53, Math.min(width, sweep + 44), 54, 0x88FFFFFF);
         graphics.drawString(font, "ETERNAL", 15, 12, 0xFFFFFFFF, true);
         graphics.drawString(font, "HUD EDITOR", 15 + font.width("ETERNAL") + 7, 12, accent, true);
-        graphics.drawString(font, "BETA 8 · drag modules · arrows nudge · R default · ESC done", 15, 30, 0xFF747780, false);
+        graphics.drawString(font, "BETA 8 · drag · arrows nudge · R default · DELETE disables selected · ESC done", 15, 30, 0xFF747780, false);
 
         int buttonX = Math.max(300, width - 294);
-        drawButton(graphics, mouseX, mouseY, buttonX, 11, 64, 28, "DEFAULT");
-        drawButton(graphics, mouseX, mouseY, buttonX + 70, 11, 64, 28, "COMPACT");
-        drawButton(graphics, mouseX, mouseY, buttonX + 140, 11, 64, 28, "CORNERS");
-        drawButton(graphics, mouseX, mouseY, buttonX + 210, 11, 70, 28, "SNAP " + snap);
+        drawButton(graphics, mouseX, mouseY, buttonX, 12, 64, 28, "DEFAULT");
+        drawButton(graphics, mouseX, mouseY, buttonX + 70, 12, 64, 28, "COMPACT");
+        drawButton(graphics, mouseX, mouseY, buttonX + 140, 12, 64, 28, "CORNERS");
+        drawButton(graphics, mouseX, mouseY, buttonX + 210, 12, 70, 28, "SNAP " + snap);
 
         drawGrid(graphics, snap);
 
-        int fallbackY = 62;
+        int fallbackY = 64;
         for (String name : HudRenderer.modules()) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] position = CoreConfig.INSTANCE.pos(name, 12, fallbackY);
@@ -51,7 +53,7 @@ public final class HudEditorScreen extends Screen {
 
             HudRenderer.drawModule(graphics, name, position[0], position[1], hover, dragging || selected);
             if (hover || selected || dragging) {
-                int labelY = Math.max(54, position[1] - 11);
+                int labelY = Math.max(56, position[1] - 11);
                 graphics.drawString(font, name.toUpperCase(), position[0], labelY, dragging ? accent : 0xFF9A9DA6, false);
             }
             fallbackY += boxHeight + 4;
@@ -63,34 +65,36 @@ public final class HudEditorScreen extends Screen {
 
     private void drawGrid(GuiGraphics graphics, int snap) {
         int spacing = Math.max(8, snap * 4);
-        for (int x = 0; x < width; x += spacing) graphics.fill(x, 52, x + 1, height, 0x151E2024);
-        for (int y = 52; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x151E2024);
-        graphics.fill(width / 2, 52, width / 2 + 1, height, 0x2A383A40);
+        for (int x = 0; x < width; x += spacing) graphics.fill(x, 54, x + 1, height, 0x151E2024);
+        for (int y = 54; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x151E2024);
+        graphics.fill(width / 2, 54, width / 2 + 1, height, 0x2A383A40);
         graphics.fill(0, height / 2, width, height / 2 + 1, 0x2A383A40);
     }
 
     private void drawInspector(GuiGraphics graphics) {
-        int panelWidth = Math.min(224, Math.max(164, width / 4));
+        int panelWidth = Math.min(236, Math.max(176, width / 4));
         int x = width - panelWidth - 12;
-        int y = height - 104;
+        int y = height - 112;
         int accent = CoreConfig.INSTANCE.accentColor();
-        graphics.fill(x, y, x + panelWidth, y + 90, 0xEE0D0E10);
-        graphics.renderOutline(x, y, panelWidth, 90, 0x5541454D);
-        graphics.fill(x, y, x + 3, y + 90, accent);
+        graphics.fill(x, y, x + panelWidth, y + 98, 0xEE0D0E10);
+        graphics.renderOutline(x, y, panelWidth, 98, 0x5541454D);
+        graphics.fill(x, y, x + 3, y + 98, accent);
 
         if (selectedModule == null) {
             graphics.drawString(font, "SELECT A MODULE", x + 13, y + 14, 0xFFE5E7EA, true);
-            graphics.drawString(font, "Click or drag any active HUD chip.", x + 13, y + 34, 0xFF777B84, false);
+            graphics.drawString(font, "Click or drag an active HUD chip.", x + 13, y + 34, 0xFF777B84, false);
             graphics.drawString(font, "Positions save automatically.", x + 13, y + 51, 0xFF777B84, false);
-            graphics.drawString(font, "Preset buttons are real layout actions.", x + 13, y + 68, 0xFF777B84, false);
+            graphics.drawString(font, "Presets are real saved layout actions.", x + 13, y + 68, 0xFF777B84, false);
+            graphics.drawString(font, "Open key: " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()), x + 13, y + 83, accent, false);
             return;
         }
 
-        int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, 62);
+        int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, 64);
         graphics.drawString(font, selectedModule.toUpperCase(), x + 13, y + 13, 0xFFFFFFFF, true);
         graphics.drawString(font, "POSITION  " + pos[0] + " / " + pos[1], x + 13, y + 33, 0xFF93969E, false);
         graphics.drawString(font, "SNAP  " + CoreConfig.INSTANCE.snap() + " PX", x + 13, y + 50, 0xFF93969E, false);
         graphics.drawString(font, "DRAG OR USE ARROW KEYS", x + 13, y + 69, accent, false);
+        graphics.drawString(font, "DELETE  DISABLE MODULE", x + 13, y + 84, 0xFFE65A60, false);
     }
 
     @Override
@@ -99,17 +103,17 @@ public final class HudEditorScreen extends Screen {
         int mouseY = (int) event.y();
         int buttonX = Math.max(300, width - 294);
 
-        if (inside(mouseX, mouseY, buttonX, 11, 64, 28)) { apply("DEFAULT"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 70, 11, 64, 28)) { apply("COMPACT"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 140, 11, 64, 28)) { apply("CORNERS"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 210, 11, 70, 28)) {
+        if (inside(mouseX, mouseY, buttonX, 12, 64, 28)) { apply("DEFAULT"); return true; }
+        if (inside(mouseX, mouseY, buttonX + 70, 12, 64, 28)) { apply("COMPACT"); return true; }
+        if (inside(mouseX, mouseY, buttonX + 140, 12, 64, 28)) { apply("CORNERS"); return true; }
+        if (inside(mouseX, mouseY, buttonX + 210, 12, 70, 28)) {
             int snap = CoreConfig.INSTANCE.snap();
             CoreConfig.INSTANCE.setSnap(snap == 2 ? 4 : snap == 4 ? 8 : 2);
             NotificationCenter.push("HUD SNAP", CoreConfig.INSTANCE.snap() + "px grid");
             return true;
         }
 
-        int fallbackY = 62;
+        int fallbackY = 64;
         for (String name : HudRenderer.modules()) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] position = CoreConfig.INSTANCE.pos(name, 12, fallbackY);
@@ -153,7 +157,7 @@ public final class HudEditorScreen extends Screen {
         }
         int boxWidth = HudRenderer.boxWidth(module);
         int boxHeight = HudRenderer.boxHeight(module);
-        CoreConfig.INSTANCE.setPos(module, Math.max(0, Math.min(width - boxWidth, x)), Math.max(52, Math.min(height - boxHeight, y)));
+        CoreConfig.INSTANCE.setPos(module, Math.max(0, Math.min(width - boxWidth, x)), Math.max(54, Math.min(height - boxHeight, y)));
     }
 
     @Override
@@ -165,8 +169,16 @@ public final class HudEditorScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (event.key() == 82) { apply("DEFAULT"); return true; }
+        if (event.key() == 261 && selectedModule != null) {
+            String module = selectedModule;
+            CoreConfig.INSTANCE.toggle(module);
+            selectedModule = null;
+            draggingModule = null;
+            NotificationCenter.push(module.toUpperCase(), "Disabled from HUD editor");
+            return true;
+        }
         if (selectedModule != null && (event.key() == 262 || event.key() == 263 || event.key() == 264 || event.key() == 265)) {
-            int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, 62);
+            int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, 64);
             int amount = CoreConfig.INSTANCE.snap();
             int x = pos[0], y = pos[1];
             if (event.key() == 262) x += amount;
