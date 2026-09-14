@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Check, ExternalLink, FolderOpen, Gauge, LogIn, MessageCircle, RefreshCw,
-  ShieldCheck, Trash2, UserPlus, WandSparkles
+  Check, DownloadCloud, ExternalLink, FolderOpen, Gauge, LogIn, MessageCircle, RefreshCw,
+  Rocket, ShieldCheck, Trash2, UserPlus, WandSparkles
 } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
@@ -9,6 +9,7 @@ import MinecraftHead from '../components/MinecraftHead.jsx';
 
 export default function Settings() {
   const settings = useEternalStore(s => s.settings) || {};
+  const appVersion = useEternalStore(s => s.appVersion);
   const patch = useEternalStore(s => s.patchSettings);
   const accounts = useEternalStore(s => s.accounts);
   const active = useEternalStore(s => s.activeAccountId);
@@ -19,6 +20,12 @@ export default function Settings() {
   const [busyJava, setBusyJava] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
+  const [update, setUpdate] = useState({ type: 'idle', percent: 0 });
+  const [updateBusy, setUpdateBusy] = useState(false);
+
+  useEffect(() => api.on.update(event => {
+    setUpdate(current => ({ ...current, ...event }));
+  }), []);
 
   async function act(fn, success = '') {
     setError(''); setSaved('');
@@ -56,6 +63,32 @@ export default function Settings() {
     await validateJava(chosen);
   }
 
+  async function checkUpdate() {
+    setUpdateBusy(true); setError('');
+    try {
+      const result = await call(api.updater.check());
+      setUpdate(result.available
+        ? { type: 'available', version: result.version, percent: 0 }
+        : { type: 'current', version: result.currentVersion, reason: result.reason || '', percent: 0 });
+    } catch (e) { setUpdate({ type: 'error', message: e.message, percent: 0 }); setError(e.message); }
+    finally { setUpdateBusy(false); }
+  }
+
+  async function downloadUpdate() {
+    setUpdateBusy(true); setError('');
+    try {
+      await call(api.updater.download());
+      setUpdate(current => ({ ...current, type: 'downloading' }));
+    } catch (e) { setUpdate({ type: 'error', message: e.message, percent: 0 }); setError(e.message); }
+    finally { setUpdateBusy(false); }
+  }
+
+  async function installUpdate() {
+    setUpdateBusy(true); setError('');
+    try { await call(api.updater.install()); }
+    catch (e) { setUpdateBusy(false); setError(e.message); }
+  }
+
   const discordValid = (() => {
     try {
       const url = new URL(settings.discordInvite || '');
@@ -63,12 +96,30 @@ export default function Settings() {
     } catch { return false; }
   })();
 
-  return <div className="beta8-page beta8-settings-page">
+  const updateLabel = update.type === 'ready' ? `v${update.version} ready to install`
+    : update.type === 'available' ? `v${update.version} available`
+      : update.type === 'downloading' || update.type === 'progress' ? `Downloading ${Math.round(update.percent || 0)}%`
+        : update.type === 'current' ? `v${appVersion || update.version || '1.0.0'} is current`
+          : update.type === 'error' ? 'Update check failed'
+            : `v${appVersion || '1.0.0'} installed`;
+
+  return <div className="beta8-page beta8-settings-page v1-settings-page">
     <div className="page-head beta8-page-head"><div><small>SETTINGS</small><h1>Control room</h1><p>Every control below changes a real launcher value or invokes a real backend action.</p></div><div className="beta8-settings-health"><ShieldCheck/><span><b>Local-first</b><small>Settings stored on this PC</small></span></div></div>
 
     {(error || saved) && <div className={error ? 'release-error beta8-inline-error' : 'beta8-success'}>{error || saved}</div>}
 
     <div className="settings-grid beta8-settings-grid">
+      <section className="settings-card beta8-settings-card v1-update-card">
+        <div className="beta8-card-title"><Rocket/><div><h3>Eternal updates</h3><small>Stable GitHub release channel</small></div></div>
+        <div className={`v1-update-status ${update.type}`}><span><b>{updateLabel}</b><small>{update.reason || update.message || 'Checks the signed release metadata generated with the Windows build.'}</small></span>{(update.type === 'downloading' || update.type === 'progress') && <strong>{Math.round(update.percent || 0)}%</strong>}</div>
+        {(update.type === 'downloading' || update.type === 'progress') && <div className="v1-update-progress"><i style={{ width: `${Math.max(2, Math.min(100, update.percent || 0))}%` }}/></div>}
+        <div className="beta8-button-row">
+          <button className="secondary" disabled={updateBusy || update.type === 'downloading' || update.type === 'progress'} onClick={checkUpdate}><RefreshCw className={updateBusy ? 'spin' : ''}/>{updateBusy ? 'Checking…' : 'Check for updates'}</button>
+          {update.type === 'available' && <button className="primary" disabled={updateBusy} onClick={downloadUpdate}><DownloadCloud/>Download v{update.version}</button>}
+          {update.type === 'ready' && <button className="primary" disabled={updateBusy} onClick={installUpdate}><Rocket/>Restart & install</button>}
+        </div>
+      </section>
+
       <section className="settings-card beta8-settings-card">
         <div className="beta8-card-title"><UserPlus/><div><h3>Accounts</h3><small>Launcher identity</small></div></div>
         <div className="account-list">
@@ -89,7 +140,7 @@ export default function Settings() {
       <section className="settings-card beta8-settings-card">
         <div className="beta8-card-title"><ShieldCheck/><div><h3>Microsoft application</h3><small>OAuth configuration</small></div></div>
         <label>Azure / Entra public client ID<input value={settings.azureClientId || ''} onChange={e => patch({ azureClientId: e.target.value })} placeholder="Your own application client ID"/></label>
-        <small className="muted">Eternal uses your public-client/device-code application registration. It does not borrow another launcher's client ID.</small>
+        <small className="muted">Eternal uses your public-client/device-code application registration. V1 stores MSAL refresh state encrypted locally so valid Microsoft sessions can renew before launch.</small>
       </section>
 
       <section className="settings-card beta8-settings-card beta8-java-card">
@@ -104,7 +155,7 @@ export default function Settings() {
         <div className="beta8-card-title"><WandSparkles/><div><h3>Game & interface</h3><small>Real launch parameters</small></div></div>
         <label>Default memory<div className="range-line"><input type="range" min="2048" max="16384" step="512" value={settings.ramMb || 6144} onChange={e => patch({ ramMb: Number(e.target.value) })}/><b>{((settings.ramMb || 6144) / 1024).toFixed(1)} GB</b></div></label>
         <div className="form-row"><label>Width<input type="number" min="640" max="7680" value={settings.resolution?.width || 1280} onChange={e => patch({ resolution: { ...settings.resolution, width: Number(e.target.value) } })}/></label><label>Height<input type="number" min="360" max="4320" value={settings.resolution?.height || 720} onChange={e => patch({ resolution: { ...settings.resolution, height: Number(e.target.value) } })}/></label></div>
-        <label className="beta8-toggle-row"><span><b>Reduced motion</b><small>Disables page transition motion</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={e => patch({ reducedMotion: e.target.checked })}/></label>
+        <label className="beta8-toggle-row"><span><b>Reduced motion</b><small>Disables page transition motion and nonessential V1 effects</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={e => patch({ reducedMotion: e.target.checked })}/></label>
       </section>
 
       <section className="settings-card beta8-settings-card">
