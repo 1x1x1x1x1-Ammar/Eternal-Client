@@ -30,87 +30,49 @@ public final class CoreConfig {
         for (String name : new String[]{
                 "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
                 "Speed", "Direction", "Memory", "Session", "Clock", "Zoom"
-        }) {
-            enabled.put(name, true);
-        }
+        }) enabled.put(name, true);
         load();
     }
 
-    public boolean on(String name) {
-        return enabled.getOrDefault(name, true);
-    }
-
-    public void toggle(String name) {
-        enabled.put(name, !on(name));
-        save();
-    }
-
-    public int[] pos(String name, int defaultX, int defaultY) {
-        return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY});
-    }
-
-    public void setPos(String name, int x, int y) {
-        positions.put(name, new int[]{x, y});
-        save();
-    }
-
+    public boolean on(String name) { return enabled.getOrDefault(name, true); }
+    public void toggle(String name) { enabled.put(name, !on(name)); save(); }
+    public int[] pos(String name, int defaultX, int defaultY) { return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY}); }
+    public void setPos(String name, int x, int y) { positions.put(name, new int[]{x, y}); save(); }
     public int accentColor() { return accentColor; }
     public int hudAlpha() { return hudAlpha; }
     public int zoomFov() { return zoomFov; }
     public int snap() { return snap; }
     public boolean notifications() { return notifications; }
 
-    public void setAccentColor(int color) {
-        accentColor = 0xFF000000 | (color & 0x00FFFFFF);
-        save();
-    }
-
-    public void setHudAlpha(int value) {
-        hudAlpha = clamp(value, 80, 245);
-        save();
-    }
-
-    public void setZoomFov(int value) {
-        zoomFov = clamp(value, 10, 60);
-        save();
-    }
-
-    public void setSnap(int value) {
-        snap = value <= 2 ? 2 : value <= 4 ? 4 : 8;
-        save();
-    }
-
-    public void setNotifications(boolean value) {
-        notifications = value;
-        save();
-    }
-
-    public void reset() {
-        positions.clear();
-        save();
-    }
+    public void setAccentColor(int color) { accentColor = 0xFF000000 | (color & 0x00FFFFFF); save(); }
+    public void setHudAlpha(int value) { hudAlpha = clamp(value, 80, 245); save(); }
+    public void setZoomFov(int value) { zoomFov = clamp(value, 10, 60); save(); }
+    public void setSnap(int value) { snap = value <= 2 ? 2 : value <= 4 ? 4 : 8; save(); }
+    public void setNotifications(boolean value) { notifications = value; save(); }
+    public void reset() { positions.clear(); save(); }
 
     public void applyPreset(String preset, int screenWidth, int screenHeight) {
         positions.clear();
-        int right = Math.max(12, screenWidth - 190);
-        int lower = Math.max(70, screenHeight - 82);
+        int right = Math.max(12, screenWidth - 205);
+        int lower = Math.max(90, screenHeight - 106);
+        int centerX = Math.max(12, screenWidth / 2 - 46);
 
         if ("COMPACT".equalsIgnoreCase(preset)) {
             positions.put("Watermark", new int[]{10, 10});
-            positions.put("FPS", new int[]{10, 31});
-            positions.put("Ping", new int[]{10, 52});
-            positions.put("Coordinates", new int[]{10, 73});
+            positions.put("FPS", new int[]{10, 34});
+            positions.put("Ping", new int[]{10, 55});
+            positions.put("Coordinates", new int[]{10, 76});
             positions.put("Speed", new int[]{right, 10});
             positions.put("Direction", new int[]{right, 31});
             positions.put("Memory", new int[]{right, 52});
             positions.put("Clock", new int[]{right, 73});
             positions.put("CPS", new int[]{10, lower});
-            positions.put("Keystrokes", new int[]{10, lower + 21});
+            positions.put("Keystrokes", new int[]{10, lower + 22});
             positions.put("Session", new int[]{right, lower});
         } else if ("CORNERS".equalsIgnoreCase(preset)) {
             positions.put("Watermark", new int[]{10, 10});
-            positions.put("FPS", new int[]{10, 31});
-            positions.put("CPS", new int[]{10, 52});
+            positions.put("FPS", new int[]{10, 34});
+            positions.put("CPS", new int[]{10, 55});
             positions.put("Coordinates", new int[]{right, 10});
             positions.put("Ping", new int[]{right, 31});
             positions.put("Clock", new int[]{right, 52});
@@ -119,6 +81,18 @@ public final class CoreConfig {
             positions.put("Direction", new int[]{right, lower + 21});
             positions.put("Memory", new int[]{10, lower - 21});
             positions.put("Session", new int[]{right, lower - 21});
+        } else {
+            positions.put("Watermark", new int[]{10, 10});
+            positions.put("FPS", new int[]{10, 34});
+            positions.put("CPS", new int[]{10, 55});
+            positions.put("Ping", new int[]{10, 76});
+            positions.put("Coordinates", new int[]{right, 10});
+            positions.put("Direction", new int[]{right, 31});
+            positions.put("Speed", new int[]{right, 52});
+            positions.put("Memory", new int[]{right, 73});
+            positions.put("Clock", new int[]{right, 94});
+            positions.put("Session", new int[]{right, 115});
+            positions.put("Keystrokes", new int[]{centerX, lower});
         }
         save();
     }
@@ -127,48 +101,33 @@ public final class CoreConfig {
         try {
             if (!Files.exists(file)) return;
             JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
-
-            if (root.has("enabled")) {
-                for (var entry : root.getAsJsonObject("enabled").entrySet()) {
-                    enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
-                }
-            }
-
+            if (root.has("enabled")) for (var entry : root.getAsJsonObject("enabled").entrySet()) enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
             if (root.has("positions")) {
                 for (var entry : root.getAsJsonObject("positions").entrySet()) {
                     JsonArray position = entry.getValue().getAsJsonArray();
-                    if (position.size() >= 2) {
-                        positions.put(entry.getKey(), new int[]{position.get(0).getAsInt(), position.get(1).getAsInt()});
-                    }
+                    if (position.size() >= 2) positions.put(entry.getKey(), new int[]{position.get(0).getAsInt(), position.get(1).getAsInt()});
                 }
             }
-
             if (root.has("accentColor")) accentColor = 0xFF000000 | (root.get("accentColor").getAsInt() & 0x00FFFFFF);
             if (root.has("hudAlpha")) hudAlpha = clamp(root.get("hudAlpha").getAsInt(), 80, 245);
             if (root.has("zoomFov")) zoomFov = clamp(root.get("zoomFov").getAsInt(), 10, 60);
             if (root.has("snap")) setSnapWithoutSave(root.get("snap").getAsInt());
             if (root.has("notifications")) notifications = root.get("notifications").getAsBoolean();
-        } catch (Exception ignored) {
-            // A corrupt config should never prevent Minecraft from launching.
-        }
+        } catch (Exception ignored) {}
     }
 
     public void save() {
         try {
             Files.createDirectories(file.getParent());
-
             JsonObject root = new JsonObject();
             JsonObject enabledJson = new JsonObject();
             JsonObject positionsJson = new JsonObject();
-
             enabled.forEach(enabledJson::addProperty);
             positions.forEach((name, position) -> {
                 JsonArray array = new JsonArray();
-                array.add(position[0]);
-                array.add(position[1]);
+                array.add(position[0]); array.add(position[1]);
                 positionsJson.add(name, array);
             });
-
             root.add("enabled", enabledJson);
             root.add("positions", positionsJson);
             root.addProperty("accentColor", accentColor);
@@ -177,16 +136,9 @@ public final class CoreConfig {
             root.addProperty("snap", snap);
             root.addProperty("notifications", notifications);
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
-        } catch (Exception ignored) {
-            // Runtime config persistence is best-effort and must not crash the game.
-        }
+        } catch (Exception ignored) {}
     }
 
-    private void setSnapWithoutSave(int value) {
-        snap = value <= 2 ? 2 : value <= 4 ? 4 : 8;
-    }
-
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
-    }
+    private void setSnapWithoutSave(int value) { snap = value <= 2 ? 2 : value <= 4 ? 4 : 8; }
+    private static int clamp(int value, int min, int max) { return Math.max(min, Math.min(max, value)); }
 }
