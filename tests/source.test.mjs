@@ -32,7 +32,7 @@ test('release routes are real pages', () => {
   for (const route of ['/accounts', '/downloads', '/developer']) assert.match(app, new RegExp(route.replace('/', '\\/')));
   for (const file of ['src/pages/Accounts.jsx', 'src/pages/Downloads.jsx', 'src/pages/Developer.jsx']) assert.ok(fs.statSync(path.join(root, file)).size > 500);
 });
-test('beta 6 reference UI is wired', () => {
+test('reference launcher UI remains wired', () => {
   const home = read('src/pages/Home.jsx');
   const main = read('src/main.jsx');
   assert.match(home, /beta6-console-grid/);
@@ -41,7 +41,7 @@ test('beta 6 reference UI is wired', () => {
   assert.match(home, /ACCOUNTS/);
   assert.match(home, /INSTANCES/);
   assert.match(main, /beta6\.css/);
-  assert.match(main, /beta6-core\.css/);
+  assert.match(main, /beta7-core\.css/);
 });
 test('home action panels call real routes or launcher APIs', () => {
   const home = read('src/pages/Home.jsx');
@@ -57,6 +57,22 @@ test('Electron renderer is isolated', () => {
   assert.match(main, /contextIsolation\s*:\s*true/);
   assert.match(main, /nodeIntegration\s*:\s*false/);
   assert.match(main, /sandbox\s*:\s*true/);
+});
+test('Windows identity uses Eternal app id and logo', () => {
+  const main = read('electron/main.js');
+  const builder = read('electron-builder.yml');
+  assert.match(main, /app\.setAppUserModelId\(['\"]gg\.eternal\.client['\"]\)/);
+  assert.match(main, /assets\/icon\.png/);
+  assert.match(builder, /icon:\s*build\/icon\.svg/);
+  assert.match(builder, /executableName:\s*Eternal Client/);
+  assert.match(read('scripts/prepare-brand.mjs'), /build\/icon\.svg|targetSvg/);
+});
+test('renderer bundles Eternal logo instead of file-root absolute assets', () => {
+  for (const file of ['src/pages/Home.jsx', 'src/pages/Core.jsx', 'src/components/Sidebar.jsx']) {
+    const content = read(file);
+    assert.match(content, /import eternalLogo from/);
+    assert.doesNotMatch(content, /src=["']\/assets\/logo\.svg["']/);
+  }
 });
 test('developer diagnostics are backed by IPC', () => {
   assert.match(read('electron/main.js'), /app:diagnostics/);
@@ -74,10 +90,37 @@ test('multi-process stop events carry pid and remaining count', () => {
 });
 test('release branding assets are present', () => {
   assert.ok(fs.statSync(path.join(root, 'assets/logo.svg')).size > 1000);
+  assert.ok(fs.statSync(path.join(root, 'assets/icon.png')).size > 1000);
   assert.ok(fs.statSync(path.join(root, 'assets/release-banner.svg')).size > 2000);
   assert.match(read('src/main.jsx'), /release\.css/);
 });
-test('package version is beta 6', () => {
+test('standalone Core export is a real IPC path', () => {
+  assert.match(read('electron/services/coreService.js'), /export async function exportStandalone/);
+  assert.match(read('electron/main.js'), /core:exportStandalone/);
+  assert.match(read('electron/preload.cjs'), /exportStandalone/);
+  assert.match(read('src/pages/Core.jsx'), /api\.core\.exportStandalone/);
+});
+test('standalone Core metadata contains its embedded icon', () => {
+  const metadata = read('eternal-core/src/main/resources/fabric.mod.json');
+  const build = read('eternal-core/build.gradle');
+  assert.match(metadata, /assets\/eternal-core\/icon\.png/);
+  assert.match(build, /assets\/icon\.png/);
+});
+test('beta 7 Core has real persistent customization controls', () => {
+  const config = read('eternal-core/src/main/java/gg/eternal/core/config/CoreConfig.java');
+  const gui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
+  assert.match(config, /zoomFov/);
+  assert.match(config, /hudAlpha/);
+  assert.match(config, /accentColor/);
+  assert.match(config, /applyPreset/);
+  assert.match(gui, /HUD MODULES/);
+  assert.match(gui, /UTILITY/);
+  assert.match(gui, /STYLE/);
+  assert.match(gui, /STANDALONE FABRIC MOD/);
+});
+test('package and Core versions are beta 7', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '0.6.0-beta.6');
+  assert.equal(pkg.version, '0.7.0-beta.7');
+  assert.match(read('eternal-core/gradle.properties'), /mod_version=0\.7\.0-beta\.7/);
+  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "0\.7\.0-beta\.7"/);
 });
