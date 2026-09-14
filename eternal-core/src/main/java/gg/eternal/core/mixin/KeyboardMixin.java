@@ -12,6 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class KeyboardMixin {
     @Inject(method = "keyPress", at = @At("HEAD"))
     private void eternal$key(long window, int action, KeyEvent event, CallbackInfo ci) {
-        EternalCore.onKey(event.key(), action != 0);
+        // GLFW: 0 = release, 1 = press, 2 = repeat. Repeats used to re-enter
+        // screen opening while the first Right Shift press was still being handled.
+        // That is unsafe for Screen lifecycle and could crash Minecraft on some PCs.
+        if (action == 2) return;
+        EternalCore.onKey(event.key(), action == 1);
     }
 }
