@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { getInstance, instanceDir, patchInstance } from './instanceService.js';
 import { installFabricProfile } from './fabricService.js';
 import { prepareCore } from './coreService.js';
@@ -6,14 +7,26 @@ import { activeAccount, launcherAuthorization } from './accountService.js';
 import { store } from './store.js';
 import { requiredJavaMajor, detectJava, validateJava } from './javaService.js';
 
+const requireCjs = createRequire(import.meta.url);
 const processes = new Map();
 let ClientClass = null;
 
 async function clientClass() {
   if (ClientClass) return ClientClass;
-  const mod = await import('minecraft-launcher-core');
-  ClientClass = mod.Client || mod.default?.Client;
-  if (!ClientClass) throw new Error('minecraft-launcher-core Client export unavailable.');
+  let loaded;
+  try {
+    // minecraft-launcher-core 3.x is CommonJS. Loading it through Node's native
+    // CommonJS bridge avoids the packaged-Electron ESM namespace issue that can
+    // make the Client export appear missing even though the dependency is present.
+    loaded = requireCjs('minecraft-launcher-core');
+  } catch (error) {
+    throw new Error(`Could not load minecraft-launcher-core: ${error?.message || error}`);
+  }
+  ClientClass = loaded?.Client || loaded?.default?.Client || (typeof loaded?.default === 'function' ? loaded.default : null);
+  if (typeof ClientClass !== 'function') {
+    const keys = loaded && typeof loaded === 'object' ? Object.keys(loaded).join(', ') : typeof loaded;
+    throw new Error(`minecraft-launcher-core loaded but Client is unavailable (exports: ${keys || 'none'}). Reinstall/repair Eternal Client.`);
+  }
   return ClientClass;
 }
 
@@ -51,6 +64,17 @@ function classifyGameMessage(value, debug = false) {
   return { message, level: debug ? 'debug' : 'info', warning: false };
 }
 
+function normalizeProgress(progress = {}) {
+  const current = Number(progress.current ?? progress.downloaded ?? progress.task ?? 0);
+  const total = Number(progress.total ?? progress.size ?? 0);
+  return {
+    ...progress,
+    current: Number.isFinite(current) ? current : 0,
+    total: Number.isFinite(total) ? total : 0,
+    type: String(progress.type || 'minecraft')
+  };
+}
+
 async function resolveJava(instance) {
   const configured = store.get('settings.javaPath');
   const required = requiredJavaMajor(instance.minecraftVersion);
@@ -70,7 +94,7 @@ export function runningState() {
   return [...processes.entries()].map(([instanceId, children]) => ({ instanceId, pids: [...children].map(child => child.pid), count: children.size }));
 }
 
-export async function launchInstance({ instanceId, server = null, requireCore = false, emit = () => {} }) {
+export async function launchInstance({ instanceId, server = null, requireCore = false, emit = () => {}, emitDownload = () => {} }) {
   const instance = await getInstance(instanceId);
   if (!['vanilla', 'fabric'].includes(instance.loader)) throw new Error(`Loader ${instance.loader} is not implemented by this Eternal build.`);
   if (requireCore && !(instance.loader === 'fabric' && instance.minecraftVersion === '1.21.11')) {
@@ -102,9 +126,11 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     }
   }
 
-  emit({ instanceId, state: 'STARTING_JVM', message: `Starting Minecraft with Java ${java.major}…` });
+  emit({ instanceId, state: 'STARTING_JVM', message: `Loading launcher engine and starting Minecraft with Java ${java.major}…` });
   const Client = await clientClass();
   const client = new Client();
+  emit({ instanceId, state: 'STARTING_JVM', message: 'minecraft-launcher-core Client loaded successfully. Preparing JVM arguments…' });
+
   const settings = store.get('settings');
   const maxMb = clampNumber(instance.ramMb || settings.ramMb, 1024, 32768, 6144);
   const width = Math.round(clampNumber(settings.resolution?.width, 640, 7680, 1280));
@@ -115,14 +141,44 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     authorization,
     root: gameRoot,
     javaPath: java.path,
-    version: { number: instance.minecraftVersion, type: 'release', ...(versionCustom ? { custom: versionCustom } : {}) },
+    version: {
+      number: instance.minecraftVersion,
+      type: instance.versionType || 'release',
+      ...(versionCustom ? { custom: versionCustom } : {})
+    },
     memory: { min: `${Math.max(1024, Math.floor(maxMb / 2))}M`, max: `${maxMb}M` },
     window: { width, height },
     customLaunchArgs
   };
 
-  client.on('progress', progress => emit({ instanceId, state: 'DOWNLOADING', message: progress.type || 'Downloading Minecraft files…', progress, source: 'minecraft' }));
-  client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading Minecraft files…', progress, source: 'minecraft' }));
+  const publishTransfer = (progress, message = 'Downloading Minecraft files…') => {
+    const normalized = normalizeProgress(progress);
+    emit({ instanceId, state: 'DOWNLOADING', message, progress: normalized, source: 'minecraft' });
+    emitDownload({
+      id: `minecraft-${instanceId}-${normalized.type}`,
+      instanceId,
+      type: 'download',
+      source: 'minecraft',
+      name: instance.name,
+      state: 'DOWNLOADING',
+      message,
+      progress: normalized
+    });
+  };
+
+  client.on('progress', progress => publishTransfer(progress, progress?.type ? `Minecraft ${progress.type}…` : 'Downloading Minecraft files…'));
+  client.on('download-status', progress => publishTransfer(progress, 'Downloading Minecraft files…'));
+  client.on('download', file => {
+    emitDownload({
+      id: `minecraft-file-${instanceId}-${String(file || '').slice(-120)}`,
+      instanceId,
+      type: 'download',
+      source: 'minecraft',
+      name: instance.name,
+      state: 'SUCCESS',
+      message: file ? `Downloaded ${String(file)}` : 'Minecraft file downloaded.'
+    });
+  });
   client.on('debug', value => {
     const line = classifyGameMessage(value, true);
     emit({ instanceId, state: 'DEBUG', ...line });
@@ -132,13 +188,29 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     emit({ instanceId, state: 'LOG', ...line });
   });
 
-  const child = await client.launch(options);
-  if (!child?.pid) throw new Error('Minecraft process did not start.');
+  let child;
+  try {
+    child = await client.launch(options);
+  } catch (error) {
+    const message = error?.message || String(error);
+    emit({ instanceId, state: 'PROCESS_ERROR', level: 'error', warning: true, message: `Minecraft launch failed before JVM startup: ${message}` });
+    throw new Error(`Minecraft launch failed: ${message}`);
+  }
+  if (!child?.pid) throw new Error('Minecraft launcher returned without a running process. Open Console for the preceding launch diagnostics.');
   if (!processes.has(instanceId)) processes.set(instanceId, new Set());
   processes.get(instanceId).add(child);
 
   const started = Date.now();
   emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, remaining: processes.get(instanceId).size });
+  emitDownload({
+    id: `minecraft-${instanceId}-launch`,
+    instanceId,
+    type: 'minecraft',
+    source: 'minecraft',
+    name: instance.name,
+    state: 'SUCCESS',
+    message: `Minecraft process started (PID ${child.pid}).`
+  });
   await patchInstance(instanceId, { lastPlayedAt: new Date().toISOString() });
 
   child.once('error', error => {
@@ -161,6 +233,16 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
       code,
       pid: child.pid,
       remaining
+    });
+    emitDownload({
+      id: `minecraft-${instanceId}-session`,
+      instanceId,
+      type: 'minecraft',
+      source: 'minecraft',
+      name: instance.name,
+      state: failed ? 'ERROR' : 'SUCCESS',
+      warning: failed,
+      message: failed ? `Minecraft exited with code ${code}.` : 'Minecraft session ended normally.'
     });
   });
 
