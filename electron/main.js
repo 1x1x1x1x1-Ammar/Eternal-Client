@@ -25,6 +25,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const smokeTest = process.argv.includes('--smoke-test');
 const singleInstance = smokeTest || app.requestSingleInstanceLock();
 let mainWindow;
+let operationSequence = 0;
+
+const tracedOperations = new Set([
+  'accounts:addOffline', 'accounts:loginMicrosoft', 'accounts:remove', 'accounts:activate',
+  'instances:create', 'instances:patch', 'instances:duplicate', 'instances:remove', 'instances:openFolder', 'instances:launch', 'instances:stop',
+  'mods:add', 'mods:remove', 'mods:toggle', 'mods:install',
+  'servers:save', 'servers:remove', 'servers:ping', 'servers:join',
+  'core:exportStandalone', 'settings:patch',
+  'updater:check', 'updater:download', 'updater:install'
+]);
 
 if (!singleInstance) app.quit();
 
@@ -62,6 +72,38 @@ async function openFolder(folder) {
   const error = await shell.openPath(folder);
   if (error) throw new Error(error);
   return true;
+}
+function instanceRunning(id) {
+  return launcher.runningState().some(row => row.instanceId === id && Number(row.count || row.pids?.length || 0) > 0);
+}
+function operationCopy(channel, payload, result, success = false) {
+  switch (channel) {
+    case 'instances:create': return success ? `Created ${result?.name || 'Minecraft instance'}.` : `Creating ${payload?.name || 'Minecraft instance'} · ${payload?.minecraftVersion || '?'} ${payload?.loader || ''}`;
+    case 'instances:patch': return success ? `Saved ${result?.name || 'instance'} settings.` : 'Saving instance settings';
+    case 'instances:duplicate': return success ? `Duplicated profile as ${result?.name || 'copy'}.` : 'Duplicating isolated instance files';
+    case 'instances:remove': return success ? 'Instance removed.' : 'Removing instance and managed files';
+    case 'instances:openFolder': return success ? 'Instance folder opened.' : 'Opening instance folder';
+    case 'instances:launch': return success ? 'Launch request accepted; Minecraft pipeline is running.' : 'Starting Minecraft launch pipeline';
+    case 'instances:stop': return success ? 'Minecraft processes stopped.' : 'Stopping Minecraft processes';
+    case 'mods:add': return success ? 'Local mod files added.' : 'Adding local mod files';
+    case 'mods:remove': return success ? 'Mod removed.' : 'Removing mod';
+    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : `Changing mod state`;
+    case 'mods:install': return success ? 'Modrinth install verified.' : 'Resolving and installing Modrinth project';
+    case 'servers:ping': return success ? 'Minecraft server status received.' : 'Pinging Minecraft server';
+    case 'servers:join': return success ? 'Server launch request accepted.' : 'Preparing server quick-join';
+    case 'servers:save': return success ? 'Server saved.' : 'Saving server';
+    case 'servers:remove': return success ? 'Server removed.' : 'Removing server';
+    case 'accounts:addOffline': return success ? 'Offline account added.' : 'Creating offline account';
+    case 'accounts:loginMicrosoft': return success ? 'Microsoft account authenticated.' : 'Starting Microsoft device-code authentication';
+    case 'accounts:activate': return success ? 'Active account changed.' : 'Switching active account';
+    case 'accounts:remove': return success ? 'Account removed.' : 'Removing account';
+    case 'core:exportStandalone': return success ? 'Standalone Eternal Core exported and verified.' : 'Exporting standalone Eternal Core';
+    case 'settings:patch': return success ? 'Launcher settings saved.' : 'Saving launcher settings';
+    case 'updater:check': return success ? 'Update check completed.' : 'Checking stable update channel';
+    case 'updater:download': return success ? 'Update download started.' : 'Starting update download';
+    case 'updater:install': return success ? 'Restarting into update installer.' : 'Preparing update restart';
+    default: return success ? 'Operation completed.' : 'Working…';
+  }
 }
 
 function createWindow() {
@@ -119,9 +161,34 @@ if (singleInstance) {
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 const handle = (name, fn) => ipcMain.handle(name, async (_event, payload) => {
-  try { return { ok: true, data: await fn(payload) }; }
-  catch (error) {
+  const trace = tracedOperations.has(name);
+  const operationId = trace ? `${Date.now().toString(36)}-${(++operationSequence).toString(36)}` : '';
+  if (trace) send('operation:event', {
+    id: operationId,
+    channel: name,
+    state: 'STARTED',
+    message: operationCopy(name, payload, null, false),
+    timestamp: Date.now()
+  });
+  try {
+    const data = await fn(payload);
+    if (trace) send('operation:event', {
+      id: operationId,
+      channel: name,
+      state: 'SUCCESS',
+      message: operationCopy(name, payload, data, true),
+      timestamp: Date.now()
+    });
+    return { ok: true, data };
+  } catch (error) {
     console.error(`[${name}]`, error);
+    if (trace) send('operation:event', {
+      id: operationId,
+      channel: name,
+      state: 'ERROR',
+      message: error?.message || String(error),
+      timestamp: Date.now()
+    });
     return { ok: false, error: error?.message || String(error) };
   }
 });
@@ -181,7 +248,15 @@ handle('instances:create', async data => {
   await versions.assertMinecraftVersion(data?.minecraftVersion);
   return instances.createInstance(data);
 });
-handle('instances:remove', id => instances.removeInstance(id));
+handle('instances:patch', data => instances.patchInstance(data?.instanceId, data?.patch || {}));
+handle('instances:duplicate', async data => {
+  if (instanceRunning(data?.instanceId)) throw new Error('Stop this instance before duplicating it so its files are copied consistently.');
+  return instances.duplicateInstance(data?.instanceId, data?.name || '');
+});
+handle('instances:remove', async id => {
+  if (instanceRunning(id)) throw new Error('Stop this instance before deleting it.');
+  return instances.removeInstance(id);
+});
 handle('instances:openFolder', async id => openFolder(instances.instanceDir(id)));
 handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event) }));
 handle('instances:stop', id => launcher.stopInstance(id));
