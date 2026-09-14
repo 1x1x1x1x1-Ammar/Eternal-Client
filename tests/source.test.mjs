@@ -17,11 +17,11 @@ const launcherFiles = [
   'electron/services/versionService.js'
 ];
 
-test('package and Core versions are stable v1.0.0', () => {
+test('package and Core versions are stable v1.0.1', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '1.0.0');
-  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.0/);
-  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.0\.0"/);
+  assert.equal(pkg.version, '1.0.1');
+  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.1/);
+  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.0\.1"/);
   assert.doesNotMatch(pkg.version, /beta|alpha|rc/i);
 });
 
@@ -73,15 +73,17 @@ test('renderer bundles Eternal images instead of fragile absolute file URLs', ()
   }
 });
 
-test('v1 premium UI layer is substantial and loaded last', () => {
+test('v1.0.1 premium UI layer is substantial and loaded last', () => {
   const main = read('src/main.jsx');
-  const v1 = read('src/v1.css');
-  const premiumIndex = main.indexOf("import './premium.css'");
-  const v1Index = main.indexOf("import './v1.css'");
-  assert.ok(premiumIndex >= 0 && v1Index > premiumIndex, 'v1.css must be the final visual layer');
-  assert.ok(v1.length > 12000, 'v1 visual layer must be a substantial implementation');
-  for (const token of ['v1-update-card', 'premium-hero', 'premium-library-profile', 'beta8-core-hero']) assert.match(v1, new RegExp(token));
-  assert.match(v1, /prefers-reduced-motion/);
+  const base = read('src/v1.css');
+  const patch = read('src/v1.0.1.css');
+  const baseIndex = main.indexOf("import './v1.css'");
+  const patchIndex = main.indexOf("import './v1.0.1.css'");
+  assert.ok(base.length > 12000, 'v1 base visual layer must remain substantial');
+  assert.ok(patch.length > 7000, 'v1.0.1 visual polish must be a real implementation');
+  assert.ok(baseIndex >= 0 && patchIndex > baseIndex, 'v1.0.1.css must load after the v1 base system');
+  for (const token of ['release-sidebar', 'premium-hero', 'premium-library-profile', 'v1-operation-console', 'v101-downloads-page']) assert.match(patch, new RegExp(token));
+  assert.match(patch, /prefers-reduced-motion/);
 });
 
 test('launcher pages are real routes and command actions', () => {
@@ -106,6 +108,33 @@ test('launch logs cannot overwrite real lifecycle state', () => {
   assert.match(store, /event\.state === 'LOG' \|\| event\.state === 'DEBUG'/);
   assert.match(store, /launchLogs/);
   assert.match(store, /launchEvents:/);
+});
+
+test('operation console records real launcher operations and Minecraft output', () => {
+  const main = read('electron/main.js');
+  const preload = read('electron/preload.cjs');
+  const consoleUi = read('src/components/OperationConsole.jsx');
+  const store = read('src/store/useEternalStore.js');
+  assert.match(main, /operation:event/);
+  assert.match(main, /instances:create/);
+  assert.match(preload, /operation/);
+  assert.match(consoleUi, /Minecraft/);
+  assert.match(consoleUi, /Transfers/);
+  assert.match(store, /operationConsoleOpen/);
+  assert.match(store, /clearMinecraftLogs/);
+});
+
+test('pre-JVM and runtime Minecraft failures surface as real launch errors', () => {
+  const launcher = read('electron/services/launcherService.js');
+  const downloads = read('src/pages/Downloads.jsx');
+  assert.match(launcher, /state: 'ERROR'/);
+  assert.match(launcher, /launchInstanceInternal/);
+  assert.match(launcher, /PROCESS_ERROR/);
+  assert.match(launcher, /classifyGameMessage/);
+  assert.match(downloads, /'ERROR'/);
+  assert.match(downloads, /Open console/);
+  assert.match(downloads, /Clear session transfers/);
+  assert.match(downloads, /Unknown-size work stays indeterminate/);
 });
 
 test('Minecraft versions come from Mojang official manifest and creation validates them', () => {
@@ -223,24 +252,48 @@ test('Core metadata contains embedded Eternal icon', () => {
   assert.match(build, /assets\/icon\.png/);
 });
 
-test('Core v1 has persistent modules, layouts, keybinds and atomic config save', () => {
+test('clean-install Core modules default to disabled', () => {
   const config = read('eternal-core/src/main/java/gg/eternal/core/config/CoreConfig.java');
-  const gui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
-  const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
-  for (const token of ['zoomFov', 'hudAlpha', 'accentColor', 'applyPreset', 'openKey', 'hudEditorKey', 'zoomKey', 'setAllModules', 'ATOMIC_MOVE']) assert.match(config, new RegExp(token));
-  for (const module of ['Health', 'Armor', 'Food', 'Server']) assert.match(config, new RegExp(`"${module}"`));
-  assert.match(config, /eternal-core\.corrupt-/);
-  assert.match(gui, /ENABLE ALL/);
-  assert.match(gui, /DISABLE ALL/);
-  assert.match(gui, /PRESS A KEY/);
-  assert.match(gui, /keyInUseByOther/);
-  assert.match(gui, /V1 PREMIUM CLIENT/);
-  assert.match(core, /config\.openKey\(\)/);
-  assert.match(core, /config\.hudEditorKey\(\)/);
-  assert.match(core, /config\.zoomKey\(\)/);
+  assert.match(config, /enabled\.put\(name, false\)/);
+  assert.match(config, /getOrDefault\(name, false\)/);
 });
 
-test('HUD editor drag/nudge/presets/disable are actual code paths', () => {
+test('Core module center has real controls and guarded recovery', () => {
+  const gui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
+  for (const token of ['ENABLE ALL', 'DISABLE ALL', 'EDIT LAYOUT', 'PRESS A KEY', 'keyInUseByOther', 'PREMIUM IN-GAME CLIENT']) assert.match(gui, new RegExp(token));
+  assert.match(gui, /CoreLog\.error/);
+  assert.match(gui, /recover\("render"/);
+  assert.match(gui, /EternalCore\.openHudEditor/);
+  assert.match(gui, /EternalCore\.openHome/);
+});
+
+test('Right Shift/Core screen lifecycle is queued and protected against repeat input', () => {
+  const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
+  const keyboard = read('eternal-core/src/main/java/gg/eternal/core/mixin/KeyboardMixin.java');
+  assert.match(core, /AtomicBoolean screenOpenQueued/);
+  assert.match(core, /mc\.execute/);
+  assert.match(core, /openHome\(\)/);
+  assert.match(core, /CoreLog\.error\("Could not open/);
+  assert.match(keyboard, /action == 2/);
+});
+
+test('Core custom title/start menu replaces vanilla title surface with real destinations', () => {
+  const title = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalTitleScreen.java');
+  const mixin = read('eternal-core/src/main/java/gg/eternal/core/mixin/MinecraftScreenMixin.java');
+  assert.match(title, /SINGLEPLAYER/);
+  assert.match(title, /MULTIPLAYER/);
+  assert.match(title, /MODULES/);
+  assert.match(title, /HUD STUDIO/);
+  assert.match(title, /OptionsScreen/);
+  assert.match(title, /SelectWorldScreen/);
+  assert.match(title, /JoinMultiplayerScreen/);
+  assert.match(title, /SAFE MENU/);
+  assert.match(title, /CoreLog\.error/);
+  assert.match(mixin, /TitleScreen/);
+  assert.match(mixin, /EternalTitleScreen/);
+});
+
+test('HUD Studio drag/nudge/presets/disable and recovery are actual code paths', () => {
   const editor = read('eternal-core/src/main/java/gg/eternal/core/ui/HudEditorScreen.java');
   assert.match(editor, /mouseDragged/);
   assert.match(editor, /event\.key\(\) == 261/);
@@ -248,13 +301,18 @@ test('HUD editor drag/nudge/presets/disable are actual code paths', () => {
   assert.match(editor, /apply\("DEFAULT"\)/);
   assert.match(editor, /apply\("COMPACT"\)/);
   assert.match(editor, /apply\("CORNERS"\)/);
-  assert.match(editor, /INSPECTOR/);
+  assert.match(editor, /MODULE INSPECTOR/);
+  assert.match(editor, /EternalCore\.openClickGui/);
+  assert.match(editor, /recover\("render"/);
+  assert.match(editor, /CoreLog\.error/);
 });
 
-test('Core HUD values come from live Minecraft and JVM state, including v1 telemetry', () => {
+test('Core HUD values come from live Minecraft/JVM state and isolate module crashes', () => {
   const hud = read('eternal-core/src/main/java/gg/eternal/core/hud/HudRenderer.java');
   assert.match(hud, /mc\.getFps\(\)/);
   assert.match(hud, /InputState\.leftCps\(\)/);
+  assert.match(hud, /InputState\.rightCps\(\)/);
+  assert.match(hud, /InputState\.mouseDown\(0\)/);
   assert.match(hud, /mc\.player\.getX\(\)/);
   assert.match(hud, /getLatency\(\)/);
   assert.match(hud, /getHealth\(\)/);
@@ -263,6 +321,22 @@ test('Core HUD values come from live Minecraft and JVM state, including v1 telem
   assert.match(hud, /getCurrentServer\(\)/);
   assert.match(hud, /Runtime\.getRuntime\(\)/);
   assert.match(hud, /EternalCore\.sessionMillis\(\)/);
+  assert.match(hud, /HUD module .* failed and was disabled for safety/);
+});
+
+test('top-level HUD mixin failure cannot take down Minecraft render loop', () => {
+  const guiMixin = read('eternal-core/src/main/java/gg/eternal/core/mixin/GuiMixin.java');
+  assert.match(guiMixin, /try \{/);
+  assert.match(guiMixin, /catch \(Throwable error\)/);
+  assert.match(guiMixin, /CoreLog\.error/);
+});
+
+test('Core log persists full exception diagnostics', () => {
+  const log = read('eternal-core/src/main/java/gg/eternal/core/util/CoreLog.java');
+  assert.match(log, /printStackTrace/);
+  assert.match(log, /StringWriter/);
+  assert.match(log, /eternal-core\.log/);
+  assert.match(log, /StandardOpenOption\.APPEND/);
 });
 
 test('real stable updater is wired main -> preload -> Settings and GitHub provider', () => {
@@ -283,13 +357,14 @@ test('real stable updater is wired main -> preload -> Settings and GitHub provid
   assert.match(builder, /releaseType:\s*release/);
 });
 
-test('stable release workflow is not a prerelease and carries updater metadata', () => {
+test('stable v1.0.1 workflow is installer-only and carries updater metadata', () => {
   const stable = read('.github/workflows/release-stable.yml');
-  assert.match(stable, /RELEASE_TAG: v1\.0\.0/);
-  assert.match(stable, /CORE_VERSION: 1\.0\.0/);
+  assert.match(stable, /RELEASE_TAG: v1\.0\.1/);
+  assert.match(stable, /CORE_VERSION: 1\.0\.1/);
   assert.match(stable, /release\/latest\.yml/);
   assert.match(stable, /--latest/);
   assert.doesNotMatch(stable, /--prerelease/);
+  assert.doesNotMatch(stable, /portable\.zip|portable build/i);
   assert.match(stable, /SHA256SUMS\.txt/);
   assert.match(stable, /upload-artifact@v4/);
 });
