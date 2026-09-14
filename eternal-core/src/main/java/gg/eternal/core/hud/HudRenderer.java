@@ -6,7 +6,6 @@ import gg.eternal.core.state.InputState;
 import gg.eternal.core.ui.NotificationCenter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.world.item.ItemStack;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -42,14 +41,14 @@ public final class HudRenderer {
 
     public static int boxWidth(String name) {
         Minecraft mc = Minecraft.getInstance();
-        if ("Keystrokes".equals(name)) return 82;
-        if ("Watermark".equals(name)) return 122;
-        return Math.max(68, mc.font.width(value(name)) + 24);
+        if ("Keystrokes".equals(name)) return 118;
+        if ("Watermark".equals(name)) return 132;
+        return Math.max(72, mc.font.width(value(name)) + 26);
     }
 
     public static int boxHeight(String name) {
-        if ("Keystrokes".equals(name)) return 46;
-        return "Watermark".equals(name) ? 24 : 21;
+        if ("Keystrokes".equals(name)) return 72;
+        return "Watermark".equals(name) ? 25 : 22;
     }
 
     public static void drawModule(GuiGraphics graphics, String name, int x, int y, boolean hover, boolean selected) {
@@ -75,12 +74,13 @@ public final class HudRenderer {
         int pulse = 150 + (int) (75 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 360.0)));
         int dot = (pulse << 24) | (accent & 0x00FFFFFF);
         graphics.fill(x + 8, y + 9, x + 11, y + 12, dot);
-        graphics.drawString(mc.font, value(name), x + 16, y + 7, TEXT, true);
+        graphics.drawString(mc.font, value(name), x + 17, y + 7, TEXT, true);
     }
 
     private static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height, int panel, int accent, boolean hover, boolean selected) {
-        graphics.fill(x - 2, y - 2, x + width + 2, y + height + 2, 0x18000000);
-        graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0x32000000);
+        graphics.fill(x - 3, y - 3, x + width + 3, y + height + 3, 0x10000000);
+        graphics.fill(x - 2, y - 2, x + width + 2, y + height + 2, 0x20000000);
+        graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0x36000000);
         graphics.fill(x, y, x + width, y + height, panel);
         graphics.fill(x, y, x + 2, y + height, accent);
         graphics.fill(x + 2, y, x + width, y + 1, selected ? accent : 0x2AFFFFFF);
@@ -95,32 +95,47 @@ public final class HudRenderer {
         graphics.drawString(mc.font, "ETERNAL", x + 20, y + 8, TEXT, true);
         int brandWidth = mc.font.width("ETERNAL");
         graphics.drawString(mc.font, "CORE", x + 25 + brandWidth, y + 8, accent, true);
-        graphics.drawString(mc.font, "•", x + width - 15, y + 8, 0xFF58ED89, false);
+        graphics.drawString(mc.font, "V1", x + width - 21, y + 8, 0xFF777E89, false);
     }
 
     private static void drawKeystrokes(GuiGraphics graphics, int x, int y, int accent) {
         Minecraft mc = Minecraft.getInstance();
-        int size = 15;
-        int gap = 2;
-        int baseX = x + 9;
-        int topY = y + 6;
-        drawKey(graphics, mc, baseX + size + gap, topY, size, "W", InputState.keyDown(87), accent);
-        int bottomY = topY + size + gap;
-        drawKey(graphics, mc, baseX, bottomY, size, "A", InputState.keyDown(65), accent);
-        drawKey(graphics, mc, baseX + size + gap, bottomY, size, "S", InputState.keyDown(83), accent);
-        drawKey(graphics, mc, baseX + (size + gap) * 2, bottomY, size, "D", InputState.keyDown(68), accent);
-        graphics.fill(x + 61, y + 10, x + 62, y + 36, 0x2AFFFFFF);
-        graphics.drawString(mc.font, "MOVE", x + 67, y + 13, DIM, false);
-        graphics.drawString(mc.font, "WASD", x + 67, y + 27, MUTED, false);
+        int key = 18;
+        int gap = 3;
+        int baseX = x + 10;
+        int topY = y + 7;
+
+        drawKey(graphics, mc, baseX + key + gap, topY, key, "W", InputState.keyDown(87), accent);
+        int secondY = topY + key + gap;
+        drawKey(graphics, mc, baseX, secondY, key, "A", InputState.keyDown(65), accent);
+        drawKey(graphics, mc, baseX + key + gap, secondY, key, "S", InputState.keyDown(83), accent);
+        drawKey(graphics, mc, baseX + (key + gap) * 2, secondY, key, "D", InputState.keyDown(68), accent);
+
+        int mouseX = x + 75;
+        graphics.fill(mouseX - 8, y + 8, mouseX - 7, y + 61, 0x2CFFFFFF);
+        drawMouseKey(graphics, mc, mouseX, y + 8, 33, 23, "LMB", InputState.leftCps(), InputState.mouseDown(0), accent);
+        drawMouseKey(graphics, mc, mouseX, y + 36, 33, 23, "RMB", InputState.rightCps(), InputState.mouseDown(1), accent);
+
+        graphics.drawString(mc.font, "KEYSTROKES", x + 10, y + 60, 0xFF535A65, false);
     }
 
     private static void drawKey(GuiGraphics graphics, Minecraft mc, int x, int y, int size, String label, boolean down, int accent) {
-        int fill = down ? (0xE8000000 | (accent & 0x00FFFFFF)) : 0xB315181D;
+        int fill = down ? (0xEA000000 | (accent & 0x00FFFFFF)) : 0xC315181D;
+        graphics.fill(x - 1, y - 1, x + size + 1, y + size + 1, 0x21000000);
         graphics.fill(x, y, x + size, y + size, fill);
-        graphics.renderOutline(x, y, size, size, down ? 0xAAFFFFFF : 0x4A474E58);
-        if (down) graphics.fill(x, y, x + size, y + 1, 0x66FFFFFF);
+        graphics.renderOutline(x, y, size, size, down ? 0x99FFFFFF : 0x4A474E58);
+        if (down) graphics.fill(x, y, x + size, y + 1, 0x77FFFFFF);
         int textX = x + (size - mc.font.width(label)) / 2;
-        graphics.drawString(mc.font, label, textX, y + 4, down ? 0xFFFFFFFF : 0xFFC3C7CE, false);
+        graphics.drawString(mc.font, label, textX, y + 5, down ? 0xFFFFFFFF : 0xFFC3C7CE, false);
+    }
+
+    private static void drawMouseKey(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int height, String label, int cps, boolean down, int accent) {
+        int fill = down ? (0xE5000000 | (accent & 0x00FFFFFF)) : 0xC3111418;
+        graphics.fill(x, y, x + width, y + height, fill);
+        graphics.renderOutline(x, y, width, height, down ? 0x99FFFFFF : 0x3D4B525C);
+        graphics.drawString(mc.font, label, x + 5, y + 4, down ? 0xFFFFFFFF : 0xFF9299A4, false);
+        String value = Integer.toString(cps);
+        graphics.drawString(mc.font, value, x + width - 5 - mc.font.width(value), y + 12, down ? 0xFFFFFFFF : 0xFFE2E5EA, false);
     }
 
     public static String value(String name) {
