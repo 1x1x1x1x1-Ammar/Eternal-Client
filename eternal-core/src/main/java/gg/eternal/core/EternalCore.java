@@ -4,6 +4,7 @@ import gg.eternal.core.config.CoreConfig;
 import gg.eternal.core.hud.HudRenderer;
 import gg.eternal.core.state.InputState;
 import gg.eternal.core.ui.ClickGuiScreen;
+import gg.eternal.core.ui.EternalHomeScreen;
 import gg.eternal.core.ui.HudEditorScreen;
 import gg.eternal.core.ui.NotificationCenter;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,7 +20,7 @@ public final class EternalCore implements ClientModInitializer {
     public void onInitializeClient() {
         sessionStarted = System.currentTimeMillis();
         HudRenderer.install();
-        NotificationCenter.push("ETERNAL CORE", "v1 ready · press " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()) + " to open");
+        NotificationCenter.push("ETERNAL CORE", "v1 ready · press " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()) + " for Eternal Start");
     }
 
     public static long sessionMillis() {
@@ -56,7 +57,7 @@ public final class EternalCore implements ClientModInitializer {
         }
 
         if (!down || mc.screen != null) return;
-        if (key == config.openKey()) mc.setScreen(new ClickGuiScreen());
+        if (key == config.openKey()) mc.setScreen(new EternalHomeScreen());
         else if (key == config.hudEditorKey()) mc.setScreen(new HudEditorScreen());
     }
 
