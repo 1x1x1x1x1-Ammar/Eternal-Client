@@ -64,7 +64,7 @@ export const useEternalStore = create((set, get) => ({
 
   pushLaunchEvent: event => set(state => {
     const receivedAt = Date.now();
-    const runtimeProblem = event?.warning || event?.level === 'error' || event?.level === 'warning' || event?.state === 'PROCESS_ERROR';
+    const runtimeProblem = event?.warning || event?.level === 'error' || event?.level === 'warning' || event?.state === 'PROCESS_ERROR' || event?.state === 'ERROR';
     if (event.state === 'LOG' || event.state === 'DEBUG') {
       const previous = state.launchLogs[event.instanceId] || [];
       return {
@@ -96,18 +96,20 @@ export const useEternalStore = create((set, get) => ({
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-180)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-240)
   })),
 
   pushOperationEvent: event => set(state => {
     const shouldOpen = event?.state === 'ERROR' || (event?.state === 'STARTED' && AUTO_CONSOLE_CHANNELS.has(event?.channel));
     return {
-      operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-220),
+      operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-260),
       operationConsoleOpen: shouldOpen ? true : state.operationConsoleOpen
     };
   }),
   setOperationConsoleOpen: open => set({ operationConsoleOpen: Boolean(open) }),
   clearOperationEvents: () => set({ operationEvents: [] }),
+  clearDownloadEvents: () => set({ downloadEvents: [] }),
+  clearMinecraftLogs: () => set({ launchLogs: {} }),
 
   patchSettings: async patch => {
     const value = await call(api.settings.patch(patch));
