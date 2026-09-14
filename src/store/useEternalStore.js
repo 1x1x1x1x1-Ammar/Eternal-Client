@@ -12,25 +12,33 @@ export const useEternalStore = create((set, get) => ({
   launchEvents: {},
   downloadEvents: [],
   loading: true,
+  bootstrapError: '',
 
   bootstrap: async () => {
-    const [accounts, instances, servers, settings, state] = await Promise.all([
-      call(api.accounts.list()),
-      call(api.instances.list()),
-      call(api.servers.list()),
-      call(api.settings.get()),
-      call(api.app.state())
-    ]);
-    set({
-      accounts: accounts.accounts,
-      activeAccountId: accounts.activeId,
-      instances,
-      servers,
-      settings,
-      appVersion: state.version,
-      running: state.running,
-      loading: false
-    });
+    set({ loading: true, bootstrapError: '' });
+    try {
+      const [accounts, instances, servers, settings, state] = await Promise.all([
+        call(api.accounts.list()),
+        call(api.instances.list()),
+        call(api.servers.list()),
+        call(api.settings.get()),
+        call(api.app.state())
+      ]);
+      set({
+        accounts: accounts.accounts,
+        activeAccountId: accounts.activeId,
+        instances,
+        servers,
+        settings,
+        appVersion: state.version,
+        running: state.running,
+        loading: false,
+        bootstrapError: ''
+      });
+    } catch (error) {
+      set({ loading: false, bootstrapError: error?.message || String(error) });
+      throw error;
+    }
   },
 
   refreshInstances: async () => set({ instances: await call(api.instances.list()) }),
@@ -39,6 +47,11 @@ export const useEternalStore = create((set, get) => ({
     set({ accounts: value.accounts, activeAccountId: value.activeId });
   },
   refreshServers: async () => set({ servers: await call(api.servers.list()) }),
+  refreshRuntime: async () => {
+    const state = await call(api.app.state());
+    set({ appVersion: state.version, running: state.running });
+    return state;
+  },
 
   pushLaunchEvent: event => set(state => {
     let running = state.running;
@@ -57,7 +70,7 @@ export const useEternalStore = create((set, get) => ({
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-60)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-100)
   })),
 
   patchSettings: async patch => {
