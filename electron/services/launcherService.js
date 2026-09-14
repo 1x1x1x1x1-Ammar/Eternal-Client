@@ -75,6 +75,7 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
 
   emit({ instanceId, state: 'VALIDATING', message: 'Validating profile, account and Java…' });
   const java = await resolveJava(instance);
+  const authorization = await launcherAuthorization(account);
   let versionCustom = '';
 
   if (instance.loader === 'fabric') {
@@ -103,7 +104,7 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   const customLaunchArgs = serverLaunchArgs(instance, server);
 
   const options = {
-    authorization: launcherAuthorization(account),
+    authorization,
     root: gameRoot,
     javaPath: java.path,
     version: { number: instance.minecraftVersion, type: 'release', ...(versionCustom ? { custom: versionCustom } : {}) },
@@ -126,6 +127,9 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, remaining: processes.get(instanceId).size });
   await patchInstance(instanceId, { lastPlayedAt: new Date().toISOString() });
 
+  child.once('error', error => {
+    emit({ instanceId, state: 'PROCESS_ERROR', message: `Minecraft process error: ${error?.message || error}`, pid: child.pid });
+  });
   child.once('close', async code => {
     const set = processes.get(instanceId);
     set?.delete(child);
