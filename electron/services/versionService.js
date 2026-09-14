@@ -8,7 +8,7 @@ async function fetchJson(url, timeoutMs = 10000) {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'EternalClient/0.8.0-beta.8' }
+      headers: { 'User-Agent': 'EternalClient/1.0.0' }
     });
     if (!response.ok) throw new Error(`Minecraft metadata request failed (${response.status}).`);
     return await response.json();
@@ -17,25 +17,32 @@ async function fetchJson(url, timeoutMs = 10000) {
   }
 }
 
-export async function listMinecraftVersions({ includeSnapshots = false, limit = 120 } = {}) {
+async function manifest() {
   const now = Date.now();
   if (!cache || now >= cacheUntil) {
     cache = await fetchJson(MANIFEST);
     cacheUntil = now + 5 * 60 * 1000;
   }
-  const versions = (cache.versions || [])
+  return cache;
+}
+
+export async function listMinecraftVersions({ includeSnapshots = false, limit = 1000 } = {}) {
+  const data = await manifest();
+  const max = Math.max(1, Math.min(Number(limit) || 1000, 2000));
+  const versions = (data.versions || [])
     .filter(v => includeSnapshots || v.type === 'release')
-    .slice(0, Math.max(1, Math.min(Number(limit) || 120, 300)))
-    .map(v => ({ id: v.id, type: v.type, releaseTime: v.releaseTime, time: v.time }));
+    .slice(0, max)
+    .map(v => ({ id: v.id, type: v.type, releaseTime: v.releaseTime, time: v.time, url: v.url, complianceLevel: v.complianceLevel }));
   return {
-    latest: cache.latest || {},
+    latest: data.latest || {},
+    total: (data.versions || []).length,
     versions
   };
 }
 
 export async function assertMinecraftVersion(version) {
-  const manifest = await listMinecraftVersions({ includeSnapshots: true, limit: 300 });
-  const found = manifest.versions.find(v => v.id === String(version));
+  const data = await manifest();
+  const found = (data.versions || []).find(v => v.id === String(version));
   if (!found) throw new Error(`Minecraft version ${version} is not present in Mojang's official version manifest.`);
-  return found;
+  return { id: found.id, type: found.type, releaseTime: found.releaseTime, time: found.time };
 }
