@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Boxes, Cpu, PackageOpen, Play, Radio, Server, Settings2, ShieldCheck, Square, UserRound } from 'lucide-react';
+import {
+  Activity, Boxes, Cloud, Cpu, DownloadCloud, Gauge, Keyboard, MapPin, PackageOpen,
+  Play, Radio, Server, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Square,
+  Terminal, UserRound, Users, Wrench
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
+import MinecraftHead from '../components/MinecraftHead.jsx';
 
 function ProfileCard({ instance, running, event }) {
   const navigate = useNavigate();
@@ -26,9 +31,18 @@ function ProfileCard({ instance, running, event }) {
 
 const featureTiles = [
   ['/library', Boxes, 'Latest release', 'Create and manage isolated Minecraft profiles'],
-  ['/mods', PackageOpen, 'Mods', 'Browse compatible Modrinth content'],
+  ['/mods', PackageOpen, 'Mods', 'Browse and install compatible Modrinth content'],
   ['/servers', Server, 'Servers', 'Ping and join saved Minecraft servers'],
   ['/accounts', UserRound, 'Accounts', 'Microsoft and offline profiles']
+];
+
+const capabilityTiles = [
+  ['/developer', Gauge, 'High performance', 'Real launch/runtime diagnostics'],
+  ['/mods', PackageOpen, 'Modrinth integration', 'Version + loader filtered installs'],
+  ['/servers', Server, 'Server browser', 'Real status, ping and quick join'],
+  ['/core', ShieldCheck, 'Real in-game client', 'Eternal Core runs inside Minecraft'],
+  ['/core', SlidersHorizontal, 'Full customization', 'HUD, ClickGUI, zoom and profiles'],
+  ['/downloads', Cloud, 'Regular updates', 'Build and download activity']
 ];
 
 export default function Home() {
@@ -38,7 +52,7 @@ export default function Home() {
   const instances = useEternalStore(s => s.instances);
   const running = useEternalStore(s => s.running);
   const events = useEternalStore(s => s.launchEvents);
-  const servers = useEternalStore(s => s.servers);
+  const downloads = useEternalStore(s => s.downloadEvents);
   const [selectedId, setSelectedId] = useState('');
   const [launchError, setLaunchError] = useState('');
 
@@ -53,6 +67,7 @@ export default function Home() {
   const selected = instances.find(i => i.id === selectedId) || recent[0] || instances[0] || null;
   const selectedRunning = selected ? running.some(r => r.instanceId === selected.id) : false;
   const runningProcesses = running.reduce((total, item) => total + Number(item.count || item.pids?.length || 1), 0);
+  const supportedCore = selected?.loader === 'fabric' && selected?.minecraftVersion === '1.21.11';
 
   async function playSelected() {
     setLaunchError('');
@@ -61,12 +76,14 @@ export default function Home() {
     catch (error) { setLaunchError(error.message); }
   }
 
-  return <div className="release-home">
-    <section className="release-hero">
+  return <div className="release-home beta6-home">
+    <section className="release-hero beta6-hero">
       <div className="release-hero-grid" />
       <div className="release-hero-atmosphere" />
+      <div className="beta6-scanline" />
+
       <motion.div className="release-hero-copy" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .28 }}>
-        <span className="release-kicker">ETERNAL CLIENT · v0.5.0-beta.5</span>
+        <span className="release-kicker">ETERNAL CLIENT · v0.6.0-beta.6</span>
         <h1>Play Minecraft<br/><strong>Your Way.</strong></h1>
         <p>Fast. Clean. Powerful. Eternal.</p>
         <div className="release-launch-row">
@@ -86,33 +103,95 @@ export default function Home() {
         <span>BEYOND SURVIVAL</span>
       </motion.div>
 
-      <div className="release-hero-account"><span className={account ? 'online' : ''} /> <b>{account?.username || 'No account'}</b><small>{account ? (account.type === 'microsoft' ? 'Microsoft' : 'Offline') : 'Add account'}</small></div>
+      <div className="release-hero-account">
+        <MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={24} />
+        <span className={account ? 'online' : ''} />
+        <b>{account?.username || 'No account'}</b>
+        <small>{account ? (account.type === 'microsoft' ? 'Microsoft' : 'Offline') : 'Add account'}</small>
+      </div>
 
       <div className="release-feature-row">
         {featureTiles.map(([to, Icon, title, copy]) => <button key={to} onClick={() => navigate(to)}><Icon /><span><b>{title}</b><small>{copy}</small></span></button>)}
       </div>
     </section>
 
-    <section className="home-live-strip" aria-label="Live Eternal status">
+    <section className="beta6-console-grid">
+      <article className="beta6-console beta6-command-card">
+        <header><div><b>COMMAND CENTER</b><span>CTRL + K</span></div><Terminal /></header>
+        <div className="beta6-command-input">/<span>Run real launcher actions</span></div>
+        <div className="beta6-command-list">
+          <button onClick={playSelected} disabled={!selected}><Play />Launch selected instance <kbd>{selected?.name || 'none'}</kbd></button>
+          <button onClick={() => navigate('/library')}><Boxes />Switch / manage instance <kbd>instances</kbd></button>
+          <button onClick={() => navigate('/mods')}><PackageOpen />Open mods <kbd>mods</kbd></button>
+          <button onClick={() => navigate('/servers')}><Server />Open servers <kbd>servers</kbd></button>
+          <button onClick={() => navigate('/settings')}><Settings2 />Open settings <kbd>settings</kbd></button>
+          <button onClick={() => navigate('/developer')}><Wrench />Diagnostics <kbd>developer</kbd></button>
+        </div>
+      </article>
+
+      <article className="beta6-console beta6-hud-card">
+        <header><div><b>HUD EDITOR</b><span>MAKE IT YOURS</span></div><Keyboard /></header>
+        <div className="beta6-hud-stage">
+          <span className="hud-node node-fps"><Gauge /> FPS</span>
+          <span className="hud-node node-coords"><MapPin /> Coordinates</span>
+          <span className="hud-node node-keys">Keystrokes</span>
+          <span className="hud-node node-ping"><Activity /> Ping</span>
+          <div className="hud-crosshair">+</div>
+        </div>
+        <div className="beta6-card-actions">
+          <button onClick={() => navigate('/core')}>Eternal Core</button>
+          <button className="accent" onClick={playSelected} disabled={!supportedCore}>Launch Core profile</button>
+        </div>
+        <small className="beta6-hint">Actual drag/edit happens in Minecraft: press <b>H</b>. This panel never writes fake positions.</small>
+      </article>
+
+      <article className="beta6-console beta6-account-card">
+        <header><div><b>ACCOUNTS</b><span>PLAY YOUR WAY</span></div><Users /></header>
+        <div className="beta6-mini-list">
+          {accounts.slice(0, 3).map(item => <button key={item.id} onClick={() => navigate('/accounts')} className={item.id === activeId ? 'selected' : ''}>
+            <MinecraftHead skinUrl={item.skinUrl || ''} username={item.username} size={32} />
+            <span><b>{item.username}</b><small>{item.type === 'microsoft' ? 'Microsoft' : 'Offline'}</small></span>
+            {item.id === activeId && <i />}
+          </button>)}
+          {!accounts.length && <div className="beta6-empty">No account added yet.</div>}
+        </div>
+        <button className="beta6-wide-action" onClick={() => navigate('/accounts')}><UserRound />Manage accounts</button>
+      </article>
+
+      <article className="beta6-console beta6-instance-card">
+        <header><div><b>INSTANCES</b><span>MANAGE EVERYTHING</span></div><Boxes /></header>
+        <button className="beta6-wide-action" onClick={() => navigate('/library')}>+ New instance</button>
+        <div className="beta6-mini-list instance-list">
+          {instances.slice(0, 4).map(item => {
+            const isRunning = running.some(row => row.instanceId === item.id);
+            return <button key={item.id} onClick={() => { setSelectedId(item.id); navigate('/library'); }} className={item.id === selectedId ? 'selected' : ''}>
+              <span className={`instance-light ${isRunning ? 'live' : ''}`} />
+              <span><b>{item.minecraftVersion} · {item.loader}</b><small>{item.name}</small></span>
+              <Settings2 />
+            </button>;
+          })}
+          {!instances.length && <div className="beta6-empty">Create your first Minecraft profile.</div>}
+        </div>
+      </article>
+    </section>
+
+    <section className="beta6-feature-strip">
+      {capabilityTiles.map(([to, Icon, title, copy]) => <button key={`${to}-${title}`} onClick={() => navigate(to)}><Icon /><span><b>{title}</b><small>{copy}</small></span></button>)}
+    </section>
+
+    <section className="home-live-strip beta6-live-strip" aria-label="Live Eternal status">
       <div><Boxes /><span>PROFILES</span><b>{instances.length}</b></div>
       <div><Radio /><span>GAME PROCESSES</span><b>{runningProcesses}</b></div>
       <div><Cpu /><span>SELECTED</span><b>{selected ? `${selected.minecraftVersion} · ${selected.loader}` : 'None'}</b></div>
       <div><ShieldCheck /><span>ACCOUNT</span><b>{account ? account.type.toUpperCase() : 'NONE'}</b></div>
+      <div><DownloadCloud /><span>RECENT ACTIVITY</span><b>{downloads.length}</b></div>
     </section>
 
-    <div className="home-columns release-home-columns">
+    <div className="home-columns release-home-columns beta6-recent-row">
       <section className="profiles-panel">
         <div className="section-head"><div><small>CONTINUE PLAYING</small><h2>Recent instances</h2></div><button onClick={() => navigate('/library')}>Manage everything</button></div>
         <div className="profile-list">{recent.length ? recent.map(instance => <ProfileCard key={instance.id} instance={instance} running={running.some(r => r.instanceId === instance.id)} event={events[instance.id]} />) : <div className="empty-card">No profiles yet. Create a real Minecraft instance to begin.</div>}</div>
       </section>
-
-      <aside className="integration-rail release-rail">
-        <div className="rail-title"><span>ETERNAL NETWORK</span><small>Real capabilities only</small></div>
-        <div className="rail-card red"><div><b>ETERNAL CORE</b><span>Real in-game client · 1.21.11 Fabric</span></div><button onClick={() => navigate('/core')}>OPEN</button></div>
-        <div className="rail-card"><div><b>MODRINTH</b><span>Loader + version filtered installs</span></div><button onClick={() => navigate('/mods')}>BROWSE</button></div>
-        <div className="rail-card"><div><b>ATERNOS</b><span>Real server status + quick join</span></div><button onClick={() => navigate('/servers')}>SERVERS</button></div>
-        {servers.length > 0 && <div className="server-mini"><Server /><div><b>{servers[0].name}</b><span>{servers[0].host}:{servers[0].port || 25565}</span></div></div>}
-      </aside>
     </div>
   </div>;
 }

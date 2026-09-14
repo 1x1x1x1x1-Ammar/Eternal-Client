@@ -1,19 +1,43 @@
 <p align="center"><img src="assets/logo.svg" width="116" alt="Eternal Client red E emblem" /></p>
 <h1 align="center">ETERNAL CLIENT</h1>
 <p align="center"><b>Beyond survival.</b></p>
-<p align="center">A premium Minecraft Java <b>launcher + real in-game client</b> with isolated instances, Microsoft/offline accounts, real launch state, Modrinth content, server tools, and Eternal Core running inside Minecraft.</p>
+<p align="center">A premium Minecraft Java <b>launcher + real in-game client</b> with isolated instances, Microsoft/offline accounts, Modrinth, real server tools, and Eternal Core running inside Minecraft.</p>
 
 <p align="center">
-<img alt="version" src="https://img.shields.io/badge/version-v0.5.0--beta.5-EA272D?style=for-the-badge" />
+<img alt="version" src="https://img.shields.io/badge/version-v0.6.0--beta.6-EA272D?style=for-the-badge" />
 <img alt="windows" src="https://img.shields.io/badge/Windows-10%20%2F%2011-111111?style=for-the-badge&logo=windows11" />
 <img alt="core" src="https://img.shields.io/badge/Eternal_Core-1.21.11%20Fabric-FF3338?style=for-the-badge" />
 </p>
 <p align="center"><a href="../../actions/workflows/ci.yml"><img src="../../actions/workflows/ci.yml/badge.svg" alt="Eternal CI" /></a></p>
 
-<p align="center"><img src="assets/release-banner.svg" width="100%" alt="Eternal Client first beta release" /></p>
+<p align="center"><img src="assets/release-banner.svg" width="100%" alt="Eternal Client beta release" /></p>
 
 > [!IMPORTANT]
-> **Eternal is real beta software, not a mock launcher.** A button that looks usable must execute a real action. Fake player counts, fake download percentages, fake partner controls, and fake success states are not accepted in this project.
+> **Eternal is real beta software, not a mock launcher.** If a control looks usable, it must execute a real action. Fake player counts, fake progress, fake partner controls and fake success states are not accepted.
+
+## v0.6.0-beta.6 — reference-locked UI + startup reliability
+
+Beta 6 is built around the black/crimson Eternal reference direction: wider labelled sidebar, cinematic Play screen, red E emblem, compact premium panels, fast motion, Command Center, HUD panel, Accounts and Instances dashboard, and a matching Eternal Core page.
+
+The UI is intentionally connected to real launcher state:
+
+- **Play** launches the selected real instance.
+- **Instances** shows actual saved profiles and running state.
+- **Accounts** shows real Microsoft/offline profiles.
+- **Mods** uses Modrinth filtered by the selected Minecraft version + loader.
+- **Servers** uses real Minecraft status / latency / player-count handling.
+- **Downloads** is driven by launcher activity instead of random percentages.
+- **Eternal Core** describes and launches the implemented in-game client target.
+
+## Beta 5 startup crash fixed
+
+Beta 5 could fail before the window opened because `electron-updater` is CommonJS and the packaged Electron runtime rejected a named ESM import:
+
+```text
+SyntaxError: Named export 'autoUpdater' not found
+```
+
+Beta 6 loads the package through its default CommonJS export. More importantly, CI now **packages the Windows app and starts the real packaged EXE with `--smoke-test`** before a release is allowed to publish. A build that crashes in the Electron main process is rejected.
 
 ## Launcher + in-game client
 
@@ -22,124 +46,115 @@ Eternal Launcher
    ↓
 Isolated Minecraft instance
    ↓
-Correct Minecraft + loader + Java
+Correct Java + Minecraft + loader
    ↓
 Real Minecraft process
    ↓
-Eternal Core on supported profiles
+Verified Eternal Core JAR on supported profile
    ↓
-HUD / ClickGUI / Zoom inside Minecraft
+ClickGUI / HUD / Zoom inside Minecraft
 ```
 
-The interface targets the compact, cinematic quality of premium Minecraft clients while keeping **Eternal's own red E branding, source code, layout system, and assets**.
+## Real launcher work
 
-# v0.5.0-beta.5 — First GitHub Beta
+- Isolated per-profile `.minecraft` directories.
+- Vanilla + Fabric launch paths.
+- Multiple Minecraft child processes per instance.
+- Microsoft OAuth → Xbox Live → XSTS → Minecraft Services ownership/profile flow.
+- Offline accounts with Minecraft-compatible deterministic UUIDs.
+- Java detection and version checks.
+- Modrinth search/install with actual version + loader compatibility filtering.
+- Local mod enable/disable without rewriting JAR contents.
+- Minecraft protocol server status / latency / player counts.
+- Quick-play server launch.
+- Real launcher diagnostics and packaged startup smoke tests.
+- Windows NSIS installer + portable build + SHA256 release hashes.
 
-### New release UI
+## Eternal Core
 
-- Rebuilt Home around the **Play Minecraft Your Way** flow.
-- Dark cinematic black/crimson visual system with fast micro-animations.
-- Full text + icon navigation: Home, Instances, Mods, Servers, Accounts, Settings, Downloads and Developer.
-- Real instance selector directly beside the Play button.
-- Real current-account and running-process state.
-- Real feature cards for instances, Modrinth, servers and accounts.
-- Dedicated **Accounts** page with Microsoft device-code state and offline accounts.
-- Dedicated **Downloads** page driven by actual launcher/download events. Unknown progress stays indeterminate instead of inventing a percentage.
-- Dedicated **Developer** page backed by Electron IPC diagnostics and detected Java runtimes.
-- `Ctrl + K` Command Center remains available for fast navigation and launch actions.
-- New smooth red **Eternal E** emblem used throughout the launcher and README.
+Current certified target: **Minecraft 1.21.11 + Fabric**.
 
-### Real launcher functionality
+Current implemented features:
 
-- Per-profile isolated `.minecraft` directories.
-- Vanilla launch path through `minecraft-launcher-core`.
-- Fabric loader resolution through Fabric's official metadata service.
-- Multiple simultaneous Minecraft child processes tracked per instance.
-- Real PID-aware stop/exit state so closing one game does not incorrectly mark another running copy as stopped.
-- Offline accounts using Minecraft-compatible `OfflinePlayer:<name>` UUID semantics.
-- Microsoft device-code login chain: Microsoft → Xbox Live → XSTS → Minecraft Services → ownership/profile validation.
-- Microsoft auth requires **your own** Entra/Azure public client ID; Eternal does not copy another launcher's credentials.
-- Java discovery and version checks.
-- Local `.jar` add/remove/enable/disable without editing mod JAR contents.
-- Modrinth search and install filtered by the selected instance's Minecraft version + loader.
-- Genuine Minecraft TCP status handshake for server online state, version, player count and latency.
-- Aternos standard mode exposes only legitimate server status / join / dashboard behavior unless an authorized partner API exists.
-- Electron renderer stays isolated with `contextIsolation`, `sandbox`, and no Node integration in the renderer.
-
-### Eternal Core — actually inside Minecraft
-
-Current certified source target: **Minecraft 1.21.11 + Fabric**.
-
-| Feature | Current implementation |
+| Feature | Current behavior |
 |---|---|
-| ClickGUI | `Right Shift` opens Eternal's in-game module UI |
-| HUD editor | `H` opens draggable HUD placement with persistent positions |
-| Zoom | Hold `C`; FOV changes and restores on release |
+| ClickGUI | `Right Shift` opens the in-game Eternal interface |
+| HUD editor | `H` opens draggable persistent HUD placement |
+| Zoom | hold `C`; previous FOV is restored on release |
 | FPS | live Minecraft FPS |
-| CPS | real left/right click timestamps |
+| CPS | real left/right click activity |
 | Keystrokes | live movement input |
 | Coordinates | live player XYZ |
 | Ping | current player-list latency |
-| Speed | horizontal player movement speed |
-| Direction | player yaw |
+| Speed | horizontal player movement |
+| Direction | live direction/yaw |
 | Memory | JVM heap usage |
-| Session | current Eternal Core session time |
+| Session | elapsed Core runtime |
 
-The HUD is rendered through Minecraft's actual client GUI path; it is not an Electron overlay pretending to be in-game.
+The in-game panel shown by the launcher is a preview of implemented functionality; the real interaction happens inside Minecraft.
 
-## Current support
+## Build gates
 
-| Area | Beta 5 status |
-|---|---|
-| Vanilla profiles | Implemented |
-| Fabric profiles | Implemented |
-| Forge / NeoForge / Quilt | Not exposed as working until ported/tested |
-| Offline accounts | Implemented |
-| Microsoft auth source | Implemented; live owning-account test remains a release gate |
-| Local mods | Implemented |
-| Modrinth search/install | Implemented |
-| Minecraft server ping | Implemented |
-| Quick server launch | Implemented where supported by target MC version |
-| Eternal Core 1.21.11 | Compiled by CI and packaged into release pipeline |
-| Aternos privileged controls | Not faked; requires authorized API |
+Every beta release must pass:
 
-## Build on Windows
+```text
+Eternal Core Gradle compile
+        ↓
+Node dependency install
+        ↓
+source + runtime tests
+        ↓
+Vite production renderer build
+        ↓
+Windows Electron package
+        ↓
+PACKAGED EXE STARTUP SMOKE TEST
+        ↓
+NSIS / portable artifacts
+        ↓
+SHA256 generation
+        ↓
+GitHub pre-release
+```
 
-Requirements: Windows 10/11 x64, Node.js 22 recommended, JDK 21 for Eternal Core.
+## Build locally
+
+Requirements: Windows 10/11, Node.js 20+ (22 recommended), JDK 21.
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\RUN-DEV-WINDOWS.ps1
 ```
 
-Production verification / installer path:
+Verified package build:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\BUILD-WINDOWS.ps1
 ```
 
-GitHub Actions separately verifies the launcher and Eternal Core. The release workflow builds the real Core JAR, stages it into the launcher assets, compiles the renderer, packages the Windows NSIS installer, and publishes release artifacts only if those steps succeed.
-
 ## Repository map
 
 ```text
 Eternal-Client/
-├─ electron/            Electron main process + launcher services
+├─ electron/            Electron launcher backend
 ├─ src/                 React launcher UI
-├─ eternal-core/        Fabric in-game client source
-├─ assets/              Eternal branding + release artwork
-├─ tests/               Source regression tests
-├─ scripts/             Verification helpers
+├─ eternal-core/        Fabric in-game client
+├─ assets/              Eternal branding
+├─ tests/               regression/source tests
+├─ scripts/             build/Core helpers
 └─ .github/workflows/   CI + release automation
 ```
 
-## Release discipline
+## Beta limitations we do not fake
 
-A green source test is not the same as a fully certified launcher. Before Eternal leaves beta, the project still needs clean-machine Windows verification, real Microsoft owning-account validation, actual Minecraft launch testing, in-game Eternal Core smoke testing, installer/update testing, and regression passes across every supported loader/version pair.
+- Eternal Core is currently certified for **Fabric 1.21.11** only.
+- Microsoft login needs your own Entra/Azure public-client application ID.
+- Aternos privileged server controls require an authorized API/partnership; standard mode provides legitimate status/join/dashboard behavior instead.
+- Other loaders/versions are not marked supported until their actual path is implemented and tested.
 
-See [`TEST-RESULTS.md`](TEST-RESULTS.md) and [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md).
+## Project rule
 
-> **Project rule:** if a feature is not implemented, tested, or authorized yet, Eternal says so instead of pretending.
+> **If a button looks functional, it must perform a real action. If a feature is not ready, Eternal says so instead of pretending.**
 
 <p align="center"><b>ETERNAL CLIENT</b><br/><i>Bigger. Faster. Better.</i></p>

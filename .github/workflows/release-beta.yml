@@ -4,19 +4,19 @@ on:
   push:
     branches: [main]
     paths:
-      - '.release/v0.5.0-beta.5'
+      - '.release/v0.6.0-beta.6'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: eternal-release-v0.5.0-beta.5
+  group: eternal-release-v0.6.0-beta.6
   cancel-in-progress: false
 
 env:
-  RELEASE_TAG: v0.5.0-beta.5
-  CORE_VERSION: 0.5.0-beta.5
+  RELEASE_TAG: v0.6.0-beta.6
+  CORE_VERSION: 0.6.0-beta.6
 
 jobs:
   release:
@@ -60,6 +60,16 @@ jobs:
 
       - name: Package Windows installer
         run: npx electron-builder --win nsis --x64 --publish never
+
+      - name: Smoke test packaged launcher
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'release/win-unpacked/Eternal Client.exe'
+          if (!(Test-Path $exe)) { throw "Packaged executable not found: $exe" }
+          $process = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $($process.ExitCode)" }
+          Write-Host "Packaged Eternal Client startup smoke test passed." -ForegroundColor Green
 
       - name: Prepare release artifacts
         shell: pwsh
