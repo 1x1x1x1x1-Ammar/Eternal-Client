@@ -61,20 +61,26 @@ test('Mod Hub V1 supports real sorting categories pagination and verified instal
   assert.match(page, /total_hits/);
 });
 
-test('Core V1 opens a premium real-function start dashboard before module settings', () => {
+test('Core V1 opens premium real-function screens through the crash-safe Minecraft task queue', () => {
   const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
   const home = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalHomeScreen.java');
-  assert.match(core, /new EternalHomeScreen\(\)/);
+  const editor = read('eternal-core/src/main/java/gg/eternal/core/ui/HudEditorScreen.java');
+  assert.match(core, /EternalHomeScreen::new/);
+  assert.match(core, /ClickGuiScreen::new/);
+  assert.match(core, /HudEditorScreen::new/);
+  assert.match(core, /mc\.execute/);
+  assert.match(core, /screenOpenQueued/);
   assert.match(home, /ETERNAL START/);
-  assert.match(home, /new ClickGuiScreen\(\)/);
-  assert.match(home, /new HudEditorScreen\(\)/);
+  assert.match(home, /EternalCore\.openClickGui\(\)/);
+  assert.match(home, /EternalCore\.openHudEditor\(\)/);
   assert.match(home, /setAllModules\(true\)/);
   assert.match(home, /setAllModules\(false\)/);
-  assert.match(home, /applyPreset\("DEFAULT"/);
   assert.match(home, /CoreConfig\.INSTANCE\.toggle\("Zoom"\)/);
   assert.match(home, /HudRenderer\.value\("FPS"\)/);
   assert.match(home, /HudRenderer\.value\("Ping"\)/);
   assert.match(home, /isPauseScreen\(\)/);
+  assert.match(editor, /"MODULES"/);
+  assert.match(editor, /EternalCore\.openClickGui\(\)/);
 });
 
 test('stable release intentionally excludes portable ZIP', () => {
