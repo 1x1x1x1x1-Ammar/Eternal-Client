@@ -4,7 +4,7 @@
 <p align="center">A Windows-first Minecraft Java <b>launcher + real in-game client</b> with isolated instances, Microsoft/offline accounts, Modrinth, real server tools, a real diagnostics console, and Eternal Core running inside Minecraft.</p>
 
 <p align="center">
-<img alt="version" src="https://img.shields.io/badge/version-v1.0.0-EA272D?style=for-the-badge" />
+<img alt="version" src="https://img.shields.io/badge/version-v1.0.1-EA272D?style=for-the-badge" />
 <img alt="release" src="https://img.shields.io/badge/channel-STABLE-58ED89?style=for-the-badge" />
 <img alt="windows" src="https://img.shields.io/badge/Windows-10%20%2F%2011-111111?style=for-the-badge&logo=windows11" />
 <img alt="core" src="https://img.shields.io/badge/Eternal_Core-Standalone%20%2B%20Launcher-FF3338?style=for-the-badge" />
@@ -15,30 +15,31 @@
 <p align="center"><img src="assets/release-banner.svg" width="100%" alt="Eternal Client" /></p>
 
 > [!IMPORTANT]
-> **Eternal v1 follows one rule: visible functionality must be real.** No fake player counts, fake progress, fake partner controls, fake Minecraft launch state, or decorative controls that pretend to perform an action.
+> **Eternal follows one rule: visible functionality must be real.** No fake player counts, fake progress, fake partner controls, fake Minecraft launch state, or decorative controls that pretend to perform an action.
 
-# Eternal Client v1.0.0
+# Eternal Client v1.0.1
 
-Eternal combines a real Minecraft launcher with a real Fabric client running inside Minecraft. Launcher and Core share the same original Eternal black/charcoal/crimson visual language while remaining separate runtime components: the same verified Core JAR can run launcher-managed or standalone.
+v1.0.1 is the stable Core-reliability and premium-UI patch. It keeps the real launcher/instance/Modrinth/server/account systems from v1 while hardening the in-game screen path after a real crash report, expanding diagnostics, improving the real Downloads center, and giving both launcher and Core another detailed UI/UX pass.
 
-## V1 highlights
+## v1.0.1 highlights
 
-- Premium launcher UI with responsive layouts, advanced micro-motion, real loading/error/running states and reduced-motion support.
-- Full Mojang version catalog for instance creation: releases, snapshots, old beta and old alpha entries.
-- Real isolated instance management: create, edit, duplicate, delete, open folder, launch, stop, playtime and running process state.
-- Premium Mod Hub backed by Modrinth with version/loader filtering, real sorting/categories, pagination, dependency resolution and hash verification.
-- Real Eternal Console (`Ctrl+J`) for backend operations, Minecraft stdout/debug, warnings/errors and transfer activity.
-- Real Downloads center for Minecraft preparation, Modrinth transfers and Eternal updater transfers. Unknown-size work remains indeterminate instead of using fake percentages.
-- Renewable Microsoft session state and a real stable GitHub updater.
-- Custom Eternal Minecraft title/start menu replacing the vanilla title screen while Core is loaded.
-- Crash-hardened Eternal UI opening: key-repeat suppression, normalized mouse actions, Minecraft task-queue screen transitions and runtime diagnostics in `config/eternal-core.log`.
-- Clean Core installs start with HUD/Zoom modules **disabled**. The player explicitly enables what they want.
-- Premium Eternal Start dashboard, Modules UI, HUD Editor, live HUD, notifications and upgraded WASD + LMB/RMB keystrokes.
+- Core Modules screen rendering/input is guarded and recovers to Eternal Start instead of allowing a UI exception to crash the game.
+- HUD Studio rendering, dragging and input are guarded too.
+- Top-level HUD rendering and individual HUD modules have failure isolation.
+- `config/eternal-core.log` stores full exception stack traces for real debugging.
+- Premium Eternal Minecraft title/start screen has a safe fallback renderer.
+- Clean Core installs still start all HUD/Zoom modules **disabled** until the player chooses them.
+- Rebuilt in-game Modules center with real ON/OFF state, Enable All, Disable All and **Edit Layout**.
+- Rebuilt HUD Studio with live preview, selection anchors, position/size inspector, snap, nudge, presets and real module disable.
+- Premium Keystrokes now uses real WASD + LMB/RMB state, left/right CPS, total CPS and CPS activity bars.
+- Launcher Minecraft launch failures before JVM startup now become explicit `ERROR` lifecycle events.
+- Downloads shows real errors, real byte/speed telemetry where available, opens Console directly and can clear session transfer history.
+- New final `v1.0.1.css` layer polishes sidebar, Home, instances, Mod Hub, Core, Console, Downloads, common controls and responsive/reduced-motion states.
 
 # Launcher → Minecraft architecture
 
 ```text
-ETERNAL CLIENT v1
+ETERNAL CLIENT v1.0.1
 │
 ├── Launcher-managed mode
 │     ↓
@@ -56,7 +57,7 @@ ETERNAL CLIENT v1
 │
 └── Standalone Core mode
       ↓
-   Eternal-Core-Standalone-1.0.0.jar
+   Eternal-Core-Standalone-1.0.1.jar
       ↓
    compatible Fabric 1.21.11 mods folder
       ↓
@@ -65,7 +66,7 @@ ETERNAL CLIENT v1
    no Eternal launcher process required
 ```
 
-# Eternal Core v1
+# Eternal Core v1.0.1
 
 Automated build target: **Minecraft Java 1.21.11 + Fabric + Java 21**. Gradle compilation and release checks are required before publication; a real-machine gameplay pass is still the final compatibility gate for specific hardware/mod/server combinations.
 
@@ -75,26 +76,26 @@ When Eternal Core is loaded, the vanilla Minecraft title screen is replaced by t
 
 - **Singleplayer** → Minecraft world selection
 - **Multiplayer** → Minecraft server browser
-- **Modules** → Eternal module manager
-- **HUD Editor** → draggable Eternal HUD workspace
+- **Modules** → Eternal module center
+- **HUD Studio** → draggable Eternal HUD workspace
 - **Options** → Minecraft settings
 - **Quit Game** → real Minecraft shutdown
 
-The menu uses Eternal's red-E identity and premium black/crimson design direction; it does not ship Dawn assets or code.
+The v1.0.1 start surface adds stronger visual hierarchy, current keybind hints, enabled-module status and a safe fallback menu if the premium renderer fails. It uses Eternal's own red-E identity and original black/crimson interface; it does not ship Dawn assets or code.
 
 ## Default controls
 
 | Default | Action |
 |---|---|
 | `Right Shift` | Open **Eternal Start** |
-| `H` | Open the draggable **HUD Editor** |
+| `H` | Open **HUD Studio** |
 | Hold `C` | Zoom, only after the Zoom module is enabled |
 
 The Eternal bindings are rebindable in-game and persist locally. Duplicate Eternal bindings are rejected.
 
 ## Modules start OFF
 
-A clean Eternal Core config does **not** enable HUD modules automatically. Open **Modules** from the Eternal Minecraft title screen or Eternal Start and enable only the modules you want. Existing saved user configuration is preserved.
+A clean Eternal Core config does **not** enable HUD modules automatically. Open **Modules** from Eternal Start/title screen and enable only the modules you want. Existing saved configuration is preserved.
 
 ## Real modules
 
@@ -117,29 +118,57 @@ A clean Eternal Core config does **not** enable HUD modules automatically. Open 
 | Clock | local 24-hour clock |
 | Zoom | configurable hold-key FOV; prior FOV restores on release |
 
-## HUD Editor
+## Modules center
 
-The HUD Editor is a real placement workspace, not a screenshot preview:
+The in-game module center is functional, not a screenshot:
 
-- **Modules** button opens the module manager so hidden modules can be enabled.
-- Active modules render on the actual placement canvas.
-- Drag modules and see their real on-screen position.
-- Snap grid supports 2/4/8 px.
+- Real ON/OFF state on every module card.
+- Enable All / Disable All.
+- **Edit Layout** opens the real HUD Studio.
+- Zoom FOV control.
+- Notifications control.
+- Persistent Start/HUD/Zoom keybinds with duplicate protection.
+- Accent, HUD opacity and snap grid.
+- Default / Compact / Corners presets.
+- Crash recovery writes the complete exception to `config/eternal-core.log` and returns to Eternal Start when possible.
+
+## HUD Studio
+
+The HUD Studio is the real placement workspace:
+
+- **Modules** opens the module center to add/remove HUD widgets.
+- Active modules render exactly as they will in-game.
+- Drag modules with grid snapping.
+- Selection anchors show the active drag target.
+- Inspector shows actual position and widget size.
 - Arrow keys nudge the selected module.
-- Inspector shows the selected module and coordinates.
-- Default / Compact / Corners presets write real saved positions.
+- Default / Compact / Corners presets write saved positions.
 - Delete disables the selected module.
 - Positions persist locally.
+- Render/input/drag failures are guarded and logged instead of taking down Minecraft.
+
+## Premium Keystrokes
+
+Keystrokes is still based only on real input state but now has a richer in-game presentation:
+
+- W/A/S/D pressed-state glow
+- real LMB/RMB pressed state
+- real left/right CPS counters
+- total CPS footer
+- live CPS activity bars
+- layered Eternal panel chrome
+
+Health, Armor and Food widgets also display real value bars based on current player state.
 
 ## Core diagnostics
 
-Core writes runtime diagnostics to both Minecraft stdout/stderr and:
+Core writes runtime diagnostics to Minecraft stdout/stderr and:
 
 ```text
 config/eternal-core.log
 ```
 
-The launcher captures Minecraft output in **Console → Minecraft**. Error/warning lines are classified and surfaced, and abnormal Minecraft exits tell you to inspect the preceding runtime lines instead of hiding the failure.
+v1.0.1 persists full Java stack traces. The launcher captures Minecraft output in **Console → Minecraft**, classifies errors/warnings and surfaces abnormal exits with the preceding runtime output.
 
 Core configuration lives at:
 
@@ -151,7 +180,7 @@ It stores module states, HUD positions, accent, opacity, zoom FOV, snap grid, no
 
 # Eternal Console
 
-Open with **Ctrl+J**. Major operations open it automatically; Minecraft warnings/errors also surface it automatically.
+Open with **Ctrl+J**. Major operations open it automatically; Minecraft warnings/errors can surface it automatically.
 
 Tabs:
 
@@ -159,38 +188,39 @@ Tabs:
 - **Minecraft** — launch lifecycle + real Minecraft stdout/debug + warnings/errors
 - **Transfers** — real transfer events
 
-Instance creation, duplication, Minecraft launch, Modrinth install, Microsoft login, server quick-join, Core export and updater download all produce backend-derived events. The console can copy visible output for bug reports.
+v1.0.1 also reports Java/account/Fabric/Core preparation failures as Minecraft `ERROR` lifecycle events even when the JVM never starts.
 
 # Real Downloads center
 
-The Downloads page combines real backend transfer state from:
+The Downloads page combines real backend state from:
 
 - Minecraft version/assets/library preparation
 - Modrinth downloads
 - Eternal stable updater downloads
 - loader/Core preparation lifecycle
+- pre-launch/runtime failures
 
-When bytes are available Eternal shows actual transferred bytes, total bytes and speed. When total size is unavailable, Eternal uses an indeterminate state — never a fake percentage.
+When bytes are available Eternal shows actual transferred bytes, total bytes and speed. When total size is unavailable, Eternal uses an indeterminate state — never a fake percentage. Failed rows can open Console directly, and **Clear session transfers** clears only saved transfer-event history.
 
 # Instance system
 
 - Each instance owns an isolated `.minecraft` tree.
-- Mojang's official manifest backs the version catalog.
+- Mojang's official manifest backs the complete version catalog.
 - Search/type releases, snapshots, old beta and old alpha entries.
-- Launcher paths implemented in v1: **Vanilla + Fabric**.
-- Fabric loader compatibility is resolved against Fabric metadata at launch.
+- Launcher paths implemented: **Vanilla + Fabric**.
+- Fabric loader compatibility resolves against Fabric metadata at launch.
 - Edit name and RAM safely.
 - Duplicate copies the isolated instance tree.
 - Delete/duplicate are blocked while an instance is running.
 - Multiple Minecraft processes are tracked by profile.
 
-Core support is intentionally narrower than launcher version selection: the v1 Core build targets **Fabric 1.21.11** only.
+Core support is intentionally narrower than launcher version selection: the current Core build targets **Fabric 1.21.11**.
 
-# Mod Hub V1
+# Mod Hub
 
 - Real Modrinth search filtered by selected Minecraft version and loader.
 - Relevance/download/follow/newest/updated sorting.
-- Category facets such as optimization, utility, technology, adventure, worldgen and decoration.
+- Category facets.
 - Real pagination / Load More.
 - Real project download/follower/category metadata.
 - Required dependency resolution.
@@ -221,18 +251,18 @@ The stable release publishes `latest.yml` alongside the installer for `electron-
 
 # Stable release files
 
-V1 intentionally publishes **no portable ZIP**.
+v1.0.1 intentionally publishes **no portable ZIP**.
 
 ```text
-Eternal.Client.Setup.1.0.0.exe
-Eternal-Core-Standalone-1.0.0.jar
+Eternal.Client.Setup.1.0.1.exe
+Eternal-Core-Standalone-1.0.1.jar
 latest.yml
 SHA256SUMS.txt
 ```
 
 # Release gates
 
-`v1.0.0` is published only when the exact candidate passes:
+`v1.0.1` is published only when the exact candidate passes:
 
 ```text
 clean Java 21 Eternal Core build
@@ -241,7 +271,7 @@ Core metadata + icon + version validation
         ↓
 launcher dependency install
         ↓
-source/runtime/UI regression suite
+source/runtime/UI/crash-recovery regression suite
         ↓
 Vite production renderer build
         ↓
@@ -291,4 +321,4 @@ Eternal-Client/
 
 > **If a control looks functional, it must perform a real action. If a capability is unavailable, Eternal disables it or explains why instead of pretending.**
 
-<p align="center"><b>ETERNAL CLIENT v1</b><br/><i>The launcher and the client — one system.</i></p>
+<p align="center"><b>ETERNAL CLIENT v1.0.1</b><br/><i>The launcher and the client — one system.</i></p>
