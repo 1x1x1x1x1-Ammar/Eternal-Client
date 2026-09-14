@@ -26,14 +26,19 @@ contextBridge.exposeInMainWorld('eternal', {
   dialog: {
     folder: () => invoke('dialog:folder'),
     java: () => invoke('dialog:java'),
-    jars: () => invoke('dialog:jars')
+    jars: () => invoke('dialog:jars'),
+    skin: () => invoke('dialog:skin')
   },
   accounts: {
     list: () => invoke('accounts:list'),
     addOffline: (username) => invoke('accounts:addOffline', username),
     loginMicrosoft: () => invoke('accounts:loginMicrosoft'),
     remove: (id) => invoke('accounts:remove', id),
-    activate: (id) => invoke('accounts:activate', id)
+    activate: (id) => invoke('accounts:activate', id),
+    refreshProfile: (id) => invoke('accounts:refreshProfile', id),
+    skinPreview: (id) => invoke('accounts:skinPreview', id),
+    setSkin: (data) => invoke('accounts:setSkin', data),
+    resetSkin: (id) => invoke('accounts:resetSkin', id)
   },
   instances: {
     list: () => invoke('instances:list'),
