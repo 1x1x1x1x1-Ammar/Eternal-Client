@@ -6,7 +6,7 @@ import gg.eternal.core.util.CoreLog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.OptionsScreen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -34,7 +34,6 @@ public final class EternalTitleScreen extends Screen {
         float intro = Math.min(1.0F, (now - openedAt) / 320.0F);
 
         graphics.fill(0, 0, width, height, 0xFF050608);
-        // cinematic crimson atmosphere, intentionally original Eternal art direction
         graphics.fill(0, 0, width, Math.max(1, height / 3), 0xFF09090C);
         int glowW = Math.max(220, width / 2);
         for (int i = 0; i < 9; i++) {
@@ -108,7 +107,7 @@ public final class EternalTitleScreen extends Screen {
         graphics.fill(x, y, x + w, y + h, fill);
         graphics.renderOutline(x, y, w, h, primary ? 0x665D3034 : hover ? 0x66565D68 : LINE);
         graphics.fill(x, y, x + 2, y + h, primary || hover ? accent : 0x55384049);
-        if (hover) graphics.fill(x + 2, y, x + w, y + 1, 0x44FFFFFF);
+        if (hover) graphics.fill(x, y, x + w, y + 1, 0x44FFFFFF);
         int titleY = subtitle.isEmpty() ? y + (h - 8) / 2 : y + 11;
         graphics.drawString(font, title, x + 12, titleY, hover || primary ? TEXT : 0xFFD3D6DC, false);
         if (!subtitle.isEmpty()) graphics.drawString(font, subtitle, x + 12, y + 27, MUTED, false);
