@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { dataRoot } from './store.js';
 import { ensureDir, readJson, writeJson, safeName, assertInside } from './fsService.js';
+import { assertMinecraftVersion } from './versionService.js';
 
 export function instancesRoot() { return path.join(dataRoot(), 'instances'); }
 export function instanceDir(id) { return assertInside(instancesRoot(), path.join(instancesRoot(), id)); }
@@ -47,6 +48,7 @@ export async function createInstance(data) {
   const loader = ['vanilla','fabric'].includes(data.loader) ? data.loader : 'vanilla';
   const version = String(data.minecraftVersion || '').trim();
   if (!version) throw new Error('Minecraft version is required.');
+  const versionMeta = await assertMinecraftVersion(version);
   const name = safeName(data.name || `${version} ${loader}`);
   const id = instanceId(name, loader, version);
   const dir = instanceDir(id);
@@ -55,6 +57,7 @@ export async function createInstance(data) {
     id,
     name,
     minecraftVersion: version,
+    versionType: versionMeta.type || 'release',
     loader,
     loaderVersion: data.loaderVersion || '',
     ramMb: Math.max(1024, Math.min(32768, Number(data.ramMb) || 6144)),
