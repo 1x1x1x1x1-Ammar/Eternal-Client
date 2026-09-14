@@ -1,18 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, Crosshair, Gauge, Gem, Keyboard, MapPin, MemoryStick, MousePointer2, Play, Timer, Waypoints } from 'lucide-react';
+import {
+  Activity, Boxes, Clock3, Crosshair, Download, Gauge, Gem, Keyboard, MapPin,
+  MemoryStick, MousePointer2, Palette, Play, ShieldCheck, SlidersHorizontal,
+  Sparkles, Timer, Waypoints
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
+import eternalLogo from '../../assets/logo.svg';
 
 const modules = [
+  ['Watermark', Sparkles, 'Eternal identity chip rendered in-game'],
   ['FPS', Gauge, 'Live Minecraft client FPS'],
   ['CPS', MousePointer2, 'Actual left/right click activity'],
-  ['Keystrokes', Keyboard, 'Current movement input'],
+  ['Keystrokes', Keyboard, 'Current WASD input state'],
   ['Coordinates', MapPin, 'Live player XYZ'],
-  ['Ping', Activity, 'Current player-list latency'],
-  ['Zoom', Crosshair, 'Hold C; restores previous FOV'],
+  ['Ping', Activity, 'Current server latency'],
+  ['Speed', Gauge, 'Horizontal movement speed'],
   ['Direction', Waypoints, 'Live player direction'],
   ['Memory', MemoryStick, 'Current JVM heap usage'],
-  ['Session', Timer, 'Elapsed Eternal Core runtime']
+  ['Session', Timer, 'Elapsed Core session time'],
+  ['Clock', Clock3, 'Local 24-hour clock'],
+  ['Zoom', Crosshair, 'Configurable hold-C FOV zoom']
 ];
 
 export default function Core() {
@@ -22,11 +31,21 @@ export default function Core() {
   const [id, setId] = useState(supported[0]?.id || instances[0]?.id || '');
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
+  const [exportMessage, setExportMessage] = useState('');
 
   useEffect(() => {
-    if (!id) return setStatus(null);
+    if (!id) {
+      setStatus(null);
+      return;
+    }
+    setError('');
     call(api.core.status(id)).then(setStatus).catch(e => setError(e.message));
   }, [id]);
+
+  useEffect(() => {
+    if (!instances.length) return setId('');
+    if (!instances.some(i => i.id === id)) setId(supported[0]?.id || instances[0].id);
+  }, [instances, supported, id]);
 
   const selected = instances.find(i => i.id === id);
   const isRunning = selected ? running.some(row => row.instanceId === selected.id) : false;
@@ -34,74 +53,130 @@ export default function Core() {
   async function launch() {
     setError('');
     if (!selected) return;
-    try { await call(api.instances.launch({ instanceId: selected.id })); }
-    catch (e) { setError(e.message); }
+    try {
+      await call(api.instances.launch({ instanceId: selected.id }));
+      const next = await call(api.core.status(selected.id));
+      setStatus(next);
+    } catch (e) {
+      setError(e.message);
+    }
   }
 
-  return <div className="beta6-core-page">
-    <div className="page-head beta6-core-head">
-      <div><small>IN-GAME CLIENT</small><h1>Eternal Core</h1><p>Same Eternal visual language, actually rendered inside Minecraft.</p></div>
-      <div className="head-actions">
+  async function exportStandalone() {
+    setError('');
+    setExportMessage('');
+    try {
+      const result = await call(api.core.exportStandalone());
+      if (!result?.canceled) setExportMessage(`Standalone Core exported: ${result.path}`);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  const statusLabel = !selected
+    ? 'Select a Minecraft profile'
+    : !status?.supported
+      ? `Unsupported profile · ${selected.minecraftVersion} ${selected.loader}`
+      : status.installed
+        ? `Core ${status.version || ''} installed in this profile`
+        : status.stagedExists
+          ? `Core ${status.version || ''} verified and ready for launch`
+          : 'Core build is not staged in this launcher';
+
+  return <div className="beta7-core-page">
+    <header className="beta7-core-head">
+      <div>
+        <span className="beta7-eyebrow">ETERNAL · IN-GAME CLIENT · v0.7.0-beta.7</span>
+        <h1>Eternal Core</h1>
+        <p>The same real Core runs launcher-managed or as a standalone Fabric mod.</p>
+      </div>
+      <div className="beta7-core-actions">
         <select className="instance-select" value={id} onChange={e => setId(e.target.value)}>
-          {!instances.length && <option value="">No profiles</option>}
+          {!instances.length && <option value="">No Minecraft profiles</option>}
           {instances.map(i => <option key={i.id} value={i.id}>{i.name} · {i.minecraftVersion} · {i.loader}</option>)}
         </select>
-        <button className="primary" onClick={launch} disabled={!selected || !status?.supported}><Play />{isRunning ? 'Launch another' : 'Launch Core'}</button>
+        <button className="beta7-export" onClick={exportStandalone}><Download />Export standalone JAR</button>
+        <button className="primary beta7-launch" onClick={launch} disabled={!selected || !status?.supported}>
+          <Play fill="currentColor" />{isRunning ? 'Launch another' : 'Launch with Core'}
+        </button>
       </div>
-    </div>
+    </header>
 
-    <section className="core-hero beta6-core-hero">
-      <img src="/assets/logo.svg" alt="Eternal Core"/>
-      <div>
-        <div className="eyebrow"><Gem/>ETERNAL CORE · MINECRAFT 1.21.11 · FABRIC</div>
-        <h2>Customize your game.</h2>
-        <p>Right Shift opens ClickGUI. H opens the draggable HUD editor. Hold C for zoom. Eternal verifies the actual Core JAR before copying it into the selected isolated instance.</p>
-        <div className="core-status">
-          {status?.supported
-            ? <span className={status.installed ? 'ok' : 'warn'}>{status.installed ? 'Core installed in this instance' : status.stagedExists ? 'Verified Core ready for next launch' : 'Core JAR has not been staged yet'}</span>
-            : <span className="warn">{status?.target || 'Select a supported Fabric 1.21.11 profile'}</span>}
+    <motion.section className="beta7-core-hero" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .24 }}>
+      <div className="beta7-core-brand">
+        <div className="beta7-logo-orbit"><img src={eternalLogo} alt="Eternal Core" /></div>
+        <div>
+          <div className="beta7-chip"><Gem /> MINECRAFT 1.21.11 · FABRIC · JAVA 21</div>
+          <h2>Same client. Two ways to run it.</h2>
+          <p>Use Eternal Client and Core is verified/copy-managed for your profile, or export the exact same JAR and put it into any compatible Fabric <code>mods</code> folder. The standalone JAR does not require the Eternal launcher process.</p>
         </div>
-        {error && <div className="release-inline-error">{error}</div>}
       </div>
-    </section>
+      <div className="beta7-core-status-card">
+        <div className={status?.supported ? 'beta7-status-dot ready' : 'beta7-status-dot'} />
+        <div><small>SELECTED PROFILE</small><b>{selected?.name || 'None selected'}</b><span>{statusLabel}</span></div>
+        <ShieldCheck />
+      </div>
+    </motion.section>
 
-    <section className="beta6-core-layout">
-      <div className="beta6-ingame-window">
-        <header><div><img src="/assets/logo.svg" alt=""/><b>ETERNAL</b><span>IN-GAME</span></div><small>RIGHT SHIFT</small></header>
-        <div className="beta6-ingame-body">
+    {(error || exportMessage) && <div className={error ? 'release-inline-error' : 'beta7-success'}>{error || exportMessage}</div>}
+
+    <section className="beta7-core-grid">
+      <article className="beta7-ingame-card">
+        <div className="beta7-windowbar">
+          <div><img src={eternalLogo} alt="" /><b>ETERNAL</b><span>CORE</span></div>
+          <small>RIGHT SHIFT</small>
+        </div>
+        <div className="beta7-clickgui-preview">
           <aside>
             <button className="active">HUD</button>
-            <button>PLAYER</button>
-            <button>RENDER</button>
-            <button>WORLD</button>
-            <button>MISC</button>
+            <button>UTILITY</button>
+            <button>STYLE</button>
+            <button>ABOUT</button>
+            <span>RIGHT SHIFT<br/><b>OPEN CORE</b></span>
           </aside>
           <main>
-            <div className="beta6-ingame-row"><span>FPS HUD</span><i>ON</i></div>
-            <div className="beta6-ingame-row"><span>CPS HUD</span><i>ON</i></div>
-            <div className="beta6-ingame-row"><span>Keystrokes</span><i>ON</i></div>
-            <div className="beta6-ingame-row"><span>Coordinates</span><i>ON</i></div>
-            <div className="beta6-ingame-row"><span>Ping</span><i>ON</i></div>
-            <div className="beta6-ingame-row"><span>Zoom</span><i>HOLD C</i></div>
+            <div className="beta7-preview-title"><span><b>HUD MODULES</b><small>Live modules rendered directly in Minecraft</small></span><i>CORE UI</i></div>
+            <div className="beta7-preview-modules">
+              {['WATERMARK', 'FPS', 'CPS', 'KEYSTROKES', 'COORDINATES', 'PING', 'SPEED', 'DIRECTION'].map((name, index) => <div key={name} className={index < 6 ? 'enabled' : ''}><span>{name}<small>{index < 6 ? 'Enabled' : 'Available'}</small></span><i>{index < 6 ? 'ON' : 'OFF'}</i></div>)}
+            </div>
           </main>
         </div>
-        <footer>UI preview of implemented Eternal Core modules — actual interaction happens inside Minecraft.</footer>
-      </div>
+        <footer>Preview mirrors the Beta 7 Core layout. Module interaction itself happens inside Minecraft.</footer>
+      </article>
 
-      <div className="module-grid beta6-module-grid">
-        {modules.map(([name, Icon, description]) => <article key={name}><Icon/><div><b>{name}</b><span>{description}</span></div><i>REAL</i></article>)}
+      <article className="beta7-core-info">
+        <div className="beta7-info-title"><Boxes /><span><b>Standalone-ready</b><small>No launcher dependency at runtime</small></span></div>
+        <div className="beta7-fact"><span>Open ClickGUI</span><b>Right Shift</b></div>
+        <div className="beta7-fact"><span>HUD Editor</span><b>H</b></div>
+        <div className="beta7-fact"><span>Zoom</span><b>Hold C</b></div>
+        <div className="beta7-fact"><span>Settings file</span><b>config/eternal-core.json</b></div>
+        <div className="beta7-fact"><span>Launcher install mode</span><b>Verified per instance</b></div>
+        <div className="beta7-fact"><span>Standalone install mode</span><b>Fabric mods folder</b></div>
+        <div className="beta7-info-note"><Palette /> Accent, HUD opacity, zoom FOV, snap grid and layout presets are persistent inside Core.</div>
+      </article>
+    </section>
+
+    <section className="beta7-module-section">
+      <div className="beta7-section-head"><div><span>IMPLEMENTED NOW</span><h2>Real Core modules</h2></div><div><SlidersHorizontal /> Persistent settings</div></div>
+      <div className="beta7-module-grid">
+        {modules.map(([name, Icon, description], index) => <motion.article key={name} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .18, delay: index * .018 }}>
+          <Icon /><div><b>{name}</b><span>{description}</span></div><i>REAL</i>
+        </motion.article>)}
       </div>
     </section>
 
-    <div className="hud-preview beta6-hud-preview">
-      <div className="hud-title"><span>HUD EDITOR PREVIEW</span><b>Press H in-game · persistent positions</b></div>
-      <div className="mc-world">
-        <div className="fake-crosshair">+</div>
-        <div className="hud-chip fps">FPS <b>LIVE</b></div>
-        <div className="hud-chip coords">XYZ <b>LIVE</b></div>
-        <div className="keys"><i>W</i><i>A</i><i>S</i><i>D</i></div>
-        <div className="preview-label">PREVIEW ONLY — Eternal Core renders real values in Minecraft</div>
+    <section className="beta7-hud-editor-preview">
+      <div className="beta7-section-head"><div><span>IN MINECRAFT</span><h2>HUD Editor</h2></div><div><Keyboard /> Drag · snap · save</div></div>
+      <div className="beta7-hud-canvas">
+        <div className="beta7-grid-lines" />
+        <span className="beta7-hud-node one">ETERNAL <b>BETA 7</b></span>
+        <span className="beta7-hud-node two">FPS <b>LIVE</b></span>
+        <span className="beta7-hud-node three">XYZ <b>LIVE</b></span>
+        <span className="beta7-hud-node four">PING <b>LIVE</b></span>
+        <div className="beta7-key-cluster"><i>W</i><i>A</i><i>S</i><i>D</i></div>
+        <div className="beta7-canvas-crosshair">+</div>
+        <small>Visual preview only · press H inside Minecraft to move the real HUD modules.</small>
       </div>
-    </div>
+    </section>
   </div>;
 }
