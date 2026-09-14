@@ -10,10 +10,13 @@ import * as java from './services/javaService.js';
 import * as mods from './services/modService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
-import { coreStatus } from './services/coreService.js';
+import { coreStatus, exportStandalone } from './services/coreService.js';
 
 const { autoUpdater } = updaterPackage;
 if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
+
+app.setName('Eternal Client');
+if (process.platform === 'win32') app.setAppUserModelId('gg.eternal.client');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const smokeTest = process.argv.includes('--smoke-test');
@@ -24,6 +27,7 @@ function send(channel, payload) {
 }
 
 function createWindow() {
+  const iconPath = path.join(__dirname, '../assets/icon.png');
   mainWindow = new BrowserWindow({
     width: 1460,
     height: 900,
@@ -32,7 +36,8 @@ function createWindow() {
     frame: false,
     backgroundColor: '#050506',
     show: false,
-    icon: path.join(__dirname, '../assets/icon.png'),
+    icon: iconPath,
+    title: 'Eternal Client',
     titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -42,6 +47,7 @@ function createWindow() {
     }
   });
 
+  mainWindow.setTitle('Eternal Client');
   mainWindow.once('ready-to-show', () => { if (!smokeTest) mainWindow.show(); });
   mainWindow.webContents.once('did-finish-load', () => {
     if (smokeTest) setTimeout(() => app.exit(0), 750);
@@ -132,7 +138,17 @@ handle('servers:save', server => servers.saveServer(server));
 handle('servers:remove', id => servers.removeServer(id));
 handle('servers:ping', server => servers.pingServer(server));
 handle('servers:join', data => launcher.launchInstance({ instanceId: data.instanceId, server: data.server, emit: event => send('launch:event', event) }));
+
 handle('core:status', id => coreStatus(id));
+handle('core:exportStandalone', async () => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Eternal Core standalone mod',
+    defaultPath: path.join(app.getPath('downloads'), `Eternal-Core-Standalone-${app.getVersion()}.jar`),
+    filters: [{ name: 'Fabric mod JAR', extensions: ['jar'] }]
+  });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  return exportStandalone(result.filePath);
+});
 
 handle('updater:check', async () => {
   if (!app.isPackaged) return { available: false, reason: 'Updater is disabled in development builds.' };
