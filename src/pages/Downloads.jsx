@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, DownloadCloud, HardDrive, LoaderCircle, PackageCheck, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, DownloadCloud, HardDrive, LoaderCircle, PackageCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useEternalStore } from '../store/useEternalStore.js';
 
@@ -11,8 +11,8 @@ function progressValue(progress) {
 }
 function bytePair(progress) {
   if (!progress || typeof progress !== 'object') return null;
-  const done = Number(progress.current ?? progress.transferred ?? NaN);
-  const total = Number(progress.total ?? NaN);
+  const done = Number(progress.current ?? progress.transferred ?? progress.downloaded ?? NaN);
+  const total = Number(progress.total ?? progress.size ?? NaN);
   if (!Number.isFinite(done) || !Number.isFinite(total) || total <= 0) return null;
   return { done, total };
 }
@@ -27,7 +27,13 @@ function isDone(event) {
   return ['INSTALLED', 'CURRENT', 'SUCCESS', 'RUNNING', 'STOPPED'].includes(event?.state) || progressValue(event?.progress) >= 100;
 }
 function isError(event) {
-  return event?.state === 'ERROR' || event?.warning || event?.level === 'error';
+  return event?.state === 'ERROR' || event?.state === 'PROCESS_ERROR' || event?.warning || event?.level === 'error';
+}
+function sourceLabel(event) {
+  if (event?.source === 'minecraft' || event?.type === 'minecraft') return 'MINECRAFT';
+  if (event?.type === 'update' || event?.progress?.type === 'launcher-update') return 'ETERNAL UPDATE';
+  if (event?.progress?.type === 'mod' || event?.source === 'modrinth') return 'MODRINTH';
+  return String(event?.source || event?.type || event?.progress?.type || 'LAUNCHER').toUpperCase();
 }
 
 export default function Downloads() {
@@ -38,9 +44,9 @@ export default function Downloads() {
 
   const rows = useMemo(() => {
     const pipeline = Object.values(launchEvents)
-      .filter(event => ['DOWNLOADING', 'RESOLVING_LOADER', 'PREPARING_MODS', 'STARTING_JVM', 'VALIDATING', 'PROCESS_ERROR', 'STOPPED'].includes(event.state))
-      .map(event => ({ ...event, type: event.type || 'minecraft', name: instances.find(i => i.id === event.instanceId)?.name || 'Minecraft' }));
-    return [...downloads.slice(-80), ...pipeline]
+      .filter(event => ['RESOLVING_LOADER', 'PREPARING_MODS', 'STARTING_JVM', 'VALIDATING', 'PROCESS_ERROR', 'STOPPED'].includes(event.state))
+      .map(event => ({ ...event, type: event.type || 'minecraft', source: event.source || 'minecraft', name: instances.find(i => i.id === event.instanceId)?.name || 'Minecraft' }));
+    return [...downloads.slice(-160), ...pipeline]
       .sort((a, b) => Number(b.receivedAt || 0) - Number(a.receivedAt || 0));
   }, [downloads, launchEvents, instances]);
 
@@ -51,7 +57,7 @@ export default function Downloads() {
   const measuredBytes = rows.reduce((sum, event) => sum + (bytePair(event.progress)?.done || 0), 0);
 
   return <div className="release-page beta8-page beta8-downloads-page v1-downloads-page">
-    <div className="page-head beta8-page-head premium-page-head"><div><small>TRANSFERS</small><h1>Real download center</h1><p>Minecraft assets, libraries, Modrinth content and Eternal updates appear here from backend events. Unknown-size work stays indeterminate instead of inventing a percentage.</p></div></div>
+    <div className="page-head beta8-page-head premium-page-head"><div><small>TRANSFERS · LIVE BACKEND</small><h1>Real download center</h1><p>Minecraft assets/libraries, Modrinth content and Eternal updates appear here from backend events. Unknown-size work stays indeterminate instead of inventing a percentage.</p></div></div>
 
     <div className="beta8-download-summary v1-download-summary">
       <div><DownloadCloud/><span><b>{active.length}</b><small>Active transfers</small></span></div>
@@ -69,7 +75,7 @@ export default function Downloads() {
         </div>
       </div>
       <div className="download-page-list beta8-download-list v1-download-list">
-        {visible.length === 0 && <div className="empty-downloads beta8-empty"><DownloadCloud /><b>No matching transfer events</b><span>Launch a version, install from Mod Hub or download an Eternal update. Real backend activity will appear here automatically.</span></div>}
+        {visible.length === 0 && <div className="empty-downloads beta8-empty"><DownloadCloud /><b>No matching transfer events</b><span>Launch a version, install from Mod Hub or download an Eternal update. Backend activity will appear here automatically.</span></div>}
         {visible.map((event, index) => {
           const percent = progressValue(event.progress);
           const bytes = bytePair(event.progress);
@@ -79,7 +85,7 @@ export default function Downloads() {
           return <article className={`download-page-row beta8-download-row v1-download-row ${done ? 'done' : ''} ${failed ? 'failed' : ''}`} key={`${event.instanceId || 'download'}-${event.id || event.type || event.state}-${event.receivedAt || index}-${index}`}>
             <div className={`download-state-icon ${percent == null && !done ? 'indeterminate' : ''}`}>{failed ? <AlertTriangle/> : done ? <CheckCircle2/> : event.state === 'DOWNLOADING' || event.type === 'download' || event.type === 'update' ? <DownloadCloud /> : <LoaderCircle className="spin"/>}</div>
             <div className="download-page-copy">
-              <div className="v1-download-title"><b>{event.name || 'Eternal transfer'}</b><small>{event.type || event.progress?.type || event.source || 'launcher'}</small></div>
+              <div className="v1-download-title"><b>{event.name || instances.find(i => i.id === event.instanceId)?.name || 'Eternal transfer'}</b><small>{sourceLabel(event)}</small></div>
               <span>{event.message || event.state || 'Transferring files…'}</span>
               {percent != null ? <div className="download-bar"><i style={{ width: `${percent}%` }} /></div> : !done && !failed ? <div className="download-bar indeterminate"><i /></div> : null}
               <div className="v1-download-telemetry">
@@ -94,6 +100,6 @@ export default function Downloads() {
       </div>
     </section>
 
-    <div className="download-footnote beta8-download-footnote"><HardDrive /><span>Transfers originate from real launcher/core/updater events. `.part` downloads and unknown-size preparation are never shown as completed until the backend reports completion.</span></div>
+    <div className="download-footnote beta8-download-footnote"><HardDrive /><span>Transfers originate from real launcher/Core/updater events. `.part` downloads and unknown-size preparation are never shown as completed until the backend reports completion.</span></div>
   </div>;
 }

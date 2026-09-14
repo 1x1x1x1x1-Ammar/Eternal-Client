@@ -8,7 +8,7 @@ async function fetchJson(url, timeoutMs = 10000) {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'EternalClient/1.0.0' }
+      headers: { 'User-Agent': 'EternalClient/1.0.1' }
     });
     if (!response.ok) throw new Error(`Minecraft metadata request failed (${response.status}).`);
     return await response.json();

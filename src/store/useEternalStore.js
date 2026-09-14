@@ -7,6 +7,21 @@ const AUTO_CONSOLE_CHANNELS = new Set([
   'accounts:loginMicrosoft', 'updater:download', 'updater:install'
 ]);
 
+function transferFromLaunch(event, receivedAt) {
+  if (event?.state !== 'DOWNLOADING') return null;
+  return {
+    id: `minecraft-${event.instanceId || 'unknown'}-${event.progress?.type || 'download'}-${receivedAt}`,
+    instanceId: event.instanceId,
+    type: 'download',
+    source: event.source || 'minecraft',
+    state: 'DOWNLOADING',
+    name: 'Minecraft',
+    message: event.message || 'Downloading Minecraft files…',
+    progress: event.progress || null,
+    receivedAt
+  };
+}
+
 export const useEternalStore = create((set, get) => ({
   accounts: [],
   activeAccountId: null,
@@ -88,15 +103,18 @@ export const useEternalStore = create((set, get) => ({
         ? [...running.filter(row => row.instanceId !== event.instanceId), { instanceId: event.instanceId, pids, count: pids.length }]
         : running.filter(row => row.instanceId !== event.instanceId);
     }
+
+    const transfer = transferFromLaunch(event, receivedAt);
     return {
       launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } },
       running,
+      downloadEvents: transfer ? [...state.downloadEvents, transfer].slice(-240) : state.downloadEvents,
       operationConsoleOpen: runtimeProblem ? true : state.operationConsoleOpen
     };
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-180)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-240)
   })),
 
   pushOperationEvent: event => set(state => {
