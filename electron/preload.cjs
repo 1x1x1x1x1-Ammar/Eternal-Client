@@ -8,7 +8,12 @@ const on = (channel, cb) => {
 };
 
 contextBridge.exposeInMainWorld('eternal', {
-  app: { state: () => invoke('app:state'), openExternal: (url) => invoke('app:openExternal', url) },
+  app: {
+    state: () => invoke('app:state'),
+    diagnostics: () => invoke('app:diagnostics'),
+    openExternal: (url) => invoke('app:openExternal', url),
+    openDataFolder: () => invoke('app:openDataFolder')
+  },
   window: { minimize: () => invoke('window:minimize'), maximize: () => invoke('window:maximize'), close: () => invoke('window:close') },
   settings: { get: () => invoke('settings:get'), patch: (value) => invoke('settings:patch', value) },
   dialog: { folder: () => invoke('dialog:folder'), jars: () => invoke('dialog:jars') },
@@ -17,6 +22,7 @@ contextBridge.exposeInMainWorld('eternal', {
   java: { detect: () => invoke('java:detect') },
   mods: { list: (id) => invoke('mods:list', id), add: (data) => invoke('mods:add', data), remove: (data) => invoke('mods:remove', data), toggle: (data) => invoke('mods:toggle', data), search: (data) => invoke('mods:search', data), install: (data) => invoke('mods:install', data) },
   servers: { list: () => invoke('servers:list'), save: (s) => invoke('servers:save', s), remove: (id) => invoke('servers:remove', id), ping: (s) => invoke('servers:ping', s), join: (data) => invoke('servers:join', data) },
-  core: { status: (id) => invoke('core:status', id) }, updater: { check: () => invoke('updater:check') },
+  core: { status: (id) => invoke('core:status', id) },
+  updater: { check: () => invoke('updater:check') },
   on: { launch: (cb) => on('launch:event', cb), download: (cb) => on('download:event', cb), account: (cb) => on('account:event', cb), update: (cb) => on('update:event', cb) }
 });
