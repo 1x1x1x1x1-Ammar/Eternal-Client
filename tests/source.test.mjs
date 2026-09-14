@@ -14,14 +14,15 @@ const launcherFiles = [
   'electron/services/launcherService.js',
   'electron/services/modService.js',
   'electron/services/serverService.js',
+  'electron/services/skinService.js',
   'electron/services/versionService.js'
 ];
 
-test('package and Core versions are stable v1.0.0', () => {
+test('package and Core versions are stable v1.0.1', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '1.0.0');
-  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.0/);
-  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.0\.0"/);
+  assert.equal(pkg.version, '1.0.1');
+  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.1/);
+  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.0\.1"/);
   assert.doesNotMatch(pkg.version, /beta|alpha|rc/i);
 });
 
@@ -73,15 +74,21 @@ test('renderer bundles Eternal images instead of fragile absolute file URLs', ()
   }
 });
 
-test('v1 premium UI layer is substantial and loaded last', () => {
+test('v1 premium UI layers remain substantial and v1.0.1 identity layer loads last', () => {
   const main = read('src/main.jsx');
   const v1 = read('src/v1.css');
+  const v101 = read('src/v101.css');
   const premiumIndex = main.indexOf("import './premium.css'");
   const v1Index = main.indexOf("import './v1.css'");
-  assert.ok(premiumIndex >= 0 && v1Index > premiumIndex, 'v1.css must be the final visual layer');
-  assert.ok(v1.length > 12000, 'v1 visual layer must be a substantial implementation');
+  const v101Index = main.indexOf("import './v101.css'");
+  assert.ok(premiumIndex >= 0 && v1Index > premiumIndex, 'v1.css must load after premium.css');
+  assert.ok(v101Index > v1Index, 'v101.css must be the final v1.0.1 polish layer');
+  assert.ok(v1.length > 12000, 'v1 visual layer must remain substantial');
+  assert.ok(v101.length > 7000, 'v1.0.1 identity UI must be substantial');
   for (const token of ['v1-update-card', 'premium-hero', 'premium-library-profile', 'beta8-core-hero']) assert.match(v1, new RegExp(token));
+  for (const token of ['v101-account-hero', 'v101-skin-stage', 'v101-account-row']) assert.match(v101, new RegExp(token));
   assert.match(v1, /prefers-reduced-motion/);
+  assert.match(v101, /prefers-reduced-motion/);
 });
 
 test('launcher pages are real routes and command actions', () => {
@@ -285,13 +292,14 @@ test('real stable updater is wired main -> preload -> Settings and GitHub provid
 
 test('stable release workflow is not a prerelease and carries updater metadata', () => {
   const stable = read('.github/workflows/release-stable.yml');
-  assert.match(stable, /RELEASE_TAG: v1\.0\.0/);
-  assert.match(stable, /CORE_VERSION: 1\.0\.0/);
+  assert.match(stable, /RELEASE_TAG: v1\.0\.1/);
+  assert.match(stable, /CORE_VERSION: 1\.0\.1/);
   assert.match(stable, /release\/latest\.yml/);
   assert.match(stable, /--latest/);
   assert.doesNotMatch(stable, /--prerelease/);
   assert.match(stable, /SHA256SUMS\.txt/);
   assert.match(stable, /upload-artifact@v4/);
+  assert.doesNotMatch(stable, /portable\.zip|portable build/i);
 });
 
 test('window/external utility buttons use backend call results', () => {
