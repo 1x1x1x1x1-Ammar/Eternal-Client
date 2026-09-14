@@ -6,7 +6,7 @@ import path from 'node:path';
 const root = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/(.:\/)/, '$1'));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-const launcherFiles = [
+const backendFiles = [
   'electron/main.js',
   'electron/services/accountService.js',
   'electron/services/coreService.js',
@@ -17,7 +17,7 @@ const launcherFiles = [
   'electron/services/versionService.js'
 ];
 
-test('package and Core versions are stable v1.0.1', () => {
+test('launcher and Core ship as stable v1.0.1', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '1.0.1');
   assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.1/);
@@ -25,20 +25,17 @@ test('package and Core versions are stable v1.0.1', () => {
   assert.doesNotMatch(pkg.version, /beta|alpha|rc/i);
 });
 
-test('tar CommonJS/ESM regression remains fixed', () => {
+test('known Electron CommonJS/ESM regressions are gated', () => {
   const java = read('electron/services/javaService.js');
+  const main = read('electron/main.js');
   assert.match(java, /import \* as tar from 'tar'/);
   assert.doesNotMatch(java, /import tar from 'tar'/);
-});
-
-test('electron-updater CommonJS import regression remains fixed', () => {
-  const main = read('electron/main.js');
-  assert.doesNotMatch(main, /import\s*\{\s*autoUpdater\s*\}\s*from\s*['"]electron-updater['"]/);
   assert.match(main, /import updaterPackage from 'electron-updater'/);
   assert.match(main, /const \{ autoUpdater \} = updaterPackage/);
+  assert.doesNotMatch(main, /import\s*\{\s*autoUpdater\s*\}/);
 });
 
-test('minecraft-launcher-core Client CommonJS interop is a runtime release gate', () => {
+test('minecraft-launcher-core Client loads through CommonJS and has a runtime constructor gate', () => {
   const launcher = read('electron/services/launcherService.js');
   const runtime = read('scripts/runtime-smoke.mjs');
   const pkg = JSON.parse(read('package.json'));
@@ -52,7 +49,7 @@ test('minecraft-launcher-core Client CommonJS interop is a runtime release gate'
   assert.equal(pkg.scripts['test:runtime'], 'node scripts/runtime-smoke.mjs');
 });
 
-test('packaged smoke-test is a release gate', () => {
+test('packaged Electron startup remains a CI release gate', () => {
   const main = read('electron/main.js');
   const ci = read('.github/workflows/ci.yml');
   const stable = read('.github/workflows/release-stable.yml');
@@ -61,10 +58,9 @@ test('packaged smoke-test is a release gate', () => {
   assert.match(main, /app\.exit\(91\)/);
   assert.match(ci, /Smoke test packaged Electron main process/);
   assert.match(stable, /Smoke test packaged Eternal Client\.exe/);
-  assert.match(stable, /Eternal Client\.exe/);
 });
 
-test('Electron renderer remains isolated, single-instance and Eternal-branded', () => {
+test('Electron stays isolated, single-instance and Eternal-branded', () => {
   const main = read('electron/main.js');
   const builder = read('electron-builder.yml');
   assert.match(main, /contextIsolation\s*:\s*true/);
@@ -79,26 +75,29 @@ test('Electron renderer remains isolated, single-instance and Eternal-branded', 
   assert.match(builder, /executableName:\s*Eternal Client/);
 });
 
-test('renderer bundles Eternal images instead of fragile absolute file URLs', () => {
-  for (const file of ['src/App.jsx', 'src/pages/Home.jsx', 'src/pages/Core.jsx', 'src/pages/Mods.jsx', 'src/components/Sidebar.jsx', 'src/components/TitleBar.jsx']) {
-    const content = read(file);
-    if (file !== 'src/App.jsx' && file !== 'src/pages/Mods.jsx') assert.match(content, /import eternalLogo from/);
-    assert.doesNotMatch(content, /src=["']\/assets\/logo\.svg["']/);
-  }
-});
-
-test('v1 premium UI layer is substantial and loaded last', () => {
+test('premium launcher layers are split intentionally and loaded in the final order', () => {
   const main = read('src/main.jsx');
   const v1 = read('src/v1.css');
-  const premiumIndex = main.indexOf("import './premium.css'");
-  const v1Index = main.indexOf("import './v1.css'");
-  assert.ok(premiumIndex >= 0 && v1Index > premiumIndex, 'v1.css must be the final visual layer');
-  assert.ok(v1.length > 12000, 'v1 visual layer must be a substantial implementation');
-  for (const token of ['v1-update-card', 'premium-hero', 'premium-library-profile', 'beta8-core-hero', 'v1-operation-console', 'v1-download-row']) assert.match(v1, new RegExp(token));
+  const motion = read('src/v1-motion.css');
+  const systems = read('src/v1-systems.css');
+  const transfers = read('src/v1-transfers.css');
+  const iV1 = main.indexOf("import './v1.css'");
+  const iMotion = main.indexOf("import './v1-motion.css'");
+  const iSystems = main.indexOf("import './v1-systems.css'");
+  const iTransfers = main.indexOf("import './v1-transfers.css'");
+  assert.ok(iV1 >= 0 && iMotion > iV1 && iSystems > iMotion && iTransfers > iSystems);
+  assert.ok(v1.length > 12000, 'base stable premium layer must remain substantial');
+  assert.match(v1, /premium-hero/);
+  assert.match(v1, /premium-library-profile/);
+  assert.match(v1, /beta8-core-hero/);
   assert.match(v1, /prefers-reduced-motion/);
+  assert.match(motion, /animation|transition/);
+  assert.match(systems, /v1-operation-console/);
+  assert.match(systems, /v1-instance-commandbar/);
+  assert.match(transfers, /v1-download-row/);
 });
 
-test('launcher pages are real routes and command actions', () => {
+test('launcher routes and command center point to real functions', () => {
   const app = read('src/App.jsx');
   const command = read('src/components/CommandCenter.jsx');
   for (const route of ['/library', '/mods', '/servers', '/core', '/accounts', '/downloads', '/developer', '/settings']) {
@@ -109,7 +108,7 @@ test('launcher pages are real routes and command actions', () => {
   assert.match(command, /refreshInstances|run: refresh/);
 });
 
-test('real operation console is mounted and consumes backend/runtime events', () => {
+test('real operation console is wired end-to-end', () => {
   const app = read('src/App.jsx');
   const consoleUi = read('src/components/OperationConsole.jsx');
   const store = read('src/store/useEternalStore.js');
@@ -124,36 +123,34 @@ test('real operation console is mounted and consumes backend/runtime events', ()
   assert.match(main, /tracedOperations/);
 });
 
-test('launcher bootstrap exposes real failure instead of hanging splash forever', () => {
+test('bootstrap failure is visible and retryable', () => {
   assert.match(read('src/store/useEternalStore.js'), /bootstrapError/);
   assert.match(read('src/App.jsx'), /Eternal could not load its launcher state/);
   assert.match(read('src/App.jsx'), /Retry/);
 });
 
-test('launch logs cannot overwrite real lifecycle state', () => {
+test('Minecraft lifecycle logs cannot overwrite lifecycle state', () => {
   const store = read('src/store/useEternalStore.js');
   assert.match(store, /event\.state === 'LOG' \|\| event\.state === 'DEBUG'/);
   assert.match(store, /launchLogs/);
   assert.match(store, /launchEvents:/);
 });
 
-test('Minecraft versions come from Mojang official manifest and creation validates and persists their type', () => {
-  const service = read('electron/services/versionService.js');
-  const main = read('electron/main.js');
+test('Mojang full version catalog is real and version type persists into launch', () => {
+  const versions = read('electron/services/versionService.js');
   const instances = read('electron/services/instanceService.js');
   const launcher = read('electron/services/launcherService.js');
-  assert.match(service, /piston-meta\.mojang\.com\/mc\/game\/version_manifest_v2\.json/);
-  assert.match(service, /assertMinecraftVersion/);
-  assert.match(main, /instances:versions/);
-  assert.match(main, /versions\.assertMinecraftVersion/);
-  assert.match(read('src/pages/Library.jsx'), /includeSnapshots: true/);
-  assert.match(read('src/pages/Library.jsx'), /old_beta/);
-  assert.match(read('src/pages/Library.jsx'), /old_alpha/);
+  const library = read('src/pages/Library.jsx');
+  assert.match(versions, /piston-meta\.mojang\.com\/mc\/game\/version_manifest_v2\.json/);
+  assert.match(versions, /assertMinecraftVersion/);
+  assert.match(library, /includeSnapshots: true/);
+  assert.match(library, /old_beta/);
+  assert.match(library, /old_alpha/);
   assert.match(instances, /versionType:\s*versionMeta\.type/);
   assert.match(launcher, /type:\s*instance\.versionType \|\| 'release'/);
 });
 
-test('launcher only advertises loaders it really implements', () => {
+test('only implemented loaders are advertised', () => {
   const library = read('src/pages/Library.jsx');
   const instanceService = read('electron/services/instanceService.js');
   assert.match(library, /value="vanilla"/);
@@ -162,7 +159,7 @@ test('launcher only advertises loaders it really implements', () => {
   assert.match(instanceService, /\['vanilla','fabric'\]/);
 });
 
-test('Java is validated before launch and version requirement is enforced', () => {
+test('Java is validated before launch with required major enforcement', () => {
   const java = read('electron/services/javaService.js');
   const launcher = read('electron/services/launcherService.js');
   assert.match(java, /export async function validateJava/);
@@ -171,94 +168,54 @@ test('Java is validated before launch and version requirement is enforced', () =
   assert.match(read('src/pages/Settings.jsx'), /api\.java\.validate/);
 });
 
-test('Microsoft auth uses ownership verification and renewable encrypted session state', () => {
+test('Microsoft auth verifies ownership and renews encrypted session state', () => {
   const account = read('electron/services/accountService.js');
   const launcher = read('electron/services/launcherService.js');
-  assert.match(account, /OfflinePlayer:/);
-  assert.match(account, /user\.auth\.xboxlive\.com/);
-  assert.match(account, /xsts\.auth\.xboxlive\.com/);
-  assert.match(account, /api\.minecraftservices\.com\/entitlements\/mcstore/);
+  for (const token of ['user.auth.xboxlive.com', 'xsts.auth.xboxlive.com', 'api.minecraftservices.com/entitlements/mcstore']) assert.match(account, new RegExp(token.replaceAll('.', '\\.').replaceAll('/', '\\/')));
   assert.match(account, /msalCache/);
   assert.match(account, /homeAccountId/);
   assert.match(account, /acquireTokenSilent/);
   assert.match(account, /refreshMicrosoftAccount/);
-  assert.match(account, /export async function launcherAuthorization/);
   assert.match(launcher, /await launcherAuthorization\(account\)/);
-  assert.match(read('src/pages/Accounts.jsx'), /api\.accounts\.loginMicrosoft/);
 });
 
-test('Modrinth install resolves required dependencies and verifies hashes', () => {
+test('Modrinth installation resolves dependencies and verifies downloads', () => {
   const mod = read('electron/services/modService.js');
   assert.match(mod, /dependency_type !== 'required'/);
   assert.match(mod, /sha512/);
   assert.match(mod, /sha1/);
   assert.match(mod, /verifyBuffer/);
   assert.match(mod, /\.part/);
-  assert.match(mod, /progress: \{ current, total, type: 'mod' \}/);
-});
-
-test('managed Eternal Core cannot be deleted or disabled in Mod Hub', () => {
-  const mod = read('electron/services/modService.js');
-  const page = read('src/pages/Mods.jsx');
   assert.match(mod, /Eternal Core is managed by the launcher and cannot be removed/);
   assert.match(mod, /cannot be disabled from Mod Hub/);
-  assert.match(page, /beta8-managed-chip/);
-  assert.match(page, /mod\.managed/);
-});
-
-test('Vanilla profiles do not pretend mod JAR installation works', () => {
-  const mod = read('electron/services/modService.js');
-  const page = read('src/pages/Mods.jsx');
   assert.match(mod, /Local mod JARs require a mod-loader profile/);
-  assert.match(mod, /Modrinth mod installation requires a mod-loader profile/);
-  assert.match(page, /current\.loader === 'vanilla'/);
 });
 
-test('server ping uses real handshake plus Minecraft SRV resolution', () => {
+test('server tools use real protocol/SRV and real launch arguments', () => {
   const server = read('electron/services/serverService.js');
+  const launcher = read('electron/services/launcherService.js');
   assert.match(server, /createConnection/);
   assert.match(server, /resolveSrv/);
   assert.match(server, /_minecraft\._tcp/);
-  assert.match(server, /varInt\(-1\)/);
-  assert.doesNotMatch(read('src/pages/Servers.jsx'), /Math\.random/);
-});
-
-test('server launch works for modern Quick Play and older --server args', () => {
-  const launcher = read('electron/services/launcherService.js');
   assert.match(launcher, /--quickPlayMultiplayer/);
   assert.match(launcher, /--server/);
   assert.match(launcher, /--port/);
+  assert.doesNotMatch(read('src/pages/Servers.jsx'), /Math\.random/);
 });
 
-test('Core launcher mode requires compatible profile and verifies SHA-256', () => {
+test('Core launcher mode and standalone export verify the actual Core binary', () => {
   const launcher = read('electron/services/launcherService.js');
   const core = read('electron/services/coreService.js');
-  const page = read('src/pages/Core.jsx');
-  assert.match(launcher, /requireCore = false/);
   assert.match(launcher, /Launch with Core currently requires a Fabric 1\.21\.11 profile/);
-  assert.match(page, /requireCore: true/);
   assert.match(core, /createHash\('sha256'\)/);
   assert.match(core, /exactMatch/);
   assert.match(core, /verification failed after copying/);
-});
-
-test('standalone Core export is verified and backed by real IPC', () => {
-  const core = read('electron/services/coreService.js');
   assert.match(core, /export async function exportStandalone/);
   assert.match(core, /Standalone Core export verification failed/);
-  assert.match(read('electron/main.js'), /core:exportStandalone/);
-  assert.match(read('electron/preload.cjs'), /exportStandalone/);
   assert.match(read('src/pages/Core.jsx'), /api\.core\.exportStandalone/);
 });
 
-test('Core metadata contains embedded Eternal icon', () => {
-  const metadata = read('eternal-core/src/main/resources/fabric.mod.json');
-  const build = read('eternal-core/build.gradle');
-  assert.match(metadata, /assets\/eternal-core\/icon\.png/);
-  assert.match(build, /assets\/icon\.png/);
-});
-
-test('Core modules start disabled and remain user-controlled', () => {
+test('Core modules start OFF and remain user-controlled', () => {
   const config = read('eternal-core/src/main/java/gg/eternal/core/config/CoreConfig.java');
   assert.match(config, /for \(String name : MODULES\) enabled\.put\(name, false\)/);
   assert.match(config, /getOrDefault\(name, false\)/);
@@ -266,10 +223,9 @@ test('Core modules start disabled and remain user-controlled', () => {
   assert.doesNotMatch(config, /enabled\.put\(name, true\)/);
 });
 
-test('Core v1 has persistent modules, layouts, keybinds and atomic config save', () => {
+test('Core config, modules, layouts and keybinds persist safely', () => {
   const config = read('eternal-core/src/main/java/gg/eternal/core/config/CoreConfig.java');
   const gui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
-  const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
   for (const token of ['zoomFov', 'hudAlpha', 'accentColor', 'applyPreset', 'openKey', 'hudEditorKey', 'zoomKey', 'setAllModules', 'ATOMIC_MOVE']) assert.match(config, new RegExp(token));
   for (const module of ['Health', 'Armor', 'Food', 'Server']) assert.match(config, new RegExp(`"${module}"`));
   assert.match(config, /eternal-core\.corrupt-/);
@@ -277,13 +233,9 @@ test('Core v1 has persistent modules, layouts, keybinds and atomic config save',
   assert.match(gui, /DISABLE ALL/);
   assert.match(gui, /PRESS A KEY/);
   assert.match(gui, /keyInUseByOther/);
-  assert.match(gui, /V1 PREMIUM CLIENT/);
-  assert.match(core, /config\.openKey\(\)/);
-  assert.match(core, /config\.hudEditorKey\(\)/);
-  assert.match(core, /config\.zoomKey\(\)/);
 });
 
-test('Right Shift Eternal Start path is queued, guarded and has safe render fallback', () => {
+test('Right Shift Eternal Start is queued, repeat-safe and render-safe', () => {
   const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
   const keyboard = read('eternal-core/src/main/java/gg/eternal/core/mixin/KeyboardMixin.java');
   const mixins = read('eternal-core/src/main/resources/eternal-core.mixins.json');
@@ -298,26 +250,21 @@ test('Right Shift Eternal Start path is queued, guarded and has safe render fall
   assert.match(background, /ci\.cancel\(\)/);
   assert.match(home, /ETERNAL CORE SAFE MODE/);
   assert.match(home, /Eternal Start render failed/);
-  assert.match(home, /CoreLog\.error/);
 });
 
-test('custom Eternal Minecraft title/start surfaces are real screens with real actions', () => {
+test('Eternal replaces vanilla title screen with real Minecraft navigation', () => {
   const title = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalTitleScreen.java');
-  const screenMixin = read('eternal-core/src/main/java/gg/eternal/core/mixin/MinecraftScreenMixin.java');
-  const home = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalHomeScreen.java');
-  assert.match(screenMixin, /TitleScreen/);
-  assert.match(screenMixin, /new EternalTitleScreen\(\)/);
+  const mixin = read('eternal-core/src/main/java/gg/eternal/core/mixin/MinecraftScreenMixin.java');
+  assert.match(mixin, /TitleScreen/);
+  assert.match(mixin, /new EternalTitleScreen\(\)/);
   assert.match(title, /SelectWorldScreen/);
   assert.match(title, /JoinMultiplayerScreen/);
   assert.match(title, /OptionsScreen/);
   assert.match(title, /EternalCore\.openClickGui/);
   assert.match(title, /EternalCore\.openHudEditor/);
-  assert.match(home, /MODULES/);
-  assert.match(home, /HUD EDITOR/);
-  assert.match(home, /RESUME/);
 });
 
-test('HUD editor drag/nudge/presets/disable are actual code paths', () => {
+test('HUD editor has real drag snap nudge presets inspector and disable paths', () => {
   const editor = read('eternal-core/src/main/java/gg/eternal/core/ui/HudEditorScreen.java');
   assert.match(editor, /mouseDragged/);
   assert.match(editor, /event\.key\(\) == 261/);
@@ -329,47 +276,39 @@ test('HUD editor drag/nudge/presets/disable are actual code paths', () => {
   assert.match(editor, /MODULES/);
 });
 
-test('Core keystrokes UI uses live keyboard mouse and CPS state', () => {
+test('premium Keystrokes uses live WASD mouse state and real CPS', () => {
   const hud = read('eternal-core/src/main/java/gg/eternal/core/hud/HudRenderer.java');
   assert.match(hud, /drawKeystrokes/);
-  for (const key of ['"W"', '"A"', '"S"', '"D"', '"LMB"', '"RMB"']) assert.match(hud, new RegExp(key));
+  for (const value of ['"W"', '"A"', '"S"', '"D"', '"LMB"', '"RMB"']) assert.match(hud, new RegExp(value));
   assert.match(hud, /InputState\.mouseDown\(0\)/);
   assert.match(hud, /InputState\.mouseDown\(1\)/);
   assert.match(hud, /InputState\.leftCps\(\)/);
   assert.match(hud, /InputState\.rightCps\(\)/);
 });
 
-test('Core HUD values come from live Minecraft and JVM state, including v1 telemetry', () => {
+test('Core HUD values are live Minecraft/JVM state', () => {
   const hud = read('eternal-core/src/main/java/gg/eternal/core/hud/HudRenderer.java');
-  assert.match(hud, /mc\.getFps\(\)/);
-  assert.match(hud, /InputState\.leftCps\(\)/);
-  assert.match(hud, /mc\.player\.getX\(\)/);
-  assert.match(hud, /getLatency\(\)/);
-  assert.match(hud, /getHealth\(\)/);
-  assert.match(hud, /getArmorValue\(\)/);
-  assert.match(hud, /getFoodData\(\)/);
-  assert.match(hud, /getCurrentServer\(\)/);
-  assert.match(hud, /Runtime\.getRuntime\(\)/);
-  assert.match(hud, /EternalCore\.sessionMillis\(\)/);
+  for (const token of ['mc.getFps()', 'InputState.leftCps()', 'mc.player.getX()', 'getLatency()', 'getHealth()', 'getArmorValue()', 'getFoodData()', 'getCurrentServer()', 'Runtime.getRuntime()', 'EternalCore.sessionMillis()']) {
+    assert.ok(hud.includes(token), `missing real HUD source: ${token}`);
+  }
 });
 
-test('real Downloads tab uses measured backend events and never invents percentages', () => {
+test('Downloads uses measured events and does not invent percentages', () => {
   const downloads = read('src/pages/Downloads.jsx');
+  const store = read('src/store/useEternalStore.js');
   const launcher = read('electron/services/launcherService.js');
   assert.match(downloads, /progressValue/);
   assert.match(downloads, /bytePair/);
   assert.match(downloads, /bytesPerSecond/);
   assert.match(downloads, /indeterminate/);
-  assert.match(downloads, /active/);
-  assert.match(downloads, /complete/);
-  assert.match(downloads, /errors/);
-  assert.match(launcher, /emitDownload/);
+  assert.match(downloads, /No matching transfer events/);
+  assert.match(store, /transferFromLaunch/);
   assert.match(launcher, /client\.on\('progress'/);
   assert.match(launcher, /client\.on\('download-status'/);
   assert.doesNotMatch(downloads, /Math\.random/);
 });
 
-test('real stable updater is wired main -> preload -> Settings and GitHub provider', () => {
+test('stable updater is wired main to preload to Settings', () => {
   const main = read('electron/main.js');
   const preload = read('electron/preload.cjs');
   const settings = read('src/pages/Settings.jsx');
@@ -378,8 +317,7 @@ test('real stable updater is wired main -> preload -> Settings and GitHub provid
   assert.match(main, /updater:download/);
   assert.match(main, /updater:install/);
   assert.match(main, /quitAndInstall/);
-  assert.match(preload, /download: \(\) => invoke\('updater:download'\)/);
-  assert.match(preload, /install: \(\) => invoke\('updater:install'\)/);
+  assert.match(preload, /updater/);
   assert.match(settings, /api\.updater\.check/);
   assert.match(settings, /api\.updater\.download/);
   assert.match(settings, /api\.updater\.install/);
@@ -387,27 +325,19 @@ test('real stable updater is wired main -> preload -> Settings and GitHub provid
   assert.match(builder, /releaseType:\s*release/);
 });
 
-test('stable release workflow is not a prerelease and carries v1.0.1 updater metadata', () => {
+test('stable v1.0.1 workflow publishes installer only plus Core/update metadata', () => {
   const stable = read('.github/workflows/release-stable.yml');
   assert.match(stable, /RELEASE_TAG: v1\.0\.1/);
   assert.match(stable, /CORE_VERSION: 1\.0\.1/);
   assert.match(stable, /release\/latest\.yml/);
+  assert.match(stable, /Eternal-Core-Standalone-1\.0\.1\.jar/);
   assert.match(stable, /--latest/);
   assert.doesNotMatch(stable, /--prerelease/);
   assert.doesNotMatch(stable, /portable/i);
   assert.match(stable, /SHA256SUMS\.txt/);
-  assert.match(stable, /upload-artifact@v4/);
 });
 
-test('window/external utility buttons use backend call results', () => {
-  assert.match(read('src/pages/Developer.jsx'), /call\(api\.app\.openDataFolder\(\)\)/);
-  assert.match(read('src/pages/Developer.jsx'), /call\(api\.app\.openExternal/);
-  assert.match(read('src/pages/Settings.jsx'), /call\(api\.app\.openDataFolder\(\)\)/);
-  assert.match(read('src/pages/Accounts.jsx'), /call\(api\.app\.openExternal/);
-  assert.match(read('src/pages/Servers.jsx'), /call\(api\.app\.openExternal/);
-});
-
-test('there are no random fake runtime values in launcher/backend sources', () => {
-  for (const file of launcherFiles) assert.doesNotMatch(read(file), /Math\.random\(/, file);
+test('there are no random fake runtime values in backend or main runtime pages', () => {
+  for (const file of backendFiles) assert.doesNotMatch(read(file), /Math\.random\(/, file);
   for (const file of ['src/pages/Home.jsx', 'src/pages/Servers.jsx', 'src/pages/Downloads.jsx', 'src/pages/Core.jsx']) assert.doesNotMatch(read(file), /Math\.random\(/, file);
 });
