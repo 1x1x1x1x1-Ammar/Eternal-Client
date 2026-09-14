@@ -12,6 +12,8 @@ export const useEternalStore = create((set, get) => ({
   launchEvents: {},
   launchLogs: {},
   downloadEvents: [],
+  operationEvents: [],
+  operationConsoleOpen: false,
   loading: true,
   bootstrapError: '',
 
@@ -61,7 +63,7 @@ export const useEternalStore = create((set, get) => ({
       return {
         launchLogs: {
           ...state.launchLogs,
-          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-80)
+          [event.instanceId]: [...previous, { ...event, receivedAt }].slice(-120)
         }
       };
     }
@@ -82,8 +84,15 @@ export const useEternalStore = create((set, get) => ({
   }),
 
   pushDownloadEvent: event => set(state => ({
-    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-100)
+    downloadEvents: [...state.downloadEvents, { ...event, receivedAt: Date.now() }].slice(-140)
   })),
+
+  pushOperationEvent: event => set(state => ({
+    operationEvents: [...state.operationEvents, { ...event, receivedAt: Date.now() }].slice(-180),
+    operationConsoleOpen: event?.state === 'STARTED' || event?.state === 'ERROR' ? true : state.operationConsoleOpen
+  })),
+  setOperationConsoleOpen: open => set({ operationConsoleOpen: Boolean(open) }),
+  clearOperationEvents: () => set({ operationEvents: [] }),
 
   patchSettings: async patch => {
     const value = await call(api.settings.patch(patch));
