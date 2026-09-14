@@ -23,6 +23,17 @@ public final class ClickGuiScreen extends Screen {
     };
     private static final Map<String, String> DESCRIPTIONS = new LinkedHashMap<>();
 
+    private static final int BG = 0xF907090C;
+    private static final int SIDEBAR = 0xFA0A0C10;
+    private static final int SURFACE = 0xFF111419;
+    private static final int SURFACE_HOVER = 0xFF171A20;
+    private static final int LINE = 0x33414852;
+    private static final int LINE_STRONG = 0x554B515C;
+    private static final int TEXT = 0xFFF7F8FA;
+    private static final int MUTED = 0xFF7C828D;
+    private static final int DIM = 0xFF555B66;
+    private static final int GREEN = 0xFF58ED89;
+
     static {
         DESCRIPTIONS.put("Watermark", "Eternal Core identity chip");
         DESCRIPTIONS.put("FPS", "Live rendered frame rate");
@@ -56,31 +67,43 @@ public final class ClickGuiScreen extends Screen {
         int sidebarWidth = 128;
         int accent = CoreConfig.INSTANCE.accentColor();
 
-        graphics.fill(x - 3, y - 3, x + panelWidth + 3, y + panelHeight + 3, 0x44000000);
-        graphics.fill(x, y, x + panelWidth, y + panelHeight, 0xF708090B);
-        graphics.renderOutline(x, y, panelWidth, panelHeight, 0x663B3E45);
-        graphics.fill(x, y, x + 3, y + panelHeight, accent);
-        graphics.fill(x + sidebarWidth, y, x + sidebarWidth + 1, y + panelHeight, 0x33383A40);
+        drawWindowChrome(graphics, x, y, panelWidth, panelHeight, sidebarWidth, accent);
 
-        int sweep = x + 3 + (int) ((System.currentTimeMillis() / 9L) % Math.max(1, panelWidth - 8));
-        graphics.fill(sweep, y, Math.min(x + panelWidth, sweep + 32), y + 1, 0x99FFFFFF);
+        graphics.drawString(font, "ETERNAL", x + 18, y + 17, TEXT, false);
+        graphics.drawString(font, "CORE", x + 18 + font.width("ETERNAL") + 5, y + 17, accent, false);
+        graphics.drawString(font, "PREMIUM CLIENT · " + EternalCore.VERSION, x + 18, y + 32, DIM, false);
 
-        graphics.drawString(font, "ETERNAL", x + 18, y + 18, 0xFFF7F7F8, false);
-        graphics.drawString(font, "CORE", x + 18 + font.width("ETERNAL") + 5, y + 18, accent, false);
-        graphics.drawString(font, "BETA 8 · " + EternalCore.VERSION, x + 18, y + 34, 0xFF676A72, false);
+        String state = CoreConfig.INSTANCE.notifications() ? "LIVE CONFIG" : "SILENT MODE";
+        int stateWidth = font.width(state) + 24;
+        int stateX = x + panelWidth - stateWidth - 14;
+        graphics.fill(stateX, y + 14, stateX + stateWidth, y + 34, 0xFF0C1110);
+        graphics.renderOutline(stateX, y + 14, stateWidth, 20, 0x334A7657);
+        graphics.fill(stateX + 7, y + 21, stateX + 12, y + 26, CoreConfig.INSTANCE.notifications() ? GREEN : DIM);
+        graphics.drawString(font, state, stateX + 16, y + 20, CoreConfig.INSTANCE.notifications() ? 0xFF9AE9B2 : MUTED, false);
 
         int tabY = y + 66;
         for (int i = 0; i < SECTIONS.length; i++) {
             boolean active = i == section;
             boolean hover = inside(mouseX, mouseY, x + 10, tabY + i * 34, sidebarWidth - 20, 28);
-            int bg = active ? 0xFF251013 : hover ? 0xFF15171A : 0x00000000;
-            if (bg != 0) graphics.fill(x + 10, tabY + i * 34, x + sidebarWidth - 10, tabY + i * 34 + 28, bg);
-            if (active) graphics.fill(x + 10, tabY + i * 34, x + 13, tabY + i * 34 + 28, accent);
-            graphics.drawString(font, SECTIONS[i], x + 22, tabY + i * 34 + 10, active ? 0xFFFFFFFF : 0xFF8A8D95, false);
+            int rowX = x + 10;
+            int rowY = tabY + i * 34;
+            int rowW = sidebarWidth - 20;
+            if (active || hover) {
+                graphics.fill(rowX, rowY, rowX + rowW, rowY + 28, active ? 0xFF241014 : 0xFF12151A);
+                graphics.renderOutline(rowX, rowY, rowW, 28, active ? 0x443F2529 : 0x223A4049);
+            }
+            if (active) {
+                graphics.fill(rowX, rowY, rowX + 3, rowY + 28, accent);
+                graphics.fill(rowX + 3, rowY, rowX + 34, rowY + 1, 0x33FFFFFF);
+            }
+            graphics.drawString(font, SECTIONS[i], x + 22, rowY + 10, active ? TEXT : hover ? 0xFFD5D8DD : MUTED, false);
+            if (active) graphics.drawString(font, "•", x + sidebarWidth - 24, rowY + 10, accent, false);
         }
 
-        graphics.drawString(font, keyName(CoreConfig.INSTANCE.openKey()), x + 18, y + panelHeight - 39, accent, false);
-        graphics.drawString(font, "OPEN CORE", x + 18, y + panelHeight - 25, 0xFF8A8D95, false);
+        graphics.fill(x + 14, y + panelHeight - 54, x + sidebarWidth - 14, y + panelHeight - 53, 0x223B414A);
+        graphics.drawString(font, "OPEN KEY", x + 18, y + panelHeight - 42, DIM, false);
+        graphics.drawString(font, keyName(CoreConfig.INSTANCE.openKey()), x + 18, y + panelHeight - 27, accent, false);
+        graphics.drawString(font, "REBINDABLE", x + 18 + font.width(keyName(CoreConfig.INSTANCE.openKey())) + 8, y + panelHeight - 27, 0xFF4B515B, false);
 
         int cx = x + sidebarWidth + 18;
         int cy = y + 18;
@@ -95,87 +118,120 @@ public final class ClickGuiScreen extends Screen {
         super.render(graphics, mouseX, mouseY, delta);
     }
 
+    private void drawWindowChrome(GuiGraphics graphics, int x, int y, int panelWidth, int panelHeight, int sidebarWidth, int accent) {
+        graphics.fill(x - 8, y - 8, x + panelWidth + 8, y + panelHeight + 8, 0x22000000);
+        graphics.fill(x - 4, y - 4, x + panelWidth + 4, y + panelHeight + 4, 0x44000000);
+        graphics.fill(x, y, x + panelWidth, y + panelHeight, BG);
+        graphics.renderOutline(x, y, panelWidth, panelHeight, 0x66444A55);
+        graphics.renderOutline(x + 1, y + 1, panelWidth - 2, panelHeight - 2, 0x221D2026);
+
+        graphics.fill(x, y, x + sidebarWidth, y + panelHeight, SIDEBAR);
+        graphics.fill(x + sidebarWidth, y, x + sidebarWidth + 1, y + panelHeight, 0x33383F49);
+        graphics.fill(x, y, x + 3, y + panelHeight, accent);
+        graphics.fill(x + 3, y, x + panelWidth, y + 1, 0x22FFFFFF);
+
+        int sweep = x + 4 + (int) ((System.currentTimeMillis() / 11L) % Math.max(1, panelWidth - 42));
+        graphics.fill(sweep, y + 1, Math.min(x + panelWidth - 2, sweep + 36), y + 2, 0x66FFFFFF);
+
+        int glowWidth = 22;
+        graphics.fill(x + 3, y + 1, x + 3 + glowWidth, y + panelHeight - 1, 0x11000000 | (accent & 0x00FFFFFF));
+    }
+
+    private void sectionHeader(GuiGraphics graphics, int x, int y, String kicker, String title, String subtitle) {
+        graphics.drawString(font, kicker, x, y, DIM, false);
+        graphics.drawString(font, title, x, y + 14, TEXT, false);
+        graphics.drawString(font, subtitle, x, y + 29, MUTED, false);
+    }
+
     private void renderHud(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
-        graphics.drawString(font, "HUD MODULES", x, y, 0xFFFFFFFF, false);
-        graphics.drawString(font, "Real live modules rendered directly in Minecraft", x, y + 15, 0xFF73767E, false);
+        sectionHeader(graphics, x, y, "HUD SYSTEM", "MODULES", "Live telemetry rendered directly inside Minecraft");
 
         int cardWidth = (width - 10) / 2;
-        int startY = y + 42;
+        int startY = y + 54;
         for (int i = 0; i < HUD_MODULES.length; i++) {
             String name = HUD_MODULES[i];
             int col = i % 2;
             int row = i / 2;
             int cardX = x + col * (cardWidth + 10);
-            int cardY = startY + row * 48;
-            boolean hover = inside(mouseX, mouseY, cardX, cardY, cardWidth, 39);
+            int cardY = startY + row * 46;
+            boolean hover = inside(mouseX, mouseY, cardX, cardY, cardWidth, 38);
             boolean enabled = CoreConfig.INSTANCE.on(name);
             int accent = CoreConfig.INSTANCE.accentColor();
 
-            graphics.fill(cardX, cardY, cardX + cardWidth, cardY + 39, hover ? 0xFF181A1E : 0xFF111316);
-            graphics.renderOutline(cardX, cardY, cardWidth, 39, enabled ? 0x66562329 : 0x33383A40);
-            if (enabled) graphics.fill(cardX, cardY, cardX + 2, cardY + 39, accent);
-            graphics.drawString(font, name.toUpperCase(), cardX + 10, cardY + 8, enabled ? 0xFFF6F6F7 : 0xFF777A82, false);
-            graphics.drawString(font, DESCRIPTIONS.getOrDefault(name, "Eternal module"), cardX + 10, cardY + 23, 0xFF62656D, false);
-            drawToggle(graphics, cardX + cardWidth - 35, cardY + 10, enabled, accent);
+            moduleCard(graphics, cardX, cardY, cardWidth, 38, name, DESCRIPTIONS.getOrDefault(name, "Eternal module"), enabled, hover, accent);
+            drawToggle(graphics, cardX + cardWidth - 37, cardY + 13, enabled, accent);
         }
 
         int actionY = y + 334;
         button(graphics, mouseX, mouseY, x, actionY, 106, 27, "ENABLE ALL");
         button(graphics, mouseX, mouseY, x + 114, actionY, 106, 27, "DISABLE ALL");
-        graphics.drawString(font, "Changes save immediately to config/eternal-core.json", x + 230, actionY + 10, 0xFF62656D, false);
+        graphics.drawString(font, "SAVES INSTANTLY", x + 232, actionY + 4, 0xFF505660, false);
+        graphics.drawString(font, "config/eternal-core.json", x + 232, actionY + 15, 0xFF737984, false);
+    }
+
+    private void moduleCard(GuiGraphics graphics, int x, int y, int width, int height, String title, String body, boolean enabled, boolean hover, int accent) {
+        graphics.fill(x, y, x + width, y + height, hover ? SURFACE_HOVER : SURFACE);
+        graphics.renderOutline(x, y, width, height, enabled ? 0x553E292D : LINE);
+        if (enabled) {
+            graphics.fill(x, y, x + 2, y + height, accent);
+            graphics.fill(x + 2, y, x + Math.min(width, 62), y + 1, 0x22FFFFFF);
+        }
+        graphics.drawString(font, title.toUpperCase(), x + 10, y + 8, enabled ? TEXT : 0xFF858B96, false);
+        graphics.drawString(font, body, x + 10, y + 23, hover ? 0xFF777D88 : 0xFF616772, false);
     }
 
     private void renderUtility(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
-        graphics.drawString(font, "UTILITY + KEYBINDS", x, y, 0xFFFFFFFF, false);
-        graphics.drawString(font, "Client-side helpers and persistent controls", x, y + 15, 0xFF73767E, false);
+        sectionHeader(graphics, x, y, "UTILITY SYSTEM", "CONTROL CENTER", "Client-side helpers with persistent keybinds");
 
         int accent = CoreConfig.INSTANCE.accentColor();
-        int rowY = y + 47;
+        int rowY = y + 59;
         card(graphics, x, rowY, width, 58, "ZOOM", DESCRIPTIONS.get("Zoom"), CoreConfig.INSTANCE.on("Zoom"));
-        graphics.drawString(font, "FOV " + CoreConfig.INSTANCE.zoomFov(), x + width - 136, rowY + 22, 0xFFD4D5D8, false);
+        graphics.drawString(font, "FOV", x + width - 141, rowY + 13, DIM, false);
+        graphics.drawString(font, Integer.toString(CoreConfig.INSTANCE.zoomFov()), x + width - 141, rowY + 28, TEXT, false);
         button(graphics, mouseX, mouseY, x + width - 62, rowY + 12, 22, 24, "-");
         button(graphics, mouseX, mouseY, x + width - 34, rowY + 12, 22, 24, "+");
-        drawToggle(graphics, x + width - 138, rowY + 37, CoreConfig.INSTANCE.on("Zoom"), accent);
+        drawToggle(graphics, x + width - 143, rowY + 43, CoreConfig.INSTANCE.on("Zoom"), accent);
 
         rowY += 70;
-        card(graphics, x, rowY, width, 58, "NOTIFICATIONS", "Core status and module feedback", CoreConfig.INSTANCE.notifications());
-        drawToggle(graphics, x + width - 45, rowY + 20, CoreConfig.INSTANCE.notifications(), accent);
+        card(graphics, x, rowY, width, 58, "NOTIFICATIONS", "Status, module and keybind feedback", CoreConfig.INSTANCE.notifications());
+        graphics.drawString(font, CoreConfig.INSTANCE.notifications() ? "LIVE" : "MUTED", x + width - 84, rowY + 24, CoreConfig.INSTANCE.notifications() ? GREEN : DIM, false);
+        drawToggle(graphics, x + width - 45, rowY + 23, CoreConfig.INSTANCE.notifications(), accent);
 
         rowY += 78;
-        graphics.drawString(font, "KEYBINDS · CLICK A ROW, THEN PRESS A KEY", x, rowY, 0xFF8D9098, false);
+        graphics.drawString(font, "KEYBINDS", x, rowY, 0xFF969CA6, false);
+        graphics.drawString(font, "CLICK A ROW · THEN PRESS A KEY", x + 74, rowY, DIM, false);
         keyRow(graphics, mouseX, mouseY, x, rowY + 20, width, "OPEN", keyName(CoreConfig.INSTANCE.openKey()), "Open Eternal Core", "OPEN");
         keyRow(graphics, mouseX, mouseY, x, rowY + 52, width, "HUD", keyName(CoreConfig.INSTANCE.hudEditorKey()), "Open HUD editor", "HUD");
         keyRow(graphics, mouseX, mouseY, x, rowY + 84, width, "ZOOM", keyName(CoreConfig.INSTANCE.zoomKey()), "Hold to zoom", "ZOOM");
     }
 
     private void renderStyle(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
-        graphics.drawString(font, "STYLE + HUD LAYOUT", x, y, 0xFFFFFFFF, false);
-        graphics.drawString(font, "Persistent settings work launcher-managed and standalone", x, y + 15, 0xFF73767E, false);
+        sectionHeader(graphics, x, y, "VISUAL SYSTEM", "STYLE + LAYOUT", "Premium visual settings that persist everywhere Core runs");
 
-        int rowY = y + 50;
-        graphics.drawString(font, "ACCENT", x, rowY, 0xFF92959D, false);
+        int rowY = y + 62;
+        graphics.drawString(font, "ACCENT PRESET", x, rowY, 0xFF969CA6, false);
         for (int i = 0; i < ACCENTS.length; i++) {
-            int sx = x + i * 34;
-            graphics.fill(sx, rowY + 17, sx + 24, rowY + 41, ACCENTS[i]);
+            int sx = x + i * 36;
+            graphics.fill(sx, rowY + 18, sx + 26, rowY + 44, 0xFF0A0C10);
+            graphics.fill(sx + 2, rowY + 20, sx + 24, rowY + 42, ACCENTS[i]);
             if ((CoreConfig.INSTANCE.accentColor() & 0x00FFFFFF) == (ACCENTS[i] & 0x00FFFFFF)) {
-                graphics.renderOutline(sx - 2, rowY + 15, 28, 28, 0xFFFFFFFF);
+                graphics.renderOutline(sx - 2, rowY + 16, 30, 30, 0xFFFFFFFF);
+            } else {
+                graphics.renderOutline(sx, rowY + 18, 26, 26, LINE);
             }
         }
 
-        rowY += 66;
-        graphics.drawString(font, "HUD OPACITY", x, rowY, 0xFF92959D, false);
-        int percent = Math.round(CoreConfig.INSTANCE.hudAlpha() / 255.0F * 100.0F);
-        graphics.drawString(font, percent + "%", x + 104, rowY, 0xFFE0E1E3, false);
+        rowY += 68;
+        styleRow(graphics, x, rowY, width, "HUD OPACITY", Math.round(CoreConfig.INSTANCE.hudAlpha() / 255.0F * 100.0F) + "%");
         button(graphics, mouseX, mouseY, x + 152, rowY - 7, 28, 24, "-");
         button(graphics, mouseX, mouseY, x + 186, rowY - 7, 28, 24, "+");
 
         rowY += 46;
-        graphics.drawString(font, "SNAP GRID", x, rowY, 0xFF92959D, false);
-        graphics.drawString(font, CoreConfig.INSTANCE.snap() + " PX", x + 104, rowY, 0xFFE0E1E3, false);
+        styleRow(graphics, x, rowY, width, "SNAP GRID", CoreConfig.INSTANCE.snap() + " PX");
         button(graphics, mouseX, mouseY, x + 152, rowY - 7, 62, 24, "CYCLE");
 
         rowY += 48;
-        graphics.drawString(font, "LAYOUT PRESETS", x, rowY, 0xFF92959D, false);
+        graphics.drawString(font, "HUD LAYOUT PRESETS", x, rowY, 0xFF969CA6, false);
         button(graphics, mouseX, mouseY, x, rowY + 18, 82, 28, "DEFAULT");
         button(graphics, mouseX, mouseY, x + 90, rowY + 18, 82, 28, "COMPACT");
         button(graphics, mouseX, mouseY, x + 180, rowY + 18, 82, 28, "CORNERS");
@@ -183,32 +239,42 @@ public final class ClickGuiScreen extends Screen {
         rowY += 66;
         int accent = CoreConfig.INSTANCE.accentColor();
         boolean hover = inside(mouseX, mouseY, x, rowY, Math.min(width, 282), 34);
-        graphics.fill(x, rowY, x + Math.min(width, 282), rowY + 34, hover ? 0xFF2A1013 : 0xFF201013);
-        graphics.renderOutline(x, rowY, Math.min(width, 282), 34, accent);
-        graphics.drawString(font, "OPEN HUD EDITOR", x + 14, rowY + 13, 0xFFFFFFFF, false);
+        graphics.fill(x, rowY, x + Math.min(width, 282), rowY + 34, hover ? 0xFF2A1115 : 0xFF1D0E12);
+        graphics.renderOutline(x, rowY, Math.min(width, 282), 34, hover ? 0x8860363A : 0x5560363A);
+        graphics.fill(x, rowY, x + 3, rowY + 34, accent);
+        graphics.drawString(font, "OPEN HUD EDITOR", x + 14, rowY + 13, TEXT, false);
         String key = keyName(CoreConfig.INSTANCE.hudEditorKey());
         graphics.drawString(font, key, x + Math.min(width, 282) - font.width(key) - 12, rowY + 13, accent, false);
     }
 
+    private void styleRow(GuiGraphics graphics, int x, int y, int width, String label, String value) {
+        graphics.fill(x, y - 10, x + Math.min(width, 232), y + 20, 0xFF0D1014);
+        graphics.renderOutline(x, y - 10, Math.min(width, 232), 30, LINE);
+        graphics.drawString(font, label, x + 10, y, 0xFF9298A2, false);
+        graphics.drawString(font, value, x + 104, y, TEXT, false);
+    }
+
     private void renderAbout(GuiGraphics graphics, int x, int y, int width) {
         int accent = CoreConfig.INSTANCE.accentColor();
-        graphics.drawString(font, "ETERNAL CORE", x, y, 0xFFFFFFFF, false);
-        graphics.drawString(font, EternalCore.VERSION, x, y + 17, accent, false);
+        sectionHeader(graphics, x, y, "ETERNAL CORE", "PREMIUM CLIENT", "A real standalone-capable Fabric client, not a launcher mock-up");
+        graphics.drawString(font, EternalCore.VERSION, x + width - font.width(EternalCore.VERSION), y + 14, accent, false);
 
-        int cardY = y + 48;
-        graphics.fill(x, cardY, x + width, cardY + 76, 0xFF111214);
-        graphics.renderOutline(x, cardY, width, 76, 0x3336383D);
-        graphics.drawString(font, "STANDALONE FABRIC MOD", x + 14, cardY + 14, 0xFFFFFFFF, false);
-        graphics.drawString(font, "This exact Core JAR works without the Eternal launcher.", x + 14, cardY + 34, 0xFF858891, false);
-        graphics.drawString(font, "Drop it into Fabric mods for Minecraft 1.21.11 + Java 21.", x + 14, cardY + 50, 0xFF858891, false);
+        int cardY = y + 61;
+        graphics.fill(x, cardY, x + width, cardY + 78, SURFACE);
+        graphics.renderOutline(x, cardY, width, 78, LINE_STRONG);
+        graphics.fill(x, cardY, x + 3, cardY + 78, accent);
+        graphics.drawString(font, "STANDALONE FABRIC MOD", x + 14, cardY + 14, TEXT, false);
+        graphics.drawString(font, "The exact verified Core JAR works without the Eternal launcher.", x + 14, cardY + 34, MUTED, false);
+        graphics.drawString(font, "Minecraft 1.21.11 · Fabric · Java 21+", x + 14, cardY + 51, 0xFF6D7480, false);
+        graphics.drawString(font, "VERIFIED", x + width - 70, cardY + 14, GREEN, false);
 
-        cardY += 90;
-        graphics.drawString(font, "SAME CORE · TWO REAL WAYS TO USE IT", x, cardY, 0xFF92959D, false);
-        infoRow(graphics, x, cardY + 22, width, "LAUNCHER", "Verified and repaired automatically per profile");
-        infoRow(graphics, x, cardY + 58, width, "STANDALONE", "Use the released JAR in a compatible Fabric profile");
-        infoRow(graphics, x, cardY + 94, width, "CONFIG", "Modules, keybinds, style and HUD positions persist locally");
+        cardY += 94;
+        graphics.drawString(font, "RUNTIME MODEL", x, cardY, 0xFF969CA6, false);
+        infoRow(graphics, x, cardY + 22, width, "LAUNCHER", "Verified + repaired automatically per compatible profile");
+        infoRow(graphics, x, cardY + 58, width, "STANDALONE", "Released JAR runs from any compatible Fabric mods folder");
+        infoRow(graphics, x, cardY + 94, width, "PERSISTENCE", "Modules, keybinds, style and HUD positions stay local");
 
-        graphics.drawString(font, "No launcher process is required while Minecraft is running.", x, y + 286, 0xFF676A72, false);
+        graphics.drawString(font, "NO LAUNCHER PROCESS REQUIRED WHILE MINECRAFT IS RUNNING", x, y + 304, DIM, false);
     }
 
     @Override
@@ -236,11 +302,11 @@ public final class ClickGuiScreen extends Screen {
 
         if (section == 0) {
             int cardWidth = (cw - 10) / 2;
-            int startY = cy + 42;
+            int startY = cy + 54;
             for (int i = 0; i < HUD_MODULES.length; i++) {
                 int cardX = cx + (i % 2) * (cardWidth + 10);
-                int cardY = startY + (i / 2) * 48;
-                if (inside(mouseX, mouseY, cardX, cardY, cardWidth, 39)) {
+                int cardY = startY + (i / 2) * 46;
+                if (inside(mouseX, mouseY, cardX, cardY, cardWidth, 38)) {
                     String name = HUD_MODULES[i];
                     CoreConfig.INSTANCE.toggle(name);
                     NotificationCenter.push(name.toUpperCase(), CoreConfig.INSTANCE.on(name) ? "Enabled" : "Disabled");
@@ -259,7 +325,7 @@ public final class ClickGuiScreen extends Screen {
                 return true;
             }
         } else if (section == 1) {
-            int rowY = cy + 47;
+            int rowY = cy + 59;
             if (inside(mouseX, mouseY, cx, rowY, cw, 58) && mouseX < cx + cw - 145) {
                 CoreConfig.INSTANCE.toggle("Zoom");
                 NotificationCenter.push("ZOOM", CoreConfig.INSTANCE.on("Zoom") ? "Enabled · hold " + keyName(CoreConfig.INSTANCE.zoomKey()) : "Disabled");
@@ -285,16 +351,16 @@ public final class ClickGuiScreen extends Screen {
             if (inside(mouseX, mouseY, cx, rowY + 52, cw, 25)) { bindingTarget = "HUD"; return true; }
             if (inside(mouseX, mouseY, cx, rowY + 84, cw, 25)) { bindingTarget = "ZOOM"; return true; }
         } else if (section == 2) {
-            int rowY = cy + 50;
+            int rowY = cy + 62;
             for (int i = 0; i < ACCENTS.length; i++) {
-                int sx = cx + i * 34;
-                if (inside(mouseX, mouseY, sx, rowY + 17, 24, 24)) {
+                int sx = cx + i * 36;
+                if (inside(mouseX, mouseY, sx, rowY + 18, 26, 26)) {
                     CoreConfig.INSTANCE.setAccentColor(ACCENTS[i]);
                     return true;
                 }
             }
 
-            rowY += 66;
+            rowY += 68;
             if (inside(mouseX, mouseY, cx + 152, rowY - 7, 28, 24)) {
                 CoreConfig.INSTANCE.setHudAlpha(CoreConfig.INSTANCE.hudAlpha() - 16);
                 return true;
@@ -373,39 +439,44 @@ public final class ClickGuiScreen extends Screen {
 
     private void card(GuiGraphics graphics, int x, int y, int width, int height, String title, String body, boolean enabled) {
         int accent = CoreConfig.INSTANCE.accentColor();
-        graphics.fill(x, y, x + width, y + height, 0xFF111316);
-        graphics.renderOutline(x, y, width, height, enabled ? 0x66562329 : 0x33383A40);
+        graphics.fill(x, y, x + width, y + height, SURFACE);
+        graphics.renderOutline(x, y, width, height, enabled ? 0x553E292D : LINE);
         if (enabled) graphics.fill(x, y, x + 2, y + height, accent);
-        graphics.drawString(font, title, x + 12, y + 12, enabled ? 0xFFFFFFFF : 0xFF858891, false);
-        graphics.drawString(font, body, x + 12, y + 31, 0xFF676A72, false);
+        graphics.drawString(font, title, x + 12, y + 12, enabled ? TEXT : MUTED, false);
+        graphics.drawString(font, body, x + 12, y + 31, 0xFF676D78, false);
     }
 
     private void keyRow(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width, String id, String key, String action, String target) {
         boolean hover = inside(mouseX, mouseY, x, y, width, 25);
         boolean listening = target.equals(bindingTarget);
-        graphics.fill(x, y, x + width, y + 25, listening ? 0xFF2A1013 : hover ? 0xFF181A1E : 0xFF111316);
-        graphics.renderOutline(x, y, width, 25, listening ? CoreConfig.INSTANCE.accentColor() : 0x33383A40);
-        graphics.drawString(font, id, x + 9, y + 9, 0xFF7A7D86, false);
-        graphics.drawString(font, listening ? "PRESS A KEY" : key, x + 60, y + 9, listening ? CoreConfig.INSTANCE.accentColor() : 0xFFE1E2E5, false);
-        graphics.drawString(font, action, x + 158, y + 9, 0xFF858891, false);
+        graphics.fill(x, y, x + width, y + 25, listening ? 0xFF2A1014 : hover ? SURFACE_HOVER : SURFACE);
+        graphics.renderOutline(x, y, width, 25, listening ? CoreConfig.INSTANCE.accentColor() : hover ? LINE_STRONG : LINE);
+        if (listening) graphics.fill(x, y, x + 2, y + 25, CoreConfig.INSTANCE.accentColor());
+        graphics.drawString(font, id, x + 9, y + 9, 0xFF747A85, false);
+        graphics.drawString(font, listening ? "PRESS A KEY" : key, x + 60, y + 9, listening ? CoreConfig.INSTANCE.accentColor() : TEXT, false);
+        graphics.drawString(font, action, x + 158, y + 9, MUTED, false);
     }
 
     private void drawToggle(GuiGraphics graphics, int x, int y, boolean enabled, int accent) {
-        graphics.fill(x, y, x + 26, y + 12, enabled ? (0xFF000000 | (accent & 0x00FFFFFF)) : 0xFF2A2C31);
-        graphics.fill(enabled ? x + 16 : x + 2, y + 2, enabled ? x + 24 : x + 10, y + 10, 0xFFFFFFFF);
+        graphics.fill(x - 1, y - 1, x + 29, y + 15, 0x22000000);
+        graphics.fill(x, y, x + 28, y + 14, enabled ? (0xFF000000 | (accent & 0x00FFFFFF)) : 0xFF292D34);
+        graphics.renderOutline(x, y, 28, 14, enabled ? 0x66FFFFFF : 0x33464C56);
+        graphics.fill(enabled ? x + 17 : x + 2, y + 2, enabled ? x + 26 : x + 11, y + 12, 0xFFFFFFFF);
     }
 
     private void infoRow(GuiGraphics graphics, int x, int y, int width, String title, String text) {
-        graphics.fill(x, y, x + width, y + 29, 0xFF111316);
-        graphics.drawString(font, title, x + 10, y + 10, 0xFFDADCE0, false);
-        graphics.drawString(font, text, x + 136, y + 10, 0xFF6F727A, false);
+        graphics.fill(x, y, x + width, y + 29, SURFACE);
+        graphics.renderOutline(x, y, width, 29, 0x223B414A);
+        graphics.drawString(font, title, x + 10, y + 10, 0xFFDADDE2, false);
+        graphics.drawString(font, text, x + 136, y + 10, 0xFF6F7580, false);
     }
 
     private void button(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width, int height, String label) {
         boolean hover = inside(mouseX, mouseY, x, y, width, height);
-        graphics.fill(x, y, x + width, y + height, hover ? 0xFF25272B : 0xFF191A1D);
-        graphics.renderOutline(x, y, width, height, hover ? 0x55777B84 : 0x33383A40);
-        graphics.drawCenteredString(font, label, x + width / 2, y + (height - 8) / 2, hover ? 0xFFFFFFFF : 0xFFDADCE0);
+        graphics.fill(x, y, x + width, y + height, hover ? 0xFF20242A : 0xFF15181D);
+        graphics.renderOutline(x, y, width, height, hover ? LINE_STRONG : LINE);
+        if (hover) graphics.fill(x, y, x + width, y + 1, 0x33FFFFFF);
+        graphics.drawCenteredString(font, label, x + width / 2, y + (height - 8) / 2, hover ? TEXT : 0xFFD4D7DC);
     }
 
     public static String keyName(int key) {
