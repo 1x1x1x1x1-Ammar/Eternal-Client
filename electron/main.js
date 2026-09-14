@@ -15,13 +15,18 @@ import { coreStatus, exportStandalone } from './services/coreService.js';
 
 const { autoUpdater } = updaterPackage;
 if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
 
 app.setName('Eternal Client');
 if (process.platform === 'win32') app.setAppUserModelId('gg.eternal.client');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const smokeTest = process.argv.includes('--smoke-test');
+const singleInstance = smokeTest || app.requestSingleInstanceLock();
 let mainWindow;
+
+if (!singleInstance) app.quit();
 
 function send(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -81,6 +86,10 @@ function createWindow() {
   });
 
   mainWindow.setTitle('Eternal Client');
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openExternal(url).catch(error => send('app:event', { type: 'external-error', message: error.message }));
+    return { action: 'deny' };
+  });
   mainWindow.once('ready-to-show', () => { if (!smokeTest) mainWindow.show(); });
   mainWindow.webContents.once('did-finish-load', () => {
     if (smokeTest) setTimeout(() => app.exit(0), 750);
@@ -95,10 +104,18 @@ function createWindow() {
   else mainWindow.loadFile(path.join(__dirname, '../dist/renderer/index.html'));
 }
 
-app.whenReady().then(() => {
-  createWindow();
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
-});
+if (singleInstance) {
+  app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  });
+  app.whenReady().then(() => {
+    createWindow();
+    app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+  });
+}
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 const handle = (name, fn) => ipcMain.handle(name, async (_event, payload) => {
@@ -196,9 +213,26 @@ handle('core:exportStandalone', async () => {
 });
 
 handle('updater:check', async () => {
-  if (!app.isPackaged) return { available: false, reason: 'Updater is disabled in development builds.' };
-  return autoUpdater.checkForUpdates();
+  if (!app.isPackaged) return { available: false, currentVersion: app.getVersion(), reason: 'Updater is disabled in development builds.' };
+  const result = await autoUpdater.checkForUpdates();
+  const info = result?.updateInfo || null;
+  const available = Boolean(info?.version && info.version !== app.getVersion());
+  return { available, currentVersion: app.getVersion(), version: info?.version || app.getVersion(), releaseDate: info?.releaseDate || null };
 });
+handle('updater:download', async () => {
+  if (!app.isPackaged) throw new Error('Updater is disabled in development builds.');
+  await autoUpdater.downloadUpdate();
+  return { downloading: true };
+});
+handle('updater:install', () => {
+  if (!app.isPackaged) throw new Error('Updater is disabled in development builds.');
+  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  return { restarting: true };
+});
+
+autoUpdater.on('checking-for-update', () => send('update:event', { type: 'checking' }));
+autoUpdater.on('update-not-available', info => send('update:event', { type: 'current', version: info?.version || app.getVersion() }));
 autoUpdater.on('update-available', info => send('update:event', { type: 'available', version: info.version }));
-autoUpdater.on('download-progress', progress => send('update:event', { type: 'progress', percent: progress.percent }));
+autoUpdater.on('download-progress', progress => send('update:event', { type: 'progress', percent: progress.percent, transferred: progress.transferred, total: progress.total, bytesPerSecond: progress.bytesPerSecond }));
 autoUpdater.on('update-downloaded', info => send('update:event', { type: 'ready', version: info.version }));
+autoUpdater.on('error', error => send('update:event', { type: 'error', message: error?.message || String(error) }));
