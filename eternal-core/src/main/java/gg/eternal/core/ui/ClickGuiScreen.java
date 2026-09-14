@@ -16,7 +16,8 @@ public final class ClickGuiScreen extends Screen {
     private static final String[] SECTIONS = {"HUD", "UTILITY", "STYLE", "ABOUT"};
     private static final String[] HUD_MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
-            "Speed", "Direction", "Memory", "Session", "Clock"
+            "Speed", "Direction", "Health", "Armor", "Food", "Server",
+            "Memory", "Session", "Clock"
     };
     private static final int[] ACCENTS = {
             0xFFFF3038, 0xFFFF6B35, 0xFF8B5CF6, 0xFF3B82F6, 0xFF22C55E
@@ -35,22 +36,28 @@ public final class ClickGuiScreen extends Screen {
     private static final int GREEN = 0xFF58ED89;
 
     static {
-        DESCRIPTIONS.put("Watermark", "Eternal Core identity chip");
-        DESCRIPTIONS.put("FPS", "Live rendered frame rate");
-        DESCRIPTIONS.put("CPS", "Left and right click activity");
-        DESCRIPTIONS.put("Keystrokes", "WASD input state");
-        DESCRIPTIONS.put("Coordinates", "Current XYZ position");
-        DESCRIPTIONS.put("Ping", "Current server latency");
-        DESCRIPTIONS.put("Speed", "Horizontal movement speed");
-        DESCRIPTIONS.put("Direction", "Player yaw direction");
-        DESCRIPTIONS.put("Memory", "JVM memory usage");
-        DESCRIPTIONS.put("Session", "Current play session time");
-        DESCRIPTIONS.put("Clock", "Local 24-hour clock");
+        DESCRIPTIONS.put("Watermark", "Eternal identity");
+        DESCRIPTIONS.put("FPS", "Live frame rate");
+        DESCRIPTIONS.put("CPS", "Mouse clicks/sec");
+        DESCRIPTIONS.put("Keystrokes", "WASD state");
+        DESCRIPTIONS.put("Coordinates", "Player XYZ");
+        DESCRIPTIONS.put("Ping", "Server latency");
+        DESCRIPTIONS.put("Speed", "Movement speed");
+        DESCRIPTIONS.put("Direction", "Facing direction");
+        DESCRIPTIONS.put("Health", "Health / max");
+        DESCRIPTIONS.put("Armor", "Armor points");
+        DESCRIPTIONS.put("Food", "Hunger level");
+        DESCRIPTIONS.put("Server", "Current server");
+        DESCRIPTIONS.put("Memory", "JVM memory");
+        DESCRIPTIONS.put("Session", "Session time");
+        DESCRIPTIONS.put("Clock", "Local clock");
         DESCRIPTIONS.put("Zoom", "Hold your configured zoom key for FOV zoom");
     }
 
     private int section;
     private String bindingTarget;
+    private final long openedAt = System.currentTimeMillis();
+    private long sectionChangedAt = openedAt;
 
     public ClickGuiScreen() {
         super(Component.literal("Eternal Core"));
@@ -60,25 +67,29 @@ public final class ClickGuiScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         renderBackground(graphics, mouseX, mouseY, delta);
 
-        int panelWidth = Math.min(700, width - 24);
-        int panelHeight = Math.min(404, height - 24);
+        int panelWidth = Math.min(760, width - 24);
+        int panelHeight = Math.min(430, height - 24);
         int x = (width - panelWidth) / 2;
         int y = (height - panelHeight) / 2;
-        int sidebarWidth = 128;
+        int sidebarWidth = 132;
         int accent = CoreConfig.INSTANCE.accentColor();
+        long now = System.currentTimeMillis();
+        float intro = Math.min(1.0F, (now - openedAt) / 220.0F);
 
-        drawWindowChrome(graphics, x, y, panelWidth, panelHeight, sidebarWidth, accent);
+        drawWindowChrome(graphics, x, y, panelWidth, panelHeight, sidebarWidth, accent, intro);
 
         graphics.drawString(font, "ETERNAL", x + 18, y + 17, TEXT, false);
         graphics.drawString(font, "CORE", x + 18 + font.width("ETERNAL") + 5, y + 17, accent, false);
-        graphics.drawString(font, "PREMIUM CLIENT · " + EternalCore.VERSION, x + 18, y + 32, DIM, false);
+        graphics.drawString(font, "V1 PREMIUM CLIENT · " + EternalCore.VERSION, x + 18, y + 32, DIM, false);
 
         String state = CoreConfig.INSTANCE.notifications() ? "LIVE CONFIG" : "SILENT MODE";
         int stateWidth = font.width(state) + 24;
         int stateX = x + panelWidth - stateWidth - 14;
         graphics.fill(stateX, y + 14, stateX + stateWidth, y + 34, 0xFF0C1110);
         graphics.renderOutline(stateX, y + 14, stateWidth, 20, 0x334A7657);
-        graphics.fill(stateX + 7, y + 21, stateX + 12, y + 26, CoreConfig.INSTANCE.notifications() ? GREEN : DIM);
+        int pulse = 160 + (int) (70 * (0.5 + 0.5 * Math.sin(now / 330.0)));
+        graphics.fill(stateX + 7, y + 21, stateX + 12, y + 26,
+                CoreConfig.INSTANCE.notifications() ? ((pulse << 24) | (GREEN & 0x00FFFFFF)) : DIM);
         graphics.drawString(font, state, stateX + 16, y + 20, CoreConfig.INSTANCE.notifications() ? 0xFF9AE9B2 : MUTED, false);
 
         int tabY = y + 66;
@@ -108,6 +119,9 @@ public final class ClickGuiScreen extends Screen {
         int cx = x + sidebarWidth + 18;
         int cy = y + 18;
         int cw = panelWidth - sidebarWidth - 36;
+        int sectionPulseWidth = Math.min(cw, (int) (cw * Math.min(1.0F, (now - sectionChangedAt) / 180.0F)));
+        graphics.fill(cx, cy + 44, cx + sectionPulseWidth, cy + 45, 0x44000000 | (accent & 0x00FFFFFF));
+
         switch (section) {
             case 0 -> renderHud(graphics, mouseX, mouseY, cx, cy, cw);
             case 1 -> renderUtility(graphics, mouseX, mouseY, cx, cy, cw);
@@ -118,13 +132,12 @@ public final class ClickGuiScreen extends Screen {
         super.render(graphics, mouseX, mouseY, delta);
     }
 
-    private void drawWindowChrome(GuiGraphics graphics, int x, int y, int panelWidth, int panelHeight, int sidebarWidth, int accent) {
+    private void drawWindowChrome(GuiGraphics graphics, int x, int y, int panelWidth, int panelHeight, int sidebarWidth, int accent, float intro) {
         graphics.fill(x - 8, y - 8, x + panelWidth + 8, y + panelHeight + 8, 0x22000000);
         graphics.fill(x - 4, y - 4, x + panelWidth + 4, y + panelHeight + 4, 0x44000000);
         graphics.fill(x, y, x + panelWidth, y + panelHeight, BG);
         graphics.renderOutline(x, y, panelWidth, panelHeight, 0x66444A55);
         graphics.renderOutline(x + 1, y + 1, panelWidth - 2, panelHeight - 2, 0x221D2026);
-
         graphics.fill(x, y, x + sidebarWidth, y + panelHeight, SIDEBAR);
         graphics.fill(x + sidebarWidth, y, x + sidebarWidth + 1, y + panelHeight, 0x33383F49);
         graphics.fill(x, y, x + 3, y + panelHeight, accent);
@@ -132,9 +145,8 @@ public final class ClickGuiScreen extends Screen {
 
         int sweep = x + 4 + (int) ((System.currentTimeMillis() / 11L) % Math.max(1, panelWidth - 42));
         graphics.fill(sweep, y + 1, Math.min(x + panelWidth - 2, sweep + 36), y + 2, 0x66FFFFFF);
-
-        int glowWidth = 22;
-        graphics.fill(x + 3, y + 1, x + 3 + glowWidth, y + panelHeight - 1, 0x11000000 | (accent & 0x00FFFFFF));
+        graphics.fill(x + 3, y + 1, x + 25, y + panelHeight - 1, 0x11000000 | (accent & 0x00FFFFFF));
+        graphics.fill(x, y + panelHeight - 2, x + Math.max(2, (int) (panelWidth * intro)), y + panelHeight, 0x66000000 | (accent & 0x00FFFFFF));
     }
 
     private void sectionHeader(GuiGraphics graphics, int x, int y, String kicker, String title, String subtitle) {
@@ -144,25 +156,27 @@ public final class ClickGuiScreen extends Screen {
     }
 
     private void renderHud(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
-        sectionHeader(graphics, x, y, "HUD SYSTEM", "MODULES", "Live telemetry rendered directly inside Minecraft");
+        sectionHeader(graphics, x, y, "HUD SYSTEM · " + HUD_MODULES.length + " MODULES", "LIVE TELEMETRY", "Every card below maps to a real Minecraft/JVM value");
 
-        int cardWidth = (width - 10) / 2;
-        int startY = y + 54;
+        int columns = 3;
+        int gap = 8;
+        int cardWidth = (width - gap * (columns - 1)) / columns;
+        int startY = y + 57;
         for (int i = 0; i < HUD_MODULES.length; i++) {
             String name = HUD_MODULES[i];
-            int col = i % 2;
-            int row = i / 2;
-            int cardX = x + col * (cardWidth + 10);
-            int cardY = startY + row * 46;
-            boolean hover = inside(mouseX, mouseY, cardX, cardY, cardWidth, 38);
+            int col = i % columns;
+            int row = i / columns;
+            int cardX = x + col * (cardWidth + gap);
+            int cardY = startY + row * 48;
+            boolean hover = inside(mouseX, mouseY, cardX, cardY, cardWidth, 40);
             boolean enabled = CoreConfig.INSTANCE.on(name);
             int accent = CoreConfig.INSTANCE.accentColor();
 
-            moduleCard(graphics, cardX, cardY, cardWidth, 38, name, DESCRIPTIONS.getOrDefault(name, "Eternal module"), enabled, hover, accent);
-            drawToggle(graphics, cardX + cardWidth - 37, cardY + 13, enabled, accent);
+            moduleCard(graphics, cardX, cardY, cardWidth, 40, name, DESCRIPTIONS.getOrDefault(name, "Eternal module"), enabled, hover, accent);
+            drawToggle(graphics, cardX + cardWidth - 34, cardY + 14, enabled, accent);
         }
 
-        int actionY = y + 334;
+        int actionY = y + 306;
         button(graphics, mouseX, mouseY, x, actionY, 106, 27, "ENABLE ALL");
         button(graphics, mouseX, mouseY, x + 114, actionY, 106, 27, "DISABLE ALL");
         graphics.drawString(font, "SAVES INSTANTLY", x + 232, actionY + 4, 0xFF505660, false);
@@ -174,10 +188,10 @@ public final class ClickGuiScreen extends Screen {
         graphics.renderOutline(x, y, width, height, enabled ? 0x553E292D : LINE);
         if (enabled) {
             graphics.fill(x, y, x + 2, y + height, accent);
-            graphics.fill(x + 2, y, x + Math.min(width, 62), y + 1, 0x22FFFFFF);
+            graphics.fill(x + 2, y, x + Math.min(width, 58), y + 1, 0x22FFFFFF);
         }
-        graphics.drawString(font, title.toUpperCase(), x + 10, y + 8, enabled ? TEXT : 0xFF858B96, false);
-        graphics.drawString(font, body, x + 10, y + 23, hover ? 0xFF777D88 : 0xFF616772, false);
+        graphics.drawString(font, title.toUpperCase(), x + 9, y + 8, enabled ? TEXT : 0xFF858B96, false);
+        graphics.drawString(font, body, x + 9, y + 24, hover ? 0xFF777D88 : 0xFF616772, false);
     }
 
     private void renderUtility(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
@@ -193,7 +207,7 @@ public final class ClickGuiScreen extends Screen {
         drawToggle(graphics, x + width - 143, rowY + 43, CoreConfig.INSTANCE.on("Zoom"), accent);
 
         rowY += 70;
-        card(graphics, x, rowY, width, 58, "NOTIFICATIONS", "Status, module and keybind feedback", CoreConfig.INSTANCE.notifications());
+        card(graphics, x, rowY, width, 58, "NOTIFICATIONS", "Animated status, module and keybind feedback", CoreConfig.INSTANCE.notifications());
         graphics.drawString(font, CoreConfig.INSTANCE.notifications() ? "LIVE" : "MUTED", x + width - 84, rowY + 24, CoreConfig.INSTANCE.notifications() ? GREEN : DIM, false);
         drawToggle(graphics, x + width - 45, rowY + 23, CoreConfig.INSTANCE.notifications(), accent);
 
@@ -206,7 +220,7 @@ public final class ClickGuiScreen extends Screen {
     }
 
     private void renderStyle(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
-        sectionHeader(graphics, x, y, "VISUAL SYSTEM", "STYLE + LAYOUT", "Premium visual settings that persist everywhere Core runs");
+        sectionHeader(graphics, x, y, "VISUAL SYSTEM", "STYLE + LAYOUT", "Persistent visual settings for launcher-managed and standalone Core");
 
         int rowY = y + 62;
         graphics.drawString(font, "ACCENT PRESET", x, rowY, 0xFF969CA6, false);
@@ -214,11 +228,8 @@ public final class ClickGuiScreen extends Screen {
             int sx = x + i * 36;
             graphics.fill(sx, rowY + 18, sx + 26, rowY + 44, 0xFF0A0C10);
             graphics.fill(sx + 2, rowY + 20, sx + 24, rowY + 42, ACCENTS[i]);
-            if ((CoreConfig.INSTANCE.accentColor() & 0x00FFFFFF) == (ACCENTS[i] & 0x00FFFFFF)) {
-                graphics.renderOutline(sx - 2, rowY + 16, 30, 30, 0xFFFFFFFF);
-            } else {
-                graphics.renderOutline(sx, rowY + 18, 26, 26, LINE);
-            }
+            if ((CoreConfig.INSTANCE.accentColor() & 0x00FFFFFF) == (ACCENTS[i] & 0x00FFFFFF)) graphics.renderOutline(sx - 2, rowY + 16, 30, 30, 0xFFFFFFFF);
+            else graphics.renderOutline(sx, rowY + 18, 26, 26, LINE);
         }
 
         rowY += 68;
@@ -256,7 +267,7 @@ public final class ClickGuiScreen extends Screen {
 
     private void renderAbout(GuiGraphics graphics, int x, int y, int width) {
         int accent = CoreConfig.INSTANCE.accentColor();
-        sectionHeader(graphics, x, y, "ETERNAL CORE", "PREMIUM CLIENT", "A real standalone-capable Fabric client, not a launcher mock-up");
+        sectionHeader(graphics, x, y, "ETERNAL CORE", "V1 PREMIUM CLIENT", "Standalone-capable Fabric client with real persistent modules");
         graphics.drawString(font, EternalCore.VERSION, x + width - font.width(EternalCore.VERSION), y + 14, accent, false);
 
         int cardY = y + 61;
@@ -266,7 +277,7 @@ public final class ClickGuiScreen extends Screen {
         graphics.drawString(font, "STANDALONE FABRIC MOD", x + 14, cardY + 14, TEXT, false);
         graphics.drawString(font, "The exact verified Core JAR works without the Eternal launcher.", x + 14, cardY + 34, MUTED, false);
         graphics.drawString(font, "Minecraft 1.21.11 · Fabric · Java 21+", x + 14, cardY + 51, 0xFF6D7480, false);
-        graphics.drawString(font, "VERIFIED", x + width - 70, cardY + 14, GREEN, false);
+        graphics.drawString(font, "V1 VERIFIED", x + width - 78, cardY + 14, GREEN, false);
 
         cardY += 94;
         graphics.drawString(font, "RUNTIME MODEL", x, cardY, 0xFF969CA6, false);
@@ -279,11 +290,11 @@ public final class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        int panelWidth = Math.min(700, width - 24);
-        int panelHeight = Math.min(404, height - 24);
+        int panelWidth = Math.min(760, width - 24);
+        int panelHeight = Math.min(430, height - 24);
         int x = (width - panelWidth) / 2;
         int y = (height - panelHeight) / 2;
-        int sidebarWidth = 128;
+        int sidebarWidth = 132;
         int mouseX = (int) event.x();
         int mouseY = (int) event.y();
 
@@ -291,6 +302,7 @@ public final class ClickGuiScreen extends Screen {
         for (int i = 0; i < SECTIONS.length; i++) {
             if (inside(mouseX, mouseY, x + 10, tabY + i * 34, sidebarWidth - 20, 28)) {
                 section = i;
+                sectionChangedAt = System.currentTimeMillis();
                 bindingTarget = null;
                 return true;
             }
@@ -301,19 +313,21 @@ public final class ClickGuiScreen extends Screen {
         int cw = panelWidth - sidebarWidth - 36;
 
         if (section == 0) {
-            int cardWidth = (cw - 10) / 2;
-            int startY = cy + 54;
+            int columns = 3;
+            int gap = 8;
+            int cardWidth = (cw - gap * (columns - 1)) / columns;
+            int startY = cy + 57;
             for (int i = 0; i < HUD_MODULES.length; i++) {
-                int cardX = cx + (i % 2) * (cardWidth + 10);
-                int cardY = startY + (i / 2) * 46;
-                if (inside(mouseX, mouseY, cardX, cardY, cardWidth, 38)) {
+                int cardX = cx + (i % columns) * (cardWidth + gap);
+                int cardY = startY + (i / columns) * 48;
+                if (inside(mouseX, mouseY, cardX, cardY, cardWidth, 40)) {
                     String name = HUD_MODULES[i];
                     CoreConfig.INSTANCE.toggle(name);
                     NotificationCenter.push(name.toUpperCase(), CoreConfig.INSTANCE.on(name) ? "Enabled" : "Disabled");
                     return true;
                 }
             }
-            int actionY = cy + 334;
+            int actionY = cy + 306;
             if (inside(mouseX, mouseY, cx, actionY, 106, 27)) {
                 CoreConfig.INSTANCE.setAllModules(true);
                 NotificationCenter.push("HUD", "All HUD modules enabled");
@@ -331,21 +345,14 @@ public final class ClickGuiScreen extends Screen {
                 NotificationCenter.push("ZOOM", CoreConfig.INSTANCE.on("Zoom") ? "Enabled · hold " + keyName(CoreConfig.INSTANCE.zoomKey()) : "Disabled");
                 return true;
             }
-            if (inside(mouseX, mouseY, cx + cw - 62, rowY + 12, 22, 24)) {
-                CoreConfig.INSTANCE.setZoomFov(CoreConfig.INSTANCE.zoomFov() - 5);
-                return true;
-            }
-            if (inside(mouseX, mouseY, cx + cw - 34, rowY + 12, 22, 24)) {
-                CoreConfig.INSTANCE.setZoomFov(CoreConfig.INSTANCE.zoomFov() + 5);
-                return true;
-            }
+            if (inside(mouseX, mouseY, cx + cw - 62, rowY + 12, 22, 24)) { CoreConfig.INSTANCE.setZoomFov(CoreConfig.INSTANCE.zoomFov() - 5); return true; }
+            if (inside(mouseX, mouseY, cx + cw - 34, rowY + 12, 22, 24)) { CoreConfig.INSTANCE.setZoomFov(CoreConfig.INSTANCE.zoomFov() + 5); return true; }
             rowY += 70;
             if (inside(mouseX, mouseY, cx, rowY, cw, 58)) {
                 CoreConfig.INSTANCE.setNotifications(!CoreConfig.INSTANCE.notifications());
                 if (CoreConfig.INSTANCE.notifications()) NotificationCenter.push("NOTIFICATIONS", "Enabled");
                 return true;
             }
-
             rowY += 78;
             if (inside(mouseX, mouseY, cx, rowY + 20, cw, 25)) { bindingTarget = "OPEN"; return true; }
             if (inside(mouseX, mouseY, cx, rowY + 52, cw, 25)) { bindingTarget = "HUD"; return true; }
@@ -354,53 +361,24 @@ public final class ClickGuiScreen extends Screen {
             int rowY = cy + 62;
             for (int i = 0; i < ACCENTS.length; i++) {
                 int sx = cx + i * 36;
-                if (inside(mouseX, mouseY, sx, rowY + 18, 26, 26)) {
-                    CoreConfig.INSTANCE.setAccentColor(ACCENTS[i]);
-                    return true;
-                }
+                if (inside(mouseX, mouseY, sx, rowY + 18, 26, 26)) { CoreConfig.INSTANCE.setAccentColor(ACCENTS[i]); return true; }
             }
-
             rowY += 68;
-            if (inside(mouseX, mouseY, cx + 152, rowY - 7, 28, 24)) {
-                CoreConfig.INSTANCE.setHudAlpha(CoreConfig.INSTANCE.hudAlpha() - 16);
-                return true;
-            }
-            if (inside(mouseX, mouseY, cx + 186, rowY - 7, 28, 24)) {
-                CoreConfig.INSTANCE.setHudAlpha(CoreConfig.INSTANCE.hudAlpha() + 16);
-                return true;
-            }
-
+            if (inside(mouseX, mouseY, cx + 152, rowY - 7, 28, 24)) { CoreConfig.INSTANCE.setHudAlpha(CoreConfig.INSTANCE.hudAlpha() - 16); return true; }
+            if (inside(mouseX, mouseY, cx + 186, rowY - 7, 28, 24)) { CoreConfig.INSTANCE.setHudAlpha(CoreConfig.INSTANCE.hudAlpha() + 16); return true; }
             rowY += 46;
             if (inside(mouseX, mouseY, cx + 152, rowY - 7, 62, 24)) {
                 int snap = CoreConfig.INSTANCE.snap();
                 CoreConfig.INSTANCE.setSnap(snap == 2 ? 4 : snap == 4 ? 8 : 2);
                 return true;
             }
-
             rowY += 48;
-            if (inside(mouseX, mouseY, cx, rowY + 18, 82, 28)) {
-                CoreConfig.INSTANCE.applyPreset("DEFAULT", width, height);
-                NotificationCenter.push("HUD PRESET", "Default layout restored");
-                return true;
-            }
-            if (inside(mouseX, mouseY, cx + 90, rowY + 18, 82, 28)) {
-                CoreConfig.INSTANCE.applyPreset("COMPACT", width, height);
-                NotificationCenter.push("HUD PRESET", "Compact layout applied");
-                return true;
-            }
-            if (inside(mouseX, mouseY, cx + 180, rowY + 18, 82, 28)) {
-                CoreConfig.INSTANCE.applyPreset("CORNERS", width, height);
-                NotificationCenter.push("HUD PRESET", "Corners layout applied");
-                return true;
-            }
-
+            if (inside(mouseX, mouseY, cx, rowY + 18, 82, 28)) { CoreConfig.INSTANCE.applyPreset("DEFAULT", width, height); NotificationCenter.push("HUD PRESET", "Default layout restored"); return true; }
+            if (inside(mouseX, mouseY, cx + 90, rowY + 18, 82, 28)) { CoreConfig.INSTANCE.applyPreset("COMPACT", width, height); NotificationCenter.push("HUD PRESET", "Compact layout applied"); return true; }
+            if (inside(mouseX, mouseY, cx + 180, rowY + 18, 82, 28)) { CoreConfig.INSTANCE.applyPreset("CORNERS", width, height); NotificationCenter.push("HUD PRESET", "Corners layout applied"); return true; }
             rowY += 66;
-            if (inside(mouseX, mouseY, cx, rowY, Math.min(cw, 282), 34)) {
-                Minecraft.getInstance().setScreen(new HudEditorScreen());
-                return true;
-            }
+            if (inside(mouseX, mouseY, cx, rowY, Math.min(cw, 282), 34)) { Minecraft.getInstance().setScreen(new HudEditorScreen()); return true; }
         }
-
         return super.mouseClicked(event, doubleClick);
     }
 
@@ -509,7 +487,5 @@ public final class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    public boolean isPauseScreen() { return false; }
 }
