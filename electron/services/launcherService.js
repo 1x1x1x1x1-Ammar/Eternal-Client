@@ -43,6 +43,14 @@ function serverLaunchArgs(instance, server) {
   return ['--server', host, '--port', String(port)];
 }
 
+function classifyGameMessage(value, debug = false) {
+  const message = String(value ?? '').trimEnd();
+  const lower = message.toLowerCase();
+  if (/\b(fatal|exception|crash|error)\b/.test(lower) || lower.includes('caused by:')) return { message, level: 'error', warning: true };
+  if (/\bwarn(?:ing)?\b/.test(lower) || lower.includes('mixin apply failed')) return { message, level: 'warning', warning: true };
+  return { message, level: debug ? 'debug' : 'info', warning: false };
+}
+
 async function resolveJava(instance) {
   const configured = store.get('settings.javaPath');
   const required = requiredJavaMajor(instance.minecraftVersion);
@@ -113,10 +121,16 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     customLaunchArgs
   };
 
-  client.on('progress', progress => emit({ instanceId, state: 'DOWNLOADING', message: progress.type || 'Downloading Minecraft files…', progress }));
-  client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading Minecraft files…', progress }));
-  client.on('debug', message => emit({ instanceId, state: 'DEBUG', message: String(message) }));
-  client.on('data', message => emit({ instanceId, state: 'LOG', message: String(message) }));
+  client.on('progress', progress => emit({ instanceId, state: 'DOWNLOADING', message: progress.type || 'Downloading Minecraft files…', progress, source: 'minecraft' }));
+  client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading Minecraft files…', progress, source: 'minecraft' }));
+  client.on('debug', value => {
+    const line = classifyGameMessage(value, true);
+    emit({ instanceId, state: 'DEBUG', ...line });
+  });
+  client.on('data', value => {
+    const line = classifyGameMessage(value, false);
+    emit({ instanceId, state: 'LOG', ...line });
+  });
 
   const child = await client.launch(options);
   if (!child?.pid) throw new Error('Minecraft process did not start.');
@@ -128,7 +142,7 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   await patchInstance(instanceId, { lastPlayedAt: new Date().toISOString() });
 
   child.once('error', error => {
-    emit({ instanceId, state: 'PROCESS_ERROR', message: `Minecraft process error: ${error?.message || error}`, pid: child.pid });
+    emit({ instanceId, state: 'PROCESS_ERROR', level: 'error', warning: true, message: `Minecraft process error: ${error?.message || error}`, pid: child.pid });
   });
   child.once('close', async code => {
     const set = processes.get(instanceId);
@@ -137,7 +151,17 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     if (set && remaining === 0) processes.delete(instanceId);
     const latest = await getInstance(instanceId).catch(() => null);
     if (latest) await patchInstance(instanceId, { playtimeSeconds: (latest.playtimeSeconds || 0) + Math.round((Date.now() - started) / 1000) });
-    emit({ instanceId, state: 'STOPPED', message: `Minecraft exited (${code ?? 'unknown'}).`, code, pid: child.pid, remaining });
+    const failed = Number.isInteger(code) && code !== 0;
+    emit({
+      instanceId,
+      state: 'STOPPED',
+      level: failed ? 'error' : 'info',
+      warning: failed,
+      message: failed ? `Minecraft exited with code ${code}. Open Console → Minecraft for the preceding error/warning lines.` : `Minecraft exited (${code ?? 'unknown'}).`,
+      code,
+      pid: child.pid,
+      remaining
+    });
   });
 
   return { pid: child.pid, javaMajor: java.major, javaPath: java.path };
