@@ -1,0 +1,94 @@
+/* Eternal v1 motion + detail layer — nonessential motion only; all actions remain real. */
+
+/* Sidebar: premium rail lighting and selected-route emphasis */
+.sidebar{overflow:hidden}
+.sidebar:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 18%,transparent 82%,rgba(255,41,50,.025))}
+.sidebar .nav-item{position:relative;overflow:hidden}
+.sidebar .nav-item:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);opacity:0;transition:opacity .16s ease}
+.sidebar .nav-item:hover:after{opacity:1}
+.sidebar .nav-item.active{box-shadow:inset 3px 0 #ff3b43,inset 0 0 24px rgba(255,45,54,.035)}
+.sidebar .nav-item.active svg{filter:drop-shadow(0 0 8px rgba(255,61,69,.24))}
+.sidebar-logo img{transition:transform .24s cubic-bezier(.2,.8,.2,1),filter .24s ease}.sidebar-logo:hover img{transform:scale(1.055) rotate(-1deg);filter:drop-shadow(0 0 18px rgba(255,53,62,.3))}
+
+/* Title bar */
+.titlebar{background:linear-gradient(180deg,rgba(9,11,14,.98),rgba(7,8,11,.94))!important;border-bottom:1px solid rgba(255,255,255,.05)}
+.titlebar:after{content:"";position:absolute;left:var(--release-sidebar);right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,rgba(255,55,64,.15),transparent 36%)}
+.window-controls button:hover{background:rgba(255,255,255,.055)!important}.window-controls button:last-child:hover{background:#b71922!important}
+
+/* Page transition finish */
+.page-motion{transform-origin:50% 20%}
+.page-motion:before{content:"";position:absolute;top:0;left:0;width:88px;height:1px;background:linear-gradient(90deg,#ff3b43,transparent);opacity:.5;pointer-events:none}
+
+/* Universal premium button shimmer, only on hover */
+.primary,.release-play,.premium-play,.accent{position:relative;overflow:hidden}
+.primary:after,.release-play:after,.premium-play:after,.accent:after{content:"";position:absolute;top:-70%;bottom:-70%;width:30px;left:-45px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:skewX(-18deg);transition:left .42s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.primary:hover:after,.release-play:hover:after,.premium-play:hover:after,.accent:hover:after{left:calc(100% + 45px)}
+
+/* Home hero detail */
+.premium-hero-beam{animation:v1-beam-drift 7s ease-in-out infinite alternate}
+@keyframes v1-beam-drift{from{transform:translateX(-2%) rotate(-1deg);opacity:.45}to{transform:translateX(4%) rotate(1deg);opacity:.8}}
+.premium-feature-row button{transform-origin:center bottom}
+.premium-feature-row button:hover{transform:translateY(-3px)!important;box-shadow:0 14px 38px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025)!important}
+.premium-feature-arrow{transition:transform .16s ease}.premium-feature-row button:hover .premium-feature-arrow{transform:translateX(3px)}
+.premium-status-deck>div,.premium-status-deck>button{position:relative;overflow:hidden}
+.premium-status-deck>div:after,.premium-status-deck>button:after{content:"";position:absolute;left:10%;right:10%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,63,72,.15),transparent);opacity:0;transition:opacity .16s ease}
+.premium-status-deck>div:hover:after,.premium-status-deck>button:hover:after{opacity:1}
+
+/* Command console */
+.premium-console{position:relative;overflow:hidden}
+.premium-console:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 0 62%,rgba(255,255,255,.012) 62.2%,transparent 62.8%)}
+.beta6-command-list button{position:relative}.beta6-command-list button:hover{padding-left:13px!important}.beta6-command-list button:before{content:"";position:absolute;left:4px;top:50%;width:3px;height:3px;border-radius:50%;background:#ff4850;opacity:0;transform:translateY(-50%);transition:opacity .14s ease}.beta6-command-list button:hover:before{opacity:1}
+
+/* Instance cards: live progress language */
+.premium-library-profile:before{content:"";position:absolute;left:0;top:0;right:0;height:1px;background:linear-gradient(90deg,rgba(255,59,67,.3),transparent 34%);opacity:.25}
+.premium-library-profile.running:before{background:linear-gradient(90deg,rgba(83,235,134,.58),transparent 44%);animation:v1-running-edge 2.4s ease-in-out infinite}
+@keyframes v1-running-edge{0%,100%{opacity:.28}50%{opacity:.8}}
+.profile-icon svg{transition:transform .18s ease}.premium-library-profile:hover .profile-icon svg,.premium-profile-card:hover .profile-icon svg{transform:scale(1.08)}
+
+/* Mod Hub */
+.premium-mod-context{position:relative;overflow:hidden}.premium-mod-context:after{content:"";position:absolute;right:-30px;bottom:-35px;width:105px;height:105px;border:1px solid rgba(255,53,62,.05);border-radius:50%}
+.beta8-mod-result button svg{transition:transform .16s ease}.beta8-mod-result button:hover svg{transform:scale(1.08)}
+.beta8-mod-result button:not(.icon-btn):hover{box-shadow:0 0 20px rgba(255,52,61,.08)}
+.mod-row{position:relative}.mod-row.managed:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,46,55,.025),transparent 50%)}
+
+/* Server states */
+.beta8-server-card.is-online .server-light.online{animation:v1-online-pulse 2s ease-in-out infinite}
+@keyframes v1-online-pulse{0%,100%{transform:scale(.9);box-shadow:0 0 8px rgba(82,236,132,.34)}50%{transform:scale(1.12);box-shadow:0 0 18px rgba(82,236,132,.68)}}
+.beta8-server-actions button:hover svg{transform:translateY(-1px)}
+
+/* Accounts */
+.account-page-row{transition:transform .15s ease,border-color .15s ease,background .15s ease}.account-page-row:hover{transform:translateX(2px)}
+.account-page-row.selected .account-page-avatar{filter:drop-shadow(0 0 12px rgba(255,55,64,.16)) drop-shadow(0 7px 14px rgba(0,0,0,.25))}
+
+/* Updater stable states */
+.v1-update-status.available:before,.v1-update-status.ready:before{content:"";width:6px;height:6px;border-radius:50%;background:#ff4a52;box-shadow:0 0 14px rgba(255,62,70,.5);animation:v1-update-pulse 1.6s ease-in-out infinite;flex:0 0 auto}
+.v1-update-status.current:before{content:"";width:6px;height:6px;border-radius:50%;background:#58ed89;box-shadow:0 0 12px rgba(88,237,137,.4);flex:0 0 auto}
+@keyframes v1-update-pulse{0%,100%{opacity:.55;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+/* Core page */
+.beta7-module-grid article{position:relative;overflow:hidden}.beta7-module-grid article:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,#ff3b43,transparent);opacity:0;transition:opacity .16s ease}.beta7-module-grid article:hover:after{opacity:.45}
+.beta7-hud-canvas{box-shadow:inset 0 0 70px rgba(0,0,0,.28)}
+.beta7-canvas-crosshair{animation:v1-crosshair 3.2s ease-in-out infinite}@keyframes v1-crosshair{0%,100%{opacity:.35}50%{opacity:.75}}
+.beta7-key-cluster i{transition:transform .16s ease,border-color .16s ease}.beta7-hud-canvas:hover .beta7-key-cluster i:nth-child(1){transform:translateY(-1px)}
+
+/* Empty/error/success states */
+.empty-card,.beta8-empty{position:relative;overflow:hidden}.empty-card:after,.beta8-empty:after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)}
+.beta8-success{box-shadow:inset 2px 0 #58ed89,0 8px 30px rgba(0,0,0,.12)}
+.beta8-inline-error,.release-error{box-shadow:inset 2px 0 #ff4b53,0 8px 30px rgba(0,0,0,.14)}
+
+/* Scrollbar for dense client feel */
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#07090c}::-webkit-scrollbar-thumb{background:#242830;border:2px solid #07090c;border-radius:999px}::-webkit-scrollbar-thumb:hover{background:#353a44}
+
+/* Selection */
+::selection{background:rgba(255,59,67,.3);color:#fff}
+
+@media(max-width:920px){
+  .sidebar:before,.titlebar:after{opacity:.6}
+  .premium-feature-row button:hover{transform:none!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .premium-hero-beam,.premium-library-profile.running:before,.beta8-server-card.is-online .server-light.online,.v1-update-status.available:before,.v1-update-status.ready:before,.beta7-canvas-crosshair{animation:none!important}
+  .primary:after,.release-play:after,.premium-play:after,.accent:after{display:none!important}
+  .account-page-row:hover,.beta8-downloads-page .download-item:hover,.runtime-list article:hover{transform:none!important}
+}

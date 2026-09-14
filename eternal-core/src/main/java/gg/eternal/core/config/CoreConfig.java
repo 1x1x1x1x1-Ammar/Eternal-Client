@@ -9,11 +9,17 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class CoreConfig {
     public static final CoreConfig INSTANCE = new CoreConfig();
+    public static final String[] MODULES = {
+            "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
+            "Speed", "Direction", "Health", "Armor", "Food", "Server",
+            "Memory", "Session", "Clock", "Zoom"
+    };
 
     public final Map<String, Boolean> enabled = new LinkedHashMap<>();
     public final Map<String, int[]> positions = new LinkedHashMap<>();
@@ -23,26 +29,24 @@ public final class CoreConfig {
     private int zoomFov = 30;
     private int snap = 4;
     private boolean notifications = true;
-    private int openKey = 344;      // GLFW_KEY_RIGHT_SHIFT
-    private int hudEditorKey = 72;  // H
-    private int zoomKey = 67;       // C
+    private int openKey = 344;
+    private int hudEditorKey = 72;
+    private int zoomKey = 67;
 
     private final Path file = FabricLoader.getInstance().getConfigDir().resolve("eternal-core.json");
 
     private CoreConfig() {
-        for (String name : new String[]{
-                "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
-                "Speed", "Direction", "Memory", "Session", "Clock", "Zoom"
-        }) enabled.put(name, true);
+        // Clean installs start with every module disabled. The player explicitly chooses
+        // what appears on-screen from Modules or the HUD editor instead of Eternal
+        // covering a fresh Minecraft session with telemetry immediately.
+        for (String name : MODULES) enabled.put(name, false);
         load();
     }
 
-    public boolean on(String name) { return enabled.getOrDefault(name, true); }
+    public boolean on(String name) { return enabled.getOrDefault(name, false); }
     public void toggle(String name) { enabled.put(name, !on(name)); save(); }
     public void setAllModules(boolean value) {
-        for (String name : enabled.keySet()) {
-            if (!"Zoom".equals(name)) enabled.put(name, value);
-        }
+        for (String name : enabled.keySet()) if (!"Zoom".equals(name)) enabled.put(name, value);
         save();
     }
 
@@ -78,44 +82,56 @@ public final class CoreConfig {
             positions.put("FPS", new int[]{10, 34});
             positions.put("Ping", new int[]{10, 55});
             positions.put("Coordinates", new int[]{10, 76});
+            positions.put("Health", new int[]{10, 97});
+            positions.put("Armor", new int[]{10, 118});
+            positions.put("Food", new int[]{10, 139});
             positions.put("Speed", new int[]{right, 10});
             positions.put("Direction", new int[]{right, 31});
-            positions.put("Memory", new int[]{right, 52});
-            positions.put("Clock", new int[]{right, 73});
+            positions.put("Server", new int[]{right, 52});
+            positions.put("Memory", new int[]{right, 73});
+            positions.put("Clock", new int[]{right, 94});
             positions.put("CPS", new int[]{10, lower});
-            positions.put("Keystrokes", new int[]{10, lower + 22});
+            positions.put("Keystrokes", new int[]{10, Math.max(54, lower - 44)});
             positions.put("Session", new int[]{right, lower});
         } else if ("CORNERS".equalsIgnoreCase(preset)) {
             positions.put("Watermark", new int[]{10, 10});
             positions.put("FPS", new int[]{10, 34});
             positions.put("CPS", new int[]{10, 55});
+            positions.put("Health", new int[]{10, 76});
+            positions.put("Armor", new int[]{10, 97});
+            positions.put("Food", new int[]{10, 118});
             positions.put("Coordinates", new int[]{right, 10});
             positions.put("Ping", new int[]{right, 31});
-            positions.put("Clock", new int[]{right, 52});
+            positions.put("Server", new int[]{right, 52});
+            positions.put("Clock", new int[]{right, 73});
             positions.put("Keystrokes", new int[]{10, lower});
             positions.put("Speed", new int[]{right, lower});
-            positions.put("Direction", new int[]{right, lower + 21});
-            positions.put("Memory", new int[]{10, lower - 21});
-            positions.put("Session", new int[]{right, lower - 21});
+            positions.put("Direction", new int[]{right, Math.max(54, lower - 21)});
+            positions.put("Memory", new int[]{10, Math.max(54, lower - 21)});
+            positions.put("Session", new int[]{right, Math.max(54, lower - 42)});
         } else {
             positions.put("Watermark", new int[]{10, 10});
             positions.put("FPS", new int[]{10, 34});
             positions.put("CPS", new int[]{10, 55});
             positions.put("Ping", new int[]{10, 76});
+            positions.put("Health", new int[]{10, 97});
+            positions.put("Armor", new int[]{10, 118});
+            positions.put("Food", new int[]{10, 139});
             positions.put("Coordinates", new int[]{right, 10});
             positions.put("Direction", new int[]{right, 31});
             positions.put("Speed", new int[]{right, 52});
-            positions.put("Memory", new int[]{right, 73});
-            positions.put("Clock", new int[]{right, 94});
-            positions.put("Session", new int[]{right, 115});
+            positions.put("Server", new int[]{right, 73});
+            positions.put("Memory", new int[]{right, 94});
+            positions.put("Clock", new int[]{right, 115});
+            positions.put("Session", new int[]{right, 136});
             positions.put("Keystrokes", new int[]{centerX, lower});
         }
         save();
     }
 
     private void load() {
+        if (!Files.exists(file)) return;
         try {
-            if (!Files.exists(file)) return;
             JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
             if (root.has("enabled")) for (var entry : root.getAsJsonObject("enabled").entrySet()) enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
             if (root.has("positions")) {
@@ -132,10 +148,19 @@ public final class CoreConfig {
             if (root.has("openKey")) openKey = normalizeKey(root.get("openKey").getAsInt(), 344);
             if (root.has("hudEditorKey")) hudEditorKey = normalizeKey(root.get("hudEditorKey").getAsInt(), 72);
             if (root.has("zoomKey")) zoomKey = normalizeKey(root.get("zoomKey").getAsInt(), 67);
-        } catch (Exception ignored) {}
+        } catch (Exception error) {
+            System.err.println("[Eternal Core] Invalid config, restoring defaults: " + error.getMessage());
+            try {
+                Path backup = file.resolveSibling("eternal-core.corrupt-" + System.currentTimeMillis() + ".json");
+                Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception backupError) {
+                System.err.println("[Eternal Core] Could not back up invalid config: " + backupError.getMessage());
+            }
+            positions.clear();
+        }
     }
 
-    public void save() {
+    public synchronized void save() {
         try {
             Files.createDirectories(file.getParent());
             JsonObject root = new JsonObject();
@@ -157,8 +182,18 @@ public final class CoreConfig {
             root.addProperty("openKey", openKey);
             root.addProperty("hudEditorKey", hudEditorKey);
             root.addProperty("zoomKey", zoomKey);
-            Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
-        } catch (Exception ignored) {}
+
+            String json = new GsonBuilder().setPrettyPrinting().create().toJson(root);
+            Path temp = file.resolveSibling(file.getFileName() + ".tmp");
+            Files.writeString(temp, json, StandardCharsets.UTF_8);
+            try {
+                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception atomicUnavailable) {
+                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception error) {
+            System.err.println("[Eternal Core] Could not save config: " + error.getMessage());
+        }
     }
 
     private void setSnapWithoutSave(int value) { snap = value <= 2 ? 2 : value <= 4 ? 4 : 8; }

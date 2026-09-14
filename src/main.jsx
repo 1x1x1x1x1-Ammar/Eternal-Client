@@ -11,6 +11,10 @@ import './beta7-core.css';
 import './beta8.css';
 import './beta8-polish.css';
 import './premium.css';
+import './v1.css';
+import './v1-motion.css';
+import './v1-systems.css';
+import './v1-transfers.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode><HashRouter><App /></HashRouter></React.StrictMode>

@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld('eternal', {
     list: () => invoke('instances:list'),
     versions: (options) => invoke('instances:versions', options),
     create: (data) => invoke('instances:create', data),
+    patch: (data) => invoke('instances:patch', data),
+    duplicate: (data) => invoke('instances:duplicate', data),
     remove: (id) => invoke('instances:remove', id),
     launch: (data) => invoke('instances:launch', data),
     stop: (id) => invoke('instances:stop', id),
@@ -67,10 +69,15 @@ contextBridge.exposeInMainWorld('eternal', {
     status: (id) => invoke('core:status', id),
     exportStandalone: () => invoke('core:exportStandalone')
   },
-  updater: { check: () => invoke('updater:check') },
+  updater: {
+    check: () => invoke('updater:check'),
+    download: () => invoke('updater:download'),
+    install: () => invoke('updater:install')
+  },
   on: {
     launch: (cb) => on('launch:event', cb),
     download: (cb) => on('download:event', cb),
+    operation: (cb) => on('operation:event', cb),
     account: (cb) => on('account:event', cb),
     update: (cb) => on('update:event', cb),
     app: (cb) => on('app:event', cb)

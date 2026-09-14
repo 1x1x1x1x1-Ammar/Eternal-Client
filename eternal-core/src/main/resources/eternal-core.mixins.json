@@ -1,1 +1,1 @@
-{"required":true,"package":"gg.eternal.core.mixin","compatibilityLevel":"JAVA_21","client":["KeyboardMixin","MouseMixin","GuiMixin"],"injectors":{"defaultRequire":1}}
+{"required":true,"package":"gg.eternal.core.mixin","compatibilityLevel":"JAVA_21","client":["KeyboardMixin","MouseMixin","GuiMixin","MinecraftScreenMixin"],"injectors":{"defaultRequire":1}}

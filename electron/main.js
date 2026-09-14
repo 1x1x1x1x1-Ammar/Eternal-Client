@@ -15,13 +15,28 @@ import { coreStatus, exportStandalone } from './services/coreService.js';
 
 const { autoUpdater } = updaterPackage;
 if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
 
 app.setName('Eternal Client');
 if (process.platform === 'win32') app.setAppUserModelId('gg.eternal.client');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const smokeTest = process.argv.includes('--smoke-test');
+const singleInstance = smokeTest || app.requestSingleInstanceLock();
 let mainWindow;
+let operationSequence = 0;
+
+const tracedOperations = new Set([
+  'accounts:addOffline', 'accounts:loginMicrosoft', 'accounts:remove', 'accounts:activate',
+  'instances:create', 'instances:patch', 'instances:duplicate', 'instances:remove', 'instances:openFolder', 'instances:launch', 'instances:stop',
+  'mods:add', 'mods:remove', 'mods:toggle', 'mods:install',
+  'servers:save', 'servers:remove', 'servers:ping', 'servers:join',
+  'core:exportStandalone', 'settings:patch',
+  'updater:check', 'updater:download', 'updater:install'
+]);
+
+if (!singleInstance) app.quit();
 
 function send(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -58,6 +73,38 @@ async function openFolder(folder) {
   if (error) throw new Error(error);
   return true;
 }
+function instanceRunning(id) {
+  return launcher.runningState().some(row => row.instanceId === id && Number(row.count || row.pids?.length || 0) > 0);
+}
+function operationCopy(channel, payload, result, success = false) {
+  switch (channel) {
+    case 'instances:create': return success ? `Created ${result?.name || 'Minecraft instance'}.` : `Creating ${payload?.name || 'Minecraft instance'} · ${payload?.minecraftVersion || '?'} ${payload?.loader || ''}`;
+    case 'instances:patch': return success ? `Saved ${result?.name || 'instance'} settings.` : 'Saving instance settings';
+    case 'instances:duplicate': return success ? `Duplicated profile as ${result?.name || 'copy'}.` : 'Duplicating isolated instance files';
+    case 'instances:remove': return success ? 'Instance removed.' : 'Removing instance and managed files';
+    case 'instances:openFolder': return success ? 'Instance folder opened.' : 'Opening instance folder';
+    case 'instances:launch': return success ? 'Launch request accepted; Minecraft pipeline is running.' : 'Starting Minecraft launch pipeline';
+    case 'instances:stop': return success ? 'Minecraft processes stopped.' : 'Stopping Minecraft processes';
+    case 'mods:add': return success ? 'Local mod files added.' : 'Adding local mod files';
+    case 'mods:remove': return success ? 'Mod removed.' : 'Removing mod';
+    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : `Changing mod state`;
+    case 'mods:install': return success ? 'Modrinth install verified.' : 'Resolving and installing Modrinth project';
+    case 'servers:ping': return success ? 'Minecraft server status received.' : 'Pinging Minecraft server';
+    case 'servers:join': return success ? 'Server launch request accepted.' : 'Preparing server quick-join';
+    case 'servers:save': return success ? 'Server saved.' : 'Saving server';
+    case 'servers:remove': return success ? 'Server removed.' : 'Removing server';
+    case 'accounts:addOffline': return success ? 'Offline account added.' : 'Creating offline account';
+    case 'accounts:loginMicrosoft': return success ? 'Microsoft account authenticated.' : 'Starting Microsoft device-code authentication';
+    case 'accounts:activate': return success ? 'Active account changed.' : 'Switching active account';
+    case 'accounts:remove': return success ? 'Account removed.' : 'Removing account';
+    case 'core:exportStandalone': return success ? 'Standalone Eternal Core exported and verified.' : 'Exporting standalone Eternal Core';
+    case 'settings:patch': return success ? 'Launcher settings saved.' : 'Saving launcher settings';
+    case 'updater:check': return success ? 'Update check completed.' : 'Checking stable update channel';
+    case 'updater:download': return success ? 'Update download started.' : 'Starting update download';
+    case 'updater:install': return success ? 'Restarting into update installer.' : 'Preparing update restart';
+    default: return success ? 'Operation completed.' : 'Working…';
+  }
+}
 
 function createWindow() {
   const iconPath = path.join(__dirname, '../assets/icon.png');
@@ -81,6 +128,10 @@ function createWindow() {
   });
 
   mainWindow.setTitle('Eternal Client');
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    openExternal(url).catch(error => send('app:event', { type: 'external-error', message: error.message }));
+    return { action: 'deny' };
+  });
   mainWindow.once('ready-to-show', () => { if (!smokeTest) mainWindow.show(); });
   mainWindow.webContents.once('did-finish-load', () => {
     if (smokeTest) setTimeout(() => app.exit(0), 750);
@@ -95,16 +146,49 @@ function createWindow() {
   else mainWindow.loadFile(path.join(__dirname, '../dist/renderer/index.html'));
 }
 
-app.whenReady().then(() => {
-  createWindow();
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
-});
+if (singleInstance) {
+  app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  });
+  app.whenReady().then(() => {
+    createWindow();
+    app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+  });
+}
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 const handle = (name, fn) => ipcMain.handle(name, async (_event, payload) => {
-  try { return { ok: true, data: await fn(payload) }; }
-  catch (error) {
+  const trace = tracedOperations.has(name);
+  const operationId = trace ? `${Date.now().toString(36)}-${(++operationSequence).toString(36)}` : '';
+  if (trace) send('operation:event', {
+    id: operationId,
+    channel: name,
+    state: 'STARTED',
+    message: operationCopy(name, payload, null, false),
+    timestamp: Date.now()
+  });
+  try {
+    const data = await fn(payload);
+    if (trace) send('operation:event', {
+      id: operationId,
+      channel: name,
+      state: 'SUCCESS',
+      message: operationCopy(name, payload, data, true),
+      timestamp: Date.now()
+    });
+    return { ok: true, data };
+  } catch (error) {
     console.error(`[${name}]`, error);
+    if (trace) send('operation:event', {
+      id: operationId,
+      channel: name,
+      state: 'ERROR',
+      message: error?.message || String(error),
+      timestamp: Date.now()
+    });
     return { ok: false, error: error?.message || String(error) };
   }
 });
@@ -164,7 +248,15 @@ handle('instances:create', async data => {
   await versions.assertMinecraftVersion(data?.minecraftVersion);
   return instances.createInstance(data);
 });
-handle('instances:remove', id => instances.removeInstance(id));
+handle('instances:patch', data => instances.patchInstance(data?.instanceId, data?.patch || {}));
+handle('instances:duplicate', async data => {
+  if (instanceRunning(data?.instanceId)) throw new Error('Stop this instance before duplicating it so its files are copied consistently.');
+  return instances.duplicateInstance(data?.instanceId, data?.name || '');
+});
+handle('instances:remove', async id => {
+  if (instanceRunning(id)) throw new Error('Stop this instance before deleting it.');
+  return instances.removeInstance(id);
+});
 handle('instances:openFolder', async id => openFolder(instances.instanceDir(id)));
 handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event) }));
 handle('instances:stop', id => launcher.stopInstance(id));
@@ -196,9 +288,26 @@ handle('core:exportStandalone', async () => {
 });
 
 handle('updater:check', async () => {
-  if (!app.isPackaged) return { available: false, reason: 'Updater is disabled in development builds.' };
-  return autoUpdater.checkForUpdates();
+  if (!app.isPackaged) return { available: false, currentVersion: app.getVersion(), reason: 'Updater is disabled in development builds.' };
+  const result = await autoUpdater.checkForUpdates();
+  const info = result?.updateInfo || null;
+  const available = Boolean(info?.version && info.version !== app.getVersion());
+  return { available, currentVersion: app.getVersion(), version: info?.version || app.getVersion(), releaseDate: info?.releaseDate || null };
 });
+handle('updater:download', async () => {
+  if (!app.isPackaged) throw new Error('Updater is disabled in development builds.');
+  await autoUpdater.downloadUpdate();
+  return { downloading: true };
+});
+handle('updater:install', () => {
+  if (!app.isPackaged) throw new Error('Updater is disabled in development builds.');
+  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  return { restarting: true };
+});
+
+autoUpdater.on('checking-for-update', () => send('update:event', { type: 'checking' }));
+autoUpdater.on('update-not-available', info => send('update:event', { type: 'current', version: info?.version || app.getVersion() }));
 autoUpdater.on('update-available', info => send('update:event', { type: 'available', version: info.version }));
-autoUpdater.on('download-progress', progress => send('update:event', { type: 'progress', percent: progress.percent }));
+autoUpdater.on('download-progress', progress => send('update:event', { type: 'progress', percent: progress.percent, transferred: progress.transferred, total: progress.total, bytesPerSecond: progress.bytesPerSecond }));
 autoUpdater.on('update-downloaded', info => send('update:event', { type: 'ready', version: info.version }));
+autoUpdater.on('error', error => send('update:event', { type: 'error', message: error?.message || String(error) }));

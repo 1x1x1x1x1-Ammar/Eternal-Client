@@ -1,29 +1,51 @@
-# Eternal Client v0.5.0-beta.5 — Test Results
+# Eternal Client v1.0.0 — Verification Status
 
-## Verified in the current workspace
+This file tracks evidence for the final stable candidate. It is intentionally conservative: source/build evidence is recorded separately from tests that require a real Windows/Minecraft machine.
 
-`node --test tests/*.test.mjs`
+## Automated final-candidate gates
 
-```text
-10 tests
-10 passed
-0 failed
-```
+The exact `release/v1.0.0` head must pass all of these before merge:
 
-Covered: tar import regression, Command Center source wiring, no random/fake server count logic, offline UUID namespace, Electron isolation flags, MSA launcher-auth object wiring, official Fabric metadata endpoint, Modrinth MC/loader filters, real Minecraft TCP handshake path, and Eternal logo presence.
+- Eternal Core Java 21 / Fabric Gradle build
+- Node source/runtime/UI regression suite
+- Vite production renderer build
+- staged Eternal Core verification
+- Windows Electron unpacked packaging
+- packaged `Eternal Client.exe --smoke-test`
 
-## Not yet marked PASS
+The stable workflow on merged `main` then additionally validates Core metadata/icon/version, branded NSIS installer output, `latest.yml`, standalone Core export artifact and SHA-256 sums before publishing.
 
-The following require dependency/network/runtime execution and remain explicit release gates:
+## V1 runtime regressions covered in source tests
 
-- `npm install` / dependency-enabled Vite build
-- packaged Electron boot on Windows
-- NSIS installer run
-- Gradle/Fabric compilation of Eternal Core
-- real Minecraft Vanilla launch
-- real Fabric + Eternal Core launch
-- Microsoft sign-in using a configured public client and Minecraft-owning account
-- live Modrinth install smoke test
-- clean Windows 10/11 smoke test
+- `tar` ESM/CommonJS Electron startup regression
+- `electron-updater` CommonJS export regression
+- Right-Shift key-repeat suppression
+- Minecraft client-task-queue Eternal screen opening
+- exact mouse press/release normalization
+- modules disabled by default on clean Core config
+- Eternal title-screen replacement routes to real game/Core destinations
+- durable Core runtime log (`config/eternal-core.log`)
+- launcher Minecraft warning/error classification
+- Eternal Console backend/preload/store/UI wiring
+- full Mojang instance catalog + edit/duplicate paths
+- Modrinth category/sort/pagination/dependency/hash paths
+- real Downloads/update transfer telemetry + indeterminate unknown-size state
+- premium WASD + LMB/RMB keystrokes from actual input state
+- standalone/launcher-managed Core verification
+- stable release excludes portable ZIP
 
-No missing runtime test is converted into a fake PASS.
+## Real-machine tests still required after a verified build
+
+- Windows installer install/launch/uninstall
+- Vanilla profile first install + launch
+- Fabric 1.21.11 first install + launch
+- Eternal title screen appears in the real client
+- Right Shift opens Eternal Start without a game crash
+- Modules enable/disable correctly
+- HUD Editor drag/snap/persistence across restart
+- real LMB/RMB/WASD HUD behavior
+- console captures a real warning/error from Minecraft
+- live Modrinth install
+- Microsoft login with a Minecraft-owning account
+
+No document in this repository should turn those real-machine checks into a false "100% bug-free" claim.

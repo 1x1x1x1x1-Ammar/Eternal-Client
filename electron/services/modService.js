@@ -5,7 +5,7 @@ import AdmZip from 'adm-zip';
 import { getInstance, instanceDir } from './instanceService.js';
 import { ensureDir, assertInside } from './fsService.js';
 
-const USER_AGENT = 'EternalClient/0.8.0-beta.8';
+const USER_AGENT = 'EternalClient/1.0.0';
 function modsDir(id) { return path.join(instanceDir(id), '.minecraft', 'mods'); }
 function isManagedCoreFilename(filename) { return path.basename(String(filename || '')).toLowerCase() === 'eternal-core.jar'; }
 
@@ -157,14 +157,18 @@ export async function toggleMod(id, filename, enabled) {
   return true;
 }
 
-export async function searchModrinth({ query = '', mcVersion = '', loader = 'fabric', limit = 20 }) {
+export async function searchModrinth({ query = '', mcVersion = '', loader = 'fabric', category = '', index = 'relevance', limit = 24, offset = 0 }) {
   const facets = [];
   if (mcVersion) facets.push([`versions:${mcVersion}`]);
   if (loader && loader !== 'vanilla') facets.push([`categories:${loader}`]);
+  if (category) facets.push([`categories:${String(category).trim()}`]);
   facets.push(['project_type:mod']);
+  const allowedIndex = new Set(['relevance', 'downloads', 'follows', 'newest', 'updated']);
   const url = new URL('https://api.modrinth.com/v2/search');
   url.searchParams.set('query', String(query || '').trim());
-  url.searchParams.set('limit', String(Math.min(Math.max(Number(limit) || 20, 1), 50)));
+  url.searchParams.set('limit', String(Math.min(Math.max(Number(limit) || 24, 1), 50)));
+  url.searchParams.set('offset', String(Math.max(0, Number(offset) || 0)));
+  url.searchParams.set('index', allowedIndex.has(index) ? index : 'relevance');
   url.searchParams.set('facets', JSON.stringify(facets));
   return fetchJson(url);
 }
