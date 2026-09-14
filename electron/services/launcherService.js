@@ -4,7 +4,7 @@ import { installFabricProfile } from './fabricService.js';
 import { prepareCore } from './coreService.js';
 import { activeAccount, launcherAuthorization } from './accountService.js';
 import { store } from './store.js';
-import { requiredJavaMajor, detectJava } from './javaService.js';
+import { requiredJavaMajor, detectJava, validateJava } from './javaService.js';
 
 const processes = new Map();
 let ClientClass = null;
@@ -17,14 +17,24 @@ async function clientClass() {
   return ClientClass;
 }
 
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(min, Math.min(max, number)) : fallback;
+}
+
 async function resolveJava(instance) {
   const configured = store.get('settings.javaPath');
   const required = requiredJavaMajor(instance.minecraftVersion);
-  if (configured) return { path: configured, required };
+  if (configured) {
+    const runtime = await validateJava(configured);
+    if (!runtime) throw new Error('The configured Java path is not a working Java runtime. Choose a valid JDK/JRE in Settings.');
+    if (runtime.major < required) throw new Error(`Minecraft ${instance.minecraftVersion} requires Java ${required}+; configured Java is ${runtime.major}.`);
+    return { ...runtime, required };
+  }
   const found = await detectJava();
   const best = found.find(java => java.major >= required);
   if (!best) throw new Error(`Minecraft ${instance.minecraftVersion} requires Java ${required}+; configure a compatible Java runtime in Settings.`);
-  return { path: best.path, required };
+  return { ...best, required };
 }
 
 export function runningState() {
@@ -37,7 +47,7 @@ export async function launchInstance({ instanceId, server = null, emit = () => {
   const account = activeAccount();
   if (!account) throw new Error('Add and select an account before launching.');
 
-  emit({ instanceId, state: 'VALIDATING', message: 'Validating instance…' });
+  emit({ instanceId, state: 'VALIDATING', message: 'Validating profile, account and Java…' });
   const java = await resolveJava(instance);
   let versionCustom = '';
 
@@ -51,11 +61,13 @@ export async function launchInstance({ instanceId, server = null, emit = () => {
     }
   }
 
-  emit({ instanceId, state: 'STARTING_JVM', message: 'Starting Minecraft…' });
+  emit({ instanceId, state: 'STARTING_JVM', message: `Starting Minecraft with Java ${java.major}…` });
   const Client = await clientClass();
   const client = new Client();
   const settings = store.get('settings');
-  const maxMb = Number(instance.ramMb || settings.ramMb || 6144);
+  const maxMb = clampNumber(instance.ramMb || settings.ramMb, 1024, 32768, 6144);
+  const width = Math.round(clampNumber(settings.resolution?.width, 640, 7680, 1280));
+  const height = Math.round(clampNumber(settings.resolution?.height, 360, 4320, 720));
   const customLaunchArgs = [];
   if (server?.host) customLaunchArgs.push('--quickPlayMultiplayer', `${server.host}:${server.port || 25565}`);
 
@@ -65,12 +77,12 @@ export async function launchInstance({ instanceId, server = null, emit = () => {
     javaPath: java.path,
     version: { number: instance.minecraftVersion, type: 'release', ...(versionCustom ? { custom: versionCustom } : {}) },
     memory: { min: `${Math.max(1024, Math.floor(maxMb / 2))}M`, max: `${maxMb}M` },
-    window: { width: settings.resolution?.width || 1280, height: settings.resolution?.height || 720 },
+    window: { width, height },
     customLaunchArgs
   };
 
   client.on('progress', progress => emit({ instanceId, state: 'DOWNLOADING', message: progress.type || 'Downloading Minecraft files…', progress }));
-  client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading…', progress }));
+  client.on('download-status', progress => emit({ instanceId, state: 'DOWNLOADING', message: 'Downloading Minecraft files…', progress }));
   client.on('debug', message => emit({ instanceId, state: 'DEBUG', message: String(message) }));
   client.on('data', message => emit({ instanceId, state: 'LOG', message: String(message) }));
 
@@ -93,7 +105,7 @@ export async function launchInstance({ instanceId, server = null, emit = () => {
     emit({ instanceId, state: 'STOPPED', message: `Minecraft exited (${code ?? 'unknown'}).`, code, pid: child.pid, remaining });
   });
 
-  return { pid: child.pid };
+  return { pid: child.pid, javaMajor: java.major, javaPath: java.path };
 }
 
 export function stopInstance(id) {
