@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('eternal', {
   java: { detect: () => invoke('java:detect') },
   mods: { list: (id) => invoke('mods:list', id), add: (data) => invoke('mods:add', data), remove: (data) => invoke('mods:remove', data), toggle: (data) => invoke('mods:toggle', data), search: (data) => invoke('mods:search', data), install: (data) => invoke('mods:install', data) },
   servers: { list: () => invoke('servers:list'), save: (s) => invoke('servers:save', s), remove: (id) => invoke('servers:remove', id), ping: (s) => invoke('servers:ping', s), join: (data) => invoke('servers:join', data) },
-  core: { status: (id) => invoke('core:status', id) },
+  core: { status: (id) => invoke('core:status', id), exportStandalone: () => invoke('core:exportStandalone') },
   updater: { check: () => invoke('updater:check') },
   on: { launch: (cb) => on('launch:event', cb), download: (cb) => on('download:event', cb), account: (cb) => on('account:event', cb), update: (cb) => on('update:event', cb) }
 });

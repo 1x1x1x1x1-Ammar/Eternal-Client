@@ -3,12 +3,22 @@
   "id": "eternal-core",
   "version": "${version}",
   "name": "Eternal Core",
-  "description": "The in-game half of Eternal Client.",
+  "description": "Eternal's premium in-game Minecraft client. Works standalone or launcher-managed.",
   "authors": ["Eternal Client"],
-  "contact": { "sources": "https://github.com/1x1x1x1x1-Ammar/Eternal-Client" },
+  "contact": {
+    "sources": "https://github.com/1x1x1x1x1-Ammar/Eternal-Client",
+    "issues": "https://github.com/1x1x1x1x1-Ammar/Eternal-Client/issues"
+  },
   "license": "MIT",
+  "icon": "assets/eternal-core/icon.png",
   "environment": "client",
-  "entrypoints": { "client": ["gg.eternal.core.EternalCore"] },
+  "entrypoints": {
+    "client": ["gg.eternal.core.EternalCore"]
+  },
   "mixins": ["eternal-core.mixins.json"],
-  "depends": { "fabricloader": ">=0.18.1", "minecraft": "1.21.11", "java": ">=21" }
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "1.21.11",
+    "java": ">=21"
+  }
 }

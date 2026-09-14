@@ -4,19 +4,19 @@ on:
   push:
     branches: [main]
     paths:
-      - '.release/v0.6.0-beta.6'
+      - '.release/v0.7.0-beta.7'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: eternal-release-v0.6.0-beta.6
+  group: eternal-release-v0.7.0-beta.7
   cancel-in-progress: false
 
 env:
-  RELEASE_TAG: v0.6.0-beta.6
-  CORE_VERSION: 0.6.0-beta.6
+  RELEASE_TAG: v0.7.0-beta.7
+  CORE_VERSION: 0.7.0-beta.7
 
 jobs:
   release:
@@ -52,11 +52,28 @@ jobs:
       - name: Stage verified Eternal Core
         run: node scripts/stage-core.mjs
 
+      - name: Validate standalone Core JAR
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (!(Test-Path 'assets/eternal-core.jar')) { throw 'Staged Eternal Core JAR is missing.' }
+          $entries = & jar tf assets/eternal-core.jar
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect Eternal Core JAR.' }
+          if ($entries -notcontains 'fabric.mod.json') { throw 'Standalone Core is missing fabric.mod.json.' }
+          if ($entries -notcontains 'assets/eternal-core/icon.png') { throw 'Standalone Core is missing the Eternal icon.' }
+          Write-Host 'Standalone Eternal Core metadata and icon validated.' -ForegroundColor Green
+
       - name: Run launcher tests
         run: npm run test
 
-      - name: Build renderer
+      - name: Build renderer and branded Windows resources
         run: npm run build
+
+      - name: Verify Eternal Windows icon source
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'build/icon.svg')) { throw 'Branded build/icon.svg was not generated.' }
+          if ((Get-Item 'build/icon.svg').Length -lt 1000) { throw 'Branded icon.svg looks invalid.' }
 
       - name: Package Windows installer
         run: npx electron-builder --win nsis --x64 --publish never
@@ -69,7 +86,7 @@ jobs:
           if (!(Test-Path $exe)) { throw "Packaged executable not found: $exe" }
           $process = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -PassThru -Wait
           if ($process.ExitCode -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $($process.ExitCode)" }
-          Write-Host "Packaged Eternal Client startup smoke test passed." -ForegroundColor Green
+          Write-Host 'Packaged Eternal Client startup smoke test passed.' -ForegroundColor Green
 
       - name: Prepare release artifacts
         shell: pwsh
@@ -77,7 +94,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Select-Object -First 1
           if (-not $installer) { throw 'NSIS installer was not produced.' }
-          Copy-Item assets/eternal-core.jar "release/Eternal-Core-$env:CORE_VERSION.jar" -Force
+          Copy-Item assets/eternal-core.jar "release/Eternal-Core-Standalone-$env:CORE_VERSION.jar" -Force
           if (Test-Path 'release/win-unpacked') {
             Compress-Archive -Path 'release/win-unpacked/*' -DestinationPath "release/Eternal-Client-$env:CORE_VERSION-portable.zip" -Force
           }
@@ -96,7 +113,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $installer = Get-ChildItem -Path release -Filter '*.exe' -File | Select-Object -First 1
-          $core = Get-Item "release/Eternal-Core-$env:CORE_VERSION.jar"
+          $core = Get-Item "release/Eternal-Core-Standalone-$env:CORE_VERSION.jar"
           $portable = Get-ChildItem -Path release -Filter '*-portable.zip' -File | Select-Object -First 1
           $checksum = Get-Item 'release/SHA256SUMS.txt'
           $files = @($installer.FullName, $core.FullName, $checksum.FullName)

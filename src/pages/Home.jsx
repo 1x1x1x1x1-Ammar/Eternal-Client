@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Activity, Boxes, Cloud, Cpu, DownloadCloud, Gauge, Keyboard, MapPin, PackageOpen,
-  Play, Radio, Server, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Square,
+  Play, Radio, Server, Settings2, ShieldCheck, SlidersHorizontal, Square,
   Terminal, UserRound, Users, Wrench
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
 import MinecraftHead from '../components/MinecraftHead.jsx';
+import eternalLogo from '../../assets/logo.svg';
 
 function ProfileCard({ instance, running, event }) {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ export default function Home() {
       <div className="beta6-scanline" />
 
       <motion.div className="release-hero-copy" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .28 }}>
-        <span className="release-kicker">ETERNAL CLIENT · v0.6.0-beta.6</span>
+        <span className="release-kicker">ETERNAL CLIENT · v0.7.0-beta.7</span>
         <h1>Play Minecraft<br/><strong>Your Way.</strong></h1>
         <p>Fast. Clean. Powerful. Eternal.</p>
         <div className="release-launch-row">
@@ -99,7 +100,7 @@ export default function Home() {
 
       <motion.div className="release-hero-emblem" initial={{ opacity: 0, scale: .92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .4 }}>
         <div className="release-emblem-glow" />
-        <img src="/assets/logo.svg" alt="Eternal" />
+        <img src={eternalLogo} alt="Eternal" />
         <span>BEYOND SURVIVAL</span>
       </motion.div>
 
