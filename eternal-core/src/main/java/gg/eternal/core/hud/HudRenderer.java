@@ -15,8 +15,9 @@ public final class HudRenderer {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Memory", "Session", "Clock"
     };
-    private static final int TEXT = 0xFFF4F5F7;
-    private static final int MUTED = 0xFF9A9DA5;
+    private static final int TEXT = 0xFFF7F8FA;
+    private static final int MUTED = 0xFF949AA4;
+    private static final int DIM = 0xFF5A606A;
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm");
 
     private HudRenderer() {}
@@ -32,21 +33,21 @@ public final class HudRenderer {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] pos = CoreConfig.INSTANCE.pos(name, 10, fallbackY);
             drawModule(graphics, name, pos[0], pos[1], false, false);
-            fallbackY += boxHeight(name) + 3;
+            fallbackY += boxHeight(name) + 4;
         }
         NotificationCenter.render(graphics);
     }
 
     public static int boxWidth(String name) {
         Minecraft mc = Minecraft.getInstance();
-        if ("Keystrokes".equals(name)) return 76;
-        if ("Watermark".equals(name)) return 104;
-        return Math.max(62, mc.font.width(value(name)) + 18);
+        if ("Keystrokes".equals(name)) return 82;
+        if ("Watermark".equals(name)) return 122;
+        return Math.max(68, mc.font.width(value(name)) + 24);
     }
 
     public static int boxHeight(String name) {
-        if ("Keystrokes".equals(name)) return 42;
-        return "Watermark".equals(name) ? 22 : 19;
+        if ("Keystrokes".equals(name)) return 46;
+        return "Watermark".equals(name) ? 24 : 21;
     }
 
     public static void drawModule(GuiGraphics graphics, String name, int x, int y, boolean hover, boolean selected) {
@@ -55,47 +56,65 @@ public final class HudRenderer {
         int height = boxHeight(name);
         int alpha = CoreConfig.INSTANCE.hudAlpha();
         int accent = CoreConfig.INSTANCE.accentColor();
-        int panelRgb = selected ? 0x001C0B0E : hover ? 0x00141619 : 0x0008090B;
+        int panelRgb = selected ? 0x00180A0D : hover ? 0x0013171C : 0x00090B0E;
         int panel = (alpha << 24) | panelRgb;
 
-        graphics.fill(x, y, x + width, y + height, 0x44000000);
-        graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, panel);
-        graphics.fill(x, y, x + 2, y + height, accent);
-        graphics.fill(x + 2, y, x + width, y + 1, selected ? accent : 0x443B3E45);
-        if (selected || hover) graphics.renderOutline(x, y, width, height, selected ? accent : 0x66777B84);
+        drawPanel(graphics, x, y, width, height, panel, accent, hover, selected);
 
         if ("Watermark".equals(name)) {
-            graphics.drawString(mc.font, "ETERNAL", x + 8, y + 7, TEXT, true);
-            int brandWidth = mc.font.width("ETERNAL");
-            graphics.drawString(mc.font, " CORE", x + 8 + brandWidth, y + 7, accent, true);
+            drawWatermark(graphics, mc, x, y, width, accent);
             return;
         }
         if ("Keystrokes".equals(name)) {
             drawKeystrokes(graphics, x, y, accent);
             return;
         }
-        graphics.drawString(mc.font, value(name), x + 8, y + 6, TEXT, true);
+
+        graphics.fill(x + 8, y + 9, x + 11, y + 12, accent);
+        graphics.drawString(mc.font, value(name), x + 16, y + 7, TEXT, true);
+    }
+
+    private static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height, int panel, int accent, boolean hover, boolean selected) {
+        graphics.fill(x - 2, y - 2, x + width + 2, y + height + 2, 0x18000000);
+        graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0x32000000);
+        graphics.fill(x, y, x + width, y + height, panel);
+        graphics.fill(x, y, x + 2, y + height, accent);
+        graphics.fill(x + 2, y, x + width, y + 1, selected ? accent : 0x2AFFFFFF);
+        graphics.fill(x + 2, y + height - 1, x + width, y + height, 0x17000000);
+        if (selected || hover) graphics.renderOutline(x, y, width, height, selected ? accent : 0x665A616C);
+    }
+
+    private static void drawWatermark(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int accent) {
+        graphics.fill(x + 9, y + 9, x + 14, y + 14, accent);
+        graphics.drawString(mc.font, "ETERNAL", x + 20, y + 8, TEXT, true);
+        int brandWidth = mc.font.width("ETERNAL");
+        graphics.drawString(mc.font, "CORE", x + 25 + brandWidth, y + 8, accent, true);
+        graphics.drawString(mc.font, "•", x + width - 15, y + 8, 0xFF58ED89, false);
     }
 
     private static void drawKeystrokes(GuiGraphics graphics, int x, int y, int accent) {
         Minecraft mc = Minecraft.getInstance();
-        int size = 14;
+        int size = 15;
         int gap = 2;
-        int baseX = x + 10;
-        int topY = y + 5;
+        int baseX = x + 9;
+        int topY = y + 6;
         drawKey(graphics, mc, baseX + size + gap, topY, size, "W", InputState.keyDown(87), accent);
         int bottomY = topY + size + gap;
         drawKey(graphics, mc, baseX, bottomY, size, "A", InputState.keyDown(65), accent);
         drawKey(graphics, mc, baseX + size + gap, bottomY, size, "S", InputState.keyDown(83), accent);
         drawKey(graphics, mc, baseX + (size + gap) * 2, bottomY, size, "D", InputState.keyDown(68), accent);
-        graphics.drawString(mc.font, "MOVE", x + 59, y + 17, 0xFF777B84, false);
+        graphics.fill(x + 61, y + 10, x + 62, y + 36, 0x2AFFFFFF);
+        graphics.drawString(mc.font, "MOVE", x + 67, y + 13, DIM, false);
+        graphics.drawString(mc.font, "WASD", x + 67, y + 27, MUTED, false);
     }
 
     private static void drawKey(GuiGraphics graphics, Minecraft mc, int x, int y, int size, String label, boolean down, int accent) {
-        graphics.fill(x, y, x + size, y + size, down ? (0xDD000000 | (accent & 0x00FFFFFF)) : 0xAA17191D);
-        graphics.renderOutline(x, y, size, size, down ? 0xFFFFFFFF : 0x55464A52);
+        int fill = down ? (0xE8000000 | (accent & 0x00FFFFFF)) : 0xB315181D;
+        graphics.fill(x, y, x + size, y + size, fill);
+        graphics.renderOutline(x, y, size, size, down ? 0xAAFFFFFF : 0x4A474E58);
+        if (down) graphics.fill(x, y, x + size, y + 1, 0x66FFFFFF);
         int textX = x + (size - mc.font.width(label)) / 2;
-        graphics.drawString(mc.font, label, textX, y + 4, down ? 0xFFFFFFFF : 0xFFB2B5BC, false);
+        graphics.drawString(mc.font, label, textX, y + 4, down ? 0xFFFFFFFF : 0xFFC3C7CE, false);
     }
 
     public static String value(String name) {

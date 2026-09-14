@@ -14,6 +14,13 @@ public final class HudEditorScreen extends Screen {
     private int dragOffsetX;
     private int dragOffsetY;
 
+    private static final int TOP = 0xF7080A0D;
+    private static final int PANEL = 0xF20C0F13;
+    private static final int LINE = 0x443E444E;
+    private static final int TEXT = 0xFFF7F8FA;
+    private static final int MUTED = 0xFF777D88;
+    private static final int DIM = 0xFF515761;
+
     public HudEditorScreen() {
         super(Component.literal("Eternal HUD Editor"));
     }
@@ -24,22 +31,9 @@ public final class HudEditorScreen extends Screen {
         int accent = CoreConfig.INSTANCE.accentColor();
         int snap = CoreConfig.INSTANCE.snap();
 
-        graphics.fill(0, 0, width, 54, 0xF507080A);
-        graphics.fill(0, 53, width, 54, 0x55383A40);
-        graphics.fill(0, 0, 3, 54, accent);
-        int sweep = (int) ((System.currentTimeMillis() / 8L) % Math.max(1, width));
-        graphics.fill(sweep, 53, Math.min(width, sweep + 44), 54, 0x88FFFFFF);
-        graphics.drawString(font, "ETERNAL", 15, 12, 0xFFFFFFFF, true);
-        graphics.drawString(font, "HUD EDITOR", 15 + font.width("ETERNAL") + 7, 12, accent, true);
-        graphics.drawString(font, "BETA 8 · drag · arrows nudge · R default · DELETE disables selected · ESC done", 15, 30, 0xFF747780, false);
-
-        int buttonX = Math.max(300, width - 294);
-        drawButton(graphics, mouseX, mouseY, buttonX, 12, 64, 28, "DEFAULT");
-        drawButton(graphics, mouseX, mouseY, buttonX + 70, 12, 64, 28, "COMPACT");
-        drawButton(graphics, mouseX, mouseY, buttonX + 140, 12, 64, 28, "CORNERS");
-        drawButton(graphics, mouseX, mouseY, buttonX + 210, 12, 70, 28, "SNAP " + snap);
-
+        drawTopbar(graphics, mouseX, mouseY, accent, snap);
         drawGrid(graphics, snap);
+        drawCanvasGuides(graphics, accent);
 
         int fallbackY = 64;
         for (String name : HudRenderer.modules()) {
@@ -51,50 +45,119 @@ public final class HudEditorScreen extends Screen {
             boolean selected = name.equals(selectedModule);
             boolean hover = inside(mouseX, mouseY, position[0], position[1], boxWidth, boxHeight);
 
+            if (selected || dragging) {
+                graphics.fill(position[0] - 3, position[1] - 3, position[0] + boxWidth + 3, position[1] + boxHeight + 3, 0x18000000 | (accent & 0x00FFFFFF));
+                graphics.renderOutline(position[0] - 2, position[1] - 2, boxWidth + 4, boxHeight + 4, dragging ? accent : 0x884B515B);
+            }
+
             HudRenderer.drawModule(graphics, name, position[0], position[1], hover, dragging || selected);
             if (hover || selected || dragging) {
-                int labelY = Math.max(56, position[1] - 11);
-                graphics.drawString(font, name.toUpperCase(), position[0], labelY, dragging ? accent : 0xFF9A9DA6, false);
+                int labelY = Math.max(57, position[1] - 12);
+                int labelWidth = font.width(name.toUpperCase()) + 10;
+                graphics.fill(position[0], labelY - 2, position[0] + labelWidth, labelY + 10, 0xE90A0C0F);
+                graphics.drawString(font, name.toUpperCase(), position[0] + 5, labelY, dragging ? accent : 0xFF9A9FA8, false);
             }
             fallbackY += boxHeight + 4;
         }
 
         drawInspector(graphics);
+        drawFooterHint(graphics);
         super.render(graphics, mouseX, mouseY, delta);
+    }
+
+    private void drawTopbar(GuiGraphics graphics, int mouseX, int mouseY, int accent, int snap) {
+        graphics.fill(0, 0, width, 56, TOP);
+        graphics.fill(0, 55, width, 56, 0x553A404A);
+        graphics.fill(0, 0, 3, 56, accent);
+        graphics.fill(3, 0, width, 1, 0x22FFFFFF);
+
+        int sweep = (int) ((System.currentTimeMillis() / 10L) % Math.max(1, width));
+        graphics.fill(sweep, 55, Math.min(width, sweep + 42), 56, 0x66FFFFFF);
+
+        graphics.drawString(font, "ETERNAL", 15, 11, TEXT, true);
+        graphics.drawString(font, "HUD EDITOR", 15 + font.width("ETERNAL") + 7, 11, accent, true);
+        graphics.drawString(font, "DRAG · SNAP · NUDGE · PRESET · DISABLE", 15, 29, DIM, false);
+
+        int liveWidth = 74;
+        int liveX = Math.max(250, width - 382);
+        graphics.fill(liveX, 12, liveX + liveWidth, 40, 0xFF0B1210);
+        graphics.renderOutline(liveX, 12, liveWidth, 28, 0x334F805D);
+        graphics.fill(liveX + 9, 23, liveX + 14, 28, 0xFF58ED89);
+        graphics.drawString(font, "LIVE", liveX + 20, 21, 0xFF9AE9B2, false);
+
+        int buttonX = Math.max(300, width - 294);
+        drawButton(graphics, mouseX, mouseY, buttonX, 12, 64, 28, "DEFAULT");
+        drawButton(graphics, mouseX, mouseY, buttonX + 70, 12, 64, 28, "COMPACT");
+        drawButton(graphics, mouseX, mouseY, buttonX + 140, 12, 64, 28, "CORNERS");
+        drawButton(graphics, mouseX, mouseY, buttonX + 210, 12, 70, 28, "SNAP " + snap);
     }
 
     private void drawGrid(GuiGraphics graphics, int snap) {
         int spacing = Math.max(8, snap * 4);
-        for (int x = 0; x < width; x += spacing) graphics.fill(x, 54, x + 1, height, 0x151E2024);
-        for (int y = 54; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x151E2024);
-        graphics.fill(width / 2, 54, width / 2 + 1, height, 0x2A383A40);
-        graphics.fill(0, height / 2, width, height / 2 + 1, 0x2A383A40);
+        for (int x = 0; x < width; x += spacing) graphics.fill(x, 56, x + 1, height, 0x121E2228);
+        for (int y = 56; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x121E2228);
+        graphics.fill(width / 2, 56, width / 2 + 1, height, 0x2A3B414A);
+        graphics.fill(0, height / 2, width, height / 2 + 1, 0x2A3B414A);
+    }
+
+    private void drawCanvasGuides(GuiGraphics graphics, int accent) {
+        int safe = 10;
+        graphics.renderOutline(safe, 66, Math.max(1, width - safe * 2), Math.max(1, height - 78), 0x163C424B);
+        graphics.drawString(font, "HUD CANVAS", 14, 65, DIM, false);
+        graphics.drawString(font, "CENTER", width / 2 + 5, height / 2 + 4, 0x334F555F, false);
+
+        if (selectedModule != null) {
+            graphics.drawString(font, "SELECTED", 14, height - 22, DIM, false);
+            graphics.drawString(font, selectedModule.toUpperCase(), 70, height - 22, accent, false);
+        }
+    }
+
+    private void drawFooterHint(GuiGraphics graphics) {
+        int boxWidth = Math.min(430, width - 24);
+        int x = 12;
+        int y = height - 42;
+        graphics.fill(x, y, x + boxWidth, y + 28, 0xD90A0C0F);
+        graphics.renderOutline(x, y, boxWidth, 28, 0x263B414A);
+        graphics.drawString(font, "ARROWS", x + 10, y + 10, 0xFF9CA1AA, false);
+        graphics.drawString(font, "nudge", x + 58, y + 10, MUTED, false);
+        graphics.drawString(font, "R", x + 106, y + 10, 0xFF9CA1AA, false);
+        graphics.drawString(font, "default", x + 121, y + 10, MUTED, false);
+        graphics.drawString(font, "DEL", x + 179, y + 10, 0xFFDE5960, false);
+        graphics.drawString(font, "disable selected", x + 206, y + 10, MUTED, false);
+        graphics.drawString(font, "ESC", x + 318, y + 10, 0xFF9CA1AA, false);
+        graphics.drawString(font, "done", x + 344, y + 10, MUTED, false);
     }
 
     private void drawInspector(GuiGraphics graphics) {
-        int panelWidth = Math.min(236, Math.max(176, width / 4));
+        int panelWidth = Math.min(248, Math.max(184, width / 4));
         int x = width - panelWidth - 12;
-        int y = height - 112;
+        int y = height - 126;
         int accent = CoreConfig.INSTANCE.accentColor();
-        graphics.fill(x, y, x + panelWidth, y + 98, 0xEE0D0E10);
-        graphics.renderOutline(x, y, panelWidth, 98, 0x5541454D);
-        graphics.fill(x, y, x + 3, y + 98, accent);
+        graphics.fill(x - 3, y - 3, x + panelWidth + 3, y + 112, 0x22000000);
+        graphics.fill(x, y, x + panelWidth, y + 109, PANEL);
+        graphics.renderOutline(x, y, panelWidth, 109, LINE);
+        graphics.fill(x, y, x + 3, y + 109, accent);
+        graphics.fill(x + 3, y, x + panelWidth, y + 1, 0x22FFFFFF);
+
+        graphics.drawString(font, "INSPECTOR", x + 13, y + 12, DIM, false);
 
         if (selectedModule == null) {
-            graphics.drawString(font, "SELECT A MODULE", x + 13, y + 14, 0xFFE5E7EA, true);
-            graphics.drawString(font, "Click or drag an active HUD chip.", x + 13, y + 34, 0xFF777B84, false);
-            graphics.drawString(font, "Positions save automatically.", x + 13, y + 51, 0xFF777B84, false);
-            graphics.drawString(font, "Presets are real saved layout actions.", x + 13, y + 68, 0xFF777B84, false);
-            graphics.drawString(font, "Open key: " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()), x + 13, y + 83, accent, false);
+            graphics.drawString(font, "SELECT A MODULE", x + 13, y + 28, TEXT, true);
+            graphics.drawString(font, "Click or drag an active HUD chip.", x + 13, y + 48, MUTED, false);
+            graphics.drawString(font, "Positions save automatically.", x + 13, y + 64, MUTED, false);
+            graphics.drawString(font, "Presets are real saved layouts.", x + 13, y + 80, MUTED, false);
+            graphics.drawString(font, "CORE KEY  " + ClickGuiScreen.keyName(CoreConfig.INSTANCE.openKey()), x + 13, y + 96, accent, false);
             return;
         }
 
         int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, 64);
-        graphics.drawString(font, selectedModule.toUpperCase(), x + 13, y + 13, 0xFFFFFFFF, true);
-        graphics.drawString(font, "POSITION  " + pos[0] + " / " + pos[1], x + 13, y + 33, 0xFF93969E, false);
-        graphics.drawString(font, "SNAP  " + CoreConfig.INSTANCE.snap() + " PX", x + 13, y + 50, 0xFF93969E, false);
-        graphics.drawString(font, "DRAG OR USE ARROW KEYS", x + 13, y + 69, accent, false);
-        graphics.drawString(font, "DELETE  DISABLE MODULE", x + 13, y + 84, 0xFFE65A60, false);
+        graphics.drawString(font, selectedModule.toUpperCase(), x + 13, y + 29, TEXT, true);
+        graphics.drawString(font, "POSITION", x + 13, y + 49, DIM, false);
+        graphics.drawString(font, pos[0] + " / " + pos[1], x + 78, y + 49, 0xFFD9DCE1, false);
+        graphics.drawString(font, "SNAP GRID", x + 13, y + 66, DIM, false);
+        graphics.drawString(font, CoreConfig.INSTANCE.snap() + " PX", x + 78, y + 66, 0xFFD9DCE1, false);
+        graphics.drawString(font, "DRAG OR USE ARROW KEYS", x + 13, y + 86, accent, false);
+        graphics.drawString(font, "DELETE TO DISABLE", x + 13, y + 101, 0xFFE65A60, false);
     }
 
     @Override
@@ -157,7 +220,7 @@ public final class HudEditorScreen extends Screen {
         }
         int boxWidth = HudRenderer.boxWidth(module);
         int boxHeight = HudRenderer.boxHeight(module);
-        CoreConfig.INSTANCE.setPos(module, Math.max(0, Math.min(width - boxWidth, x)), Math.max(54, Math.min(height - boxHeight, y)));
+        CoreConfig.INSTANCE.setPos(module, Math.max(0, Math.min(width - boxWidth, x)), Math.max(56, Math.min(height - boxHeight, y)));
     }
 
     @Override
@@ -193,9 +256,10 @@ public final class HudEditorScreen extends Screen {
 
     private void drawButton(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int w, int h, String text) {
         boolean hover = inside(mouseX, mouseY, x, y, w, h);
-        graphics.fill(x, y, x + w, y + h, hover ? 0xFF27292E : 0xFF151619);
-        graphics.renderOutline(x, y, w, h, hover ? CoreConfig.INSTANCE.accentColor() : 0x44383A40);
-        graphics.drawCenteredString(font, text, x + w / 2, y + 10, hover ? 0xFFFFFFFF : 0xFFC0C2C8);
+        graphics.fill(x, y, x + w, y + h, hover ? 0xFF20242A : 0xFF12151A);
+        graphics.renderOutline(x, y, w, h, hover ? 0x66505762 : 0x333B414A);
+        if (hover) graphics.fill(x, y, x + w, y + 1, 0x33FFFFFF);
+        graphics.drawCenteredString(font, text, x + w / 2, y + 10, hover ? TEXT : 0xFFBEC2C9);
     }
 
     private static boolean inside(int mouseX, int mouseY, int x, int y, int w, int h) {
