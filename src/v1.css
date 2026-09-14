@@ -1,0 +1,184 @@
+/* Eternal Client v1 — stable premium finish layer.
+   This layer intentionally changes presentation only. Real behavior remains in IPC/services/Core. */
+
+:root{
+  --v1-red:#ff3b43;
+  --v1-red-hot:#ff646a;
+  --v1-red-dark:#8b0d14;
+  --v1-bg:#050608;
+  --v1-panel:#0b0d10;
+  --v1-panel-2:#101319;
+  --v1-panel-3:#151920;
+  --v1-line:rgba(255,255,255,.075);
+  --v1-line-hot:rgba(255,70,78,.22);
+  --v1-shadow:0 24px 80px rgba(0,0,0,.42);
+  --v1-glow:0 0 44px rgba(255,42,51,.11);
+}
+
+/* App-wide finish */
+.app-shell{
+  isolation:isolate;
+  background:
+    radial-gradient(900px 520px at 80% -15%,rgba(176,16,25,.12),transparent 58%),
+    radial-gradient(760px 460px at 12% 105%,rgba(108,7,14,.12),transparent 60%),
+    linear-gradient(140deg,#050608 0%,#080a0d 44%,#050608 100%);
+}
+.app-shell:after{
+  content:"";position:fixed;z-index:-1;pointer-events:none;inset:46px 0 0 var(--release-sidebar);
+  background:
+    linear-gradient(115deg,transparent 0 47%,rgba(255,255,255,.012) 47.2%,transparent 47.5%),
+    repeating-linear-gradient(0deg,transparent 0 31px,rgba(255,255,255,.009) 32px);
+  mask-image:linear-gradient(180deg,#000,transparent 78%);opacity:.55;
+}
+.page-motion{min-height:100%;will-change:opacity,transform}
+.content{scroll-behavior:smooth}
+
+button,input,select{transition:border-color .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease,opacity .16s ease}
+button:not(:disabled):active{transform:translateY(1px) scale(.995)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:1px solid rgba(255,83,91,.72)!important;outline-offset:2px;box-shadow:0 0 0 4px rgba(255,59,67,.08)!important}
+button:disabled{cursor:not-allowed;filter:saturate(.65)}
+
+/* Stable release identity */
+.release-kicker,.beta7-eyebrow,.page-head>div>small,.beta8-page-head>div>small{letter-spacing:1.8px!important}
+.release-kicker:before,.beta7-eyebrow:before{content:"";display:inline-block;width:16px;height:1px;background:var(--v1-red);vertical-align:middle;margin-right:8px;box-shadow:0 0 10px rgba(255,59,67,.55)}
+
+/* Hero gets more depth without replacing real state */
+.premium-hero{overflow:hidden!important}
+.premium-hero:after{
+  content:"";position:absolute;inset:-35%;pointer-events:none;
+  background:conic-gradient(from 100deg at 72% 40%,transparent 0 24%,rgba(255,70,78,.04) 30%,transparent 37% 100%);
+  animation:v1-hero-sweep 16s linear infinite;
+}
+@keyframes v1-hero-sweep{to{transform:rotate(360deg)}}
+.premium-hero-copy,.premium-hero-emblem,.premium-hero-account,.premium-feature-row{z-index:3}
+.premium-hero-emblem img{animation:v1-emblem-breathe 4.4s ease-in-out infinite}
+@keyframes v1-emblem-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.015)}}
+.premium-live-pill i{animation:v1-live 1.8s ease-in-out infinite}
+@keyframes v1-live{0%,100%{opacity:.7;transform:scale(.85)}50%{opacity:1;transform:scale(1.18)}}
+
+/* Route/page surfaces */
+.beta8-page,.beta7-core-page{
+  position:relative;
+}
+.beta8-page-head,.beta8-core-head{
+  padding:4px 2px 14px;border-bottom:1px solid rgba(255,255,255,.045);margin-bottom:14px;
+}
+.beta8-page-head:after,.beta8-core-head:after{
+  content:"";position:absolute;left:0;bottom:-1px;width:72px;height:1px;background:linear-gradient(90deg,var(--v1-red),transparent);box-shadow:0 0 18px rgba(255,59,67,.35);
+}
+.beta8-page-head h1,.beta8-core-head h1{letter-spacing:-.9px!important}
+
+.release-panel,.settings-card,.beta6-console,.beta7-core-info,.beta7-ingame-card,.profiles-panel,.server-card,.mod-result,.profile-card{
+  background:linear-gradient(180deg,rgba(17,20,25,.96),rgba(9,11,14,.985))!important;
+  border-color:var(--v1-line)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.023),0 16px 44px rgba(0,0,0,.18)!important;
+}
+.release-panel:hover,.settings-card:hover,.beta6-console:hover,.server-card:hover,.mod-result:hover,.profile-card:hover{
+  border-color:rgba(255,255,255,.115)!important;
+}
+
+/* Instances */
+.beta8-library-grid{gap:10px!important}
+.library-item{position:relative;border-radius:10px}
+.premium-library-profile{
+  overflow:hidden;min-height:88px!important;
+  background:
+    radial-gradient(260px 90px at 10% 0%,rgba(255,54,62,.05),transparent 65%),
+    linear-gradient(180deg,#111419,#0a0c10)!important;
+}
+.premium-library-profile.running{border-color:rgba(80,226,129,.22)!important;box-shadow:inset 0 1px rgba(255,255,255,.025),0 16px 45px rgba(0,0,0,.2),0 0 28px rgba(62,197,105,.035)!important}
+.premium-state-chip{backdrop-filter:blur(10px)}
+.profile-icon{box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 24px rgba(0,0,0,.24)}
+.text-danger{opacity:.55}.library-item:hover .text-danger{opacity:.9}
+
+/* Mod Hub */
+.premium-mod-hero{
+  overflow:hidden;position:relative;
+  background:
+    radial-gradient(520px 220px at 84% 35%,rgba(203,23,32,.11),transparent 65%),
+    linear-gradient(120deg,#0b0e12,#11141a 55%,#14090c)!important;
+}
+.premium-mod-hero:after{content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(255,61,69,.08);border-radius:50%;right:-70px;top:-95px;box-shadow:0 0 80px rgba(255,30,40,.04)}
+.premium-quick-searches button:hover{transform:translateY(-1px);border-color:rgba(255,66,75,.25)!important;color:#f0f2f5!important}
+.beta8-mod-result{position:relative;overflow:hidden}
+.beta8-mod-result:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--v1-red);opacity:0;transition:opacity .16s ease}
+.beta8-mod-result:hover:before{opacity:1}
+.beta8-mod-result img{transition:transform .2s ease,filter .2s ease}.beta8-mod-result:hover img{transform:scale(1.045);filter:saturate(1.08)}
+.beta8-managed-chip{box-shadow:inset 0 0 0 1px rgba(255,255,255,.025)}
+
+/* Server browser */
+.beta8-server-card{overflow:hidden;position:relative}
+.beta8-server-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.012),transparent);transform:translateX(-100%)}
+.beta8-server-card:hover:before{animation:v1-card-scan .8s ease}
+@keyframes v1-card-scan{to{transform:translateX(100%)}}
+.beta8-server-card.is-online{border-color:rgba(87,224,132,.16)!important}
+.server-light.online{box-shadow:0 0 16px rgba(82,236,132,.55)}
+.server-light.offline{box-shadow:0 0 16px rgba(255,63,71,.38)}
+
+/* Accounts */
+.account-page-row{position:relative;overflow:hidden}
+.account-page-row.selected{background:linear-gradient(90deg,rgba(92,15,20,.22),rgba(13,15,19,.96))!important}
+.account-page-row.selected:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--v1-red)}
+.account-page-avatar{filter:drop-shadow(0 7px 14px rgba(0,0,0,.25))}
+.beta8-device-code strong{letter-spacing:3px;text-shadow:0 0 18px rgba(255,70,78,.22)}
+
+/* Settings + real updater */
+.v1-settings-page .beta8-settings-grid{align-items:start}
+.v1-update-card{grid-column:span 2;position:relative;overflow:hidden}
+.v1-update-card:after{content:"";position:absolute;right:-85px;top:-115px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(255,47,57,.08),transparent 67%);pointer-events:none}
+.v1-update-status{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.065);border-radius:8px;background:#0a0c0f;margin:10px 0}
+.v1-update-status span{display:flex;flex-direction:column;gap:4px;min-width:0}.v1-update-status b{font-size:10px;color:#ebedf1}.v1-update-status small{font-size:7px;color:#69707b;line-height:1.45}.v1-update-status strong{font-size:18px;color:#ff5960}
+.v1-update-status.ready,.v1-update-status.available{border-color:rgba(255,66,75,.17);background:linear-gradient(90deg,rgba(94,12,18,.18),#0a0c0f)}
+.v1-update-status.current{border-color:rgba(79,219,124,.14)}
+.v1-update-status.error{border-color:rgba(255,67,75,.22)}
+.v1-update-progress{height:5px;border-radius:999px;background:#171a1f;overflow:hidden;margin:-4px 0 12px}.v1-update-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a80c14,#ff4a52);box-shadow:0 0 16px rgba(255,59,67,.35);transition:width .2s linear}
+
+/* Core desktop documentation surface */
+.beta8-core-hero{position:relative;overflow:hidden}
+.beta8-core-hero:after{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg at 78% 50%,transparent,rgba(255,59,67,.04),transparent 24%);animation:v1-core-orbit 20s linear infinite;pointer-events:none}
+@keyframes v1-core-orbit{to{transform:rotate(360deg)}}
+.beta7-core-brand,.beta7-core-status-card{position:relative;z-index:2}
+.beta7-logo-orbit img{animation:v1-emblem-breathe 4.2s ease-in-out infinite}
+.beta7-module-grid article{transition:transform .16s ease,border-color .16s ease,background .16s ease}.beta7-module-grid article:hover{transform:translateY(-2px);border-color:rgba(255,69,77,.16)!important;background:#12151a!important}
+.beta7-hud-node{box-shadow:0 10px 28px rgba(0,0,0,.26)}
+
+/* Downloads and developer details */
+.beta8-downloads-page .download-item,.beta8-developer-panel,.diagnostic-table>div,.runtime-list article{transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.beta8-downloads-page .download-item:hover,.runtime-list article:hover{transform:translateX(2px)}
+.diagnostic-table>div:hover{background:rgba(255,255,255,.016)}
+
+/* Better loading / failure presentation */
+.beta8-splash img{animation:v1-splash-logo 1.9s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(255,48,56,.28))}
+@keyframes v1-splash-logo{0%,100%{transform:scale(.98);opacity:.86}50%{transform:scale(1.025);opacity:1}}
+.loader-ring{box-shadow:0 0 28px rgba(255,45,54,.12)}
+.beta8-fatal-state{background:radial-gradient(circle at 50% 30%,rgba(164,15,23,.12),transparent 45%),#050608}
+
+/* Activity dock / command center */
+.beta8-activity-dock{backdrop-filter:blur(18px);box-shadow:0 -12px 40px rgba(0,0,0,.18)}
+.command-center{backdrop-filter:blur(24px)}
+.command-center button:hover{transform:translateX(2px)}
+
+@media(max-width:1180px){
+  .premium-hero h1{font-size:48px!important}
+  .premium-status-deck{grid-template-columns:repeat(3,1fr)!important}
+  .v1-update-card{grid-column:span 1}
+}
+@media(max-width:920px){
+  .premium-hero-emblem{opacity:.52!important;right:-50px!important}
+  .premium-hero-copy{width:70%!important}
+  .premium-feature-row{grid-template-columns:repeat(2,1fr)!important;height:auto!important}
+  .premium-status-deck{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:780px){
+  .premium-hero-copy{width:calc(100% - 36px)!important;left:20px!important}
+  .premium-hero h1{font-size:41px!important}
+  .premium-hero-emblem{display:none!important}
+  .premium-instance-select-wrap{min-width:0!important;max-width:none!important}
+  .premium-launch-row{flex-wrap:wrap!important}
+  .premium-status-deck{grid-template-columns:1fr!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .premium-hero:after,.premium-hero-emblem img,.premium-orbit,.premium-live-pill i,.beta8-core-hero:after,.beta8-splash img{animation:none!important}
+  *{scroll-behavior:auto!important}
+}
