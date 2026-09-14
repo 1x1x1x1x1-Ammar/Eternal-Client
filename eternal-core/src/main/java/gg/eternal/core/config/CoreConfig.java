@@ -23,6 +23,9 @@ public final class CoreConfig {
     private int zoomFov = 30;
     private int snap = 4;
     private boolean notifications = true;
+    private int openKey = 344;      // GLFW_KEY_RIGHT_SHIFT
+    private int hudEditorKey = 72;  // H
+    private int zoomKey = 67;       // C
 
     private final Path file = FabricLoader.getInstance().getConfigDir().resolve("eternal-core.json");
 
@@ -36,6 +39,13 @@ public final class CoreConfig {
 
     public boolean on(String name) { return enabled.getOrDefault(name, true); }
     public void toggle(String name) { enabled.put(name, !on(name)); save(); }
+    public void setAllModules(boolean value) {
+        for (String name : enabled.keySet()) {
+            if (!"Zoom".equals(name)) enabled.put(name, value);
+        }
+        save();
+    }
+
     public int[] pos(String name, int defaultX, int defaultY) { return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY}); }
     public void setPos(String name, int x, int y) { positions.put(name, new int[]{x, y}); save(); }
     public int accentColor() { return accentColor; }
@@ -43,12 +53,18 @@ public final class CoreConfig {
     public int zoomFov() { return zoomFov; }
     public int snap() { return snap; }
     public boolean notifications() { return notifications; }
+    public int openKey() { return openKey; }
+    public int hudEditorKey() { return hudEditorKey; }
+    public int zoomKey() { return zoomKey; }
 
     public void setAccentColor(int color) { accentColor = 0xFF000000 | (color & 0x00FFFFFF); save(); }
     public void setHudAlpha(int value) { hudAlpha = clamp(value, 80, 245); save(); }
     public void setZoomFov(int value) { zoomFov = clamp(value, 10, 60); save(); }
     public void setSnap(int value) { snap = value <= 2 ? 2 : value <= 4 ? 4 : 8; save(); }
     public void setNotifications(boolean value) { notifications = value; save(); }
+    public void setOpenKey(int value) { openKey = normalizeKey(value, 344); save(); }
+    public void setHudEditorKey(int value) { hudEditorKey = normalizeKey(value, 72); save(); }
+    public void setZoomKey(int value) { zoomKey = normalizeKey(value, 67); save(); }
     public void reset() { positions.clear(); save(); }
 
     public void applyPreset(String preset, int screenWidth, int screenHeight) {
@@ -113,6 +129,9 @@ public final class CoreConfig {
             if (root.has("zoomFov")) zoomFov = clamp(root.get("zoomFov").getAsInt(), 10, 60);
             if (root.has("snap")) setSnapWithoutSave(root.get("snap").getAsInt());
             if (root.has("notifications")) notifications = root.get("notifications").getAsBoolean();
+            if (root.has("openKey")) openKey = normalizeKey(root.get("openKey").getAsInt(), 344);
+            if (root.has("hudEditorKey")) hudEditorKey = normalizeKey(root.get("hudEditorKey").getAsInt(), 72);
+            if (root.has("zoomKey")) zoomKey = normalizeKey(root.get("zoomKey").getAsInt(), 67);
         } catch (Exception ignored) {}
     }
 
@@ -135,10 +154,14 @@ public final class CoreConfig {
             root.addProperty("zoomFov", zoomFov);
             root.addProperty("snap", snap);
             root.addProperty("notifications", notifications);
+            root.addProperty("openKey", openKey);
+            root.addProperty("hudEditorKey", hudEditorKey);
+            root.addProperty("zoomKey", zoomKey);
             Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
         } catch (Exception ignored) {}
     }
 
     private void setSnapWithoutSave(int value) { snap = value <= 2 ? 2 : value <= 4 ? 4 : 8; }
+    private static int normalizeKey(int value, int fallback) { return value >= 32 && value <= 348 ? value : fallback; }
     private static int clamp(int value, int min, int max) { return Math.max(min, Math.min(max, value)); }
 }
