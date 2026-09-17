@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://1x1x1x1x1-ammar.github.io/Eternal-Client/sitemap.xml
