@@ -65,6 +65,15 @@ test('ClickGUI 2.0 exposes the real v1.1 customization surface', () => {
   assert.match(clickGui, /CUSTOMIZATION STUDIO/);
 });
 
+test('v1.1 launcher and Core version metadata stays aligned', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const gradle = read('eternal-core/gradle.properties');
+  const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
+  assert.equal(pkg.version, '1.1.0');
+  assert.match(gradle, /^mod_version=1\.1\.0$/m);
+  assert.match(core, /VERSION = "1\.1\.0"/);
+});
+
 test('v1.1 Studio presentation is responsive and motion-safe', () => {
   const css = read('src/v11-studio.css');
   for (const selector of ['.v11-studio-hero', '.v11-module-grid', '.v11-crosshair-stage', '.v11-profile-card', '.v11-media-row']) assert.ok(css.includes(selector));
