@@ -1,0 +1,50 @@
+<svg width="1600" height="960" viewBox="0 0 1600 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="shell" x1="160" y1="110" x2="1420" y2="850" gradientUnits="userSpaceOnUse"><stop stop-color="#141416"/><stop offset=".52" stop-color="#0D0D0F"/><stop offset="1" stop-color="#09090A"/></linearGradient>
+  <linearGradient id="hero" x1="520" y1="250" x2="1280" y2="650" gradientUnits="userSpaceOnUse"><stop stop-color="#17171B"/><stop offset="1" stop-color="#0C0C0F"/></linearGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF4A56"/><stop offset="1" stop-color="#D21C2A"/></linearGradient>
+  <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1140 270) rotate(138) scale(560 400)"><stop stop-color="#FF3242" stop-opacity=".24"/><stop offset="1" stop-color="#FF3242" stop-opacity="0"/></radialGradient>
+  <filter id="shadow" x="0" y="0" width="1600" height="960"><feDropShadow dx="0" dy="40" stdDeviation="42" flood-color="#000" flood-opacity=".7"/></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <clipPath id="clip"><rect x="110" y="90" width="1380" height="790" rx="34"/></clipPath>
+</defs>
+<g filter="url(#shadow)">
+  <rect x="110" y="90" width="1380" height="790" rx="34" fill="url(#shell)" stroke="#2A2A2F"/>
+  <g clip-path="url(#clip)">
+    <rect x="110" y="90" width="1380" height="76" fill="#111114"/>
+    <rect x="110" y="165" width="1380" height="1" fill="#26262B"/>
+    <circle cx="1450" cy="128" r="7" fill="#3A3A40"/><circle cx="1426" cy="128" r="7" fill="#313137"/><circle cx="1402" cy="128" r="7" fill="#29292E"/>
+    <g transform="translate(144 111)"><circle cx="20" cy="20" r="19" fill="#241014" stroke="#5A1E26"/><path d="M11 20C18 13 26 10 34 9C31 14 26 18 20 20C26 19 32 16 37 13C34 22 25 28 14 29L11 20Z" fill="#F13A45"/><path d="M15 31C20 24 29 21 40 17C37 24 30 29 21 31C27 31 33 29 39 26C35 34 27 38 19 38L15 31Z" fill="#E42735"/></g>
+    <text x="195" y="126" fill="#FFFFFF" font-size="15" font-family="Arial, sans-serif" font-weight="700" letter-spacing="3">ETERNAL</text>
+    <text x="195" y="145" fill="#6D6D75" font-size="9" font-family="Arial, sans-serif" letter-spacing="2">CLIENT 1.1</text>
+    <g font-family="Arial, sans-serif" font-size="11" fill="#777780" letter-spacing="1"><text x="700" y="132">HOME</text><text x="780" y="132">INSTANCES</text><text x="890" y="132">MOD HUB</text><text x="986" y="132">SERVERS</text></g>
+    <rect x="118" y="166" width="220" height="714" fill="#0A0A0C"/>
+    <rect x="337" y="166" width="1" height="714" fill="#222227"/>
+    <g font-family="Arial, sans-serif">
+      <text x="142" y="214" fill="#55555E" font-size="9" letter-spacing="2">PLAY</text>
+      <rect x="132" y="230" width="192" height="44" rx="12" fill="#17171B" stroke="#2A2A30"/>
+      <circle cx="154" cy="252" r="5" fill="#F03B48"/><text x="170" y="257" fill="#F7F7F8" font-size="12" font-weight="700">Home</text>
+      <text x="170" y="304" fill="#81818A" font-size="12">Instances</text><text x="170" y="347" fill="#81818A" font-size="12">Mod Hub</text><text x="170" y="390" fill="#81818A" font-size="12">Servers</text>
+      <text x="142" y="442" fill="#55555E" font-size="9" letter-spacing="2">ETERNAL</text>
+      <text x="170" y="482" fill="#A6A6AE" font-size="12">Core</text><text x="170" y="525" fill="#A6A6AE" font-size="12">Studio</text><text x="170" y="568" fill="#A6A6AE" font-size="12">Screenshots</text>
+      <rect x="132" y="806" width="192" height="52" rx="15" fill="#101013" stroke="#242429"/><circle cx="156" cy="832" r="13" fill="#2B2B31"/><text x="180" y="829" fill="#EEEFF2" font-size="10" font-weight="700">Player</text><text x="180" y="844" fill="#64646D" font-size="8">Microsoft / Offline</text>
+    </g>
+    <rect x="338" y="166" width="1152" height="714" fill="url(#glow)"/>
+    <g font-family="Arial, sans-serif">
+      <text x="392" y="222" fill="#6E6E77" font-size="9" letter-spacing="2">GOOD EVENING</text>
+      <text x="392" y="270" fill="#FAFAFB" font-size="40" font-weight="700">Ready when you are.</text>
+      <text x="392" y="300" fill="#82828B" font-size="13">Launch, organize and tune Minecraft without breaking your setup.</text>
+    </g>
+    <rect x="392" y="338" width="818" height="330" rx="26" fill="url(#hero)" stroke="#2B2B31"/>
+    <rect x="392" y="338" width="818" height="330" rx="26" fill="url(#glow)" opacity=".9"/>
+    <g opacity=".22"><path d="M840 668L986 510L1088 580L1210 448V668H840Z" fill="#2B2C30"/><path d="M720 668L840 544L936 618L1028 500V668H720Z" fill="#1C1D20"/></g>
+    <circle cx="1080" cy="430" r="112" fill="#D41D2B" opacity=".11" filter="url(#soft)"/>
+    <g transform="translate(424 375)" font-family="Arial, sans-serif"><text fill="#FF6470" font-size="9" letter-spacing="2" font-weight="700">ACTIVE PROFILE</text><text y="54" fill="#FFFFFF" font-size="42" font-weight="700">Eternal PvP</text><text y="83" fill="#898992" font-size="12">Minecraft 1.21.11 · Fabric · Eternal Core</text><rect y="116" width="168" height="52" rx="16" fill="url(#red)"/><text x="49" y="148" fill="#FFF" font-size="13" font-weight="700">▶ PLAY</text><rect x="182" y="116" width="160" height="52" rx="16" fill="#151519" stroke="#303036"/><text x="222" y="148" fill="#D9D9DE" font-size="12" font-weight="700">EDIT PROFILE</text></g>
+    <g transform="translate(392 700)" font-family="Arial, sans-serif"><text fill="#676771" font-size="9" letter-spacing="2">RECENT PROFILES</text>
+      <rect y="24" width="246" height="110" rx="20" fill="#111114" stroke="#28282E"/><rect x="14" y="39" width="64" height="64" rx="16" fill="#241014"/><text x="36" y="79" fill="#F13A45" font-size="24" font-weight="700">E</text><text x="94" y="59" fill="#F3F3F5" font-size="12" font-weight="700">Eternal PvP</text><text x="94" y="79" fill="#666670" font-size="9">1.21.11 · Fabric</text><text x="94" y="99" fill="#56D88B" font-size="8">READY</text>
+      <rect x="260" y="24" width="246" height="110" rx="20" fill="#111114" stroke="#28282E"/><rect x="274" y="39" width="64" height="64" rx="16" fill="#16191B"/><text x="295" y="79" fill="#C2C4C8" font-size="20" font-weight="700">S</text><text x="354" y="59" fill="#F3F3F5" font-size="12" font-weight="700">Survival</text><text x="354" y="79" fill="#666670" font-size="9">1.21.11 · Vanilla</text><text x="354" y="99" fill="#777781" font-size="8">CLEAN PROFILE</text>
+      <rect x="520" y="24" width="246" height="110" rx="20" fill="#111114" stroke="#28282E"/><rect x="534" y="39" width="64" height="64" rx="16" fill="#121518"/><text x="551" y="79" fill="#A6D8FF" font-size="18" font-weight="700">&lt;/&gt;</text><text x="614" y="59" fill="#F3F3F5" font-size="12" font-weight="700">Dev Sandbox</text><text x="614" y="79" fill="#666670" font-size="9">Fabric · Test</text><text x="614" y="99" fill="#777781" font-size="8">ISOLATED</text></g>
+    <g transform="translate(1244 206)" font-family="Arial, sans-serif"><rect width="196" height="138" rx="24" fill="#101013" stroke="#29292F"/><text x="18" y="27" fill="#666670" font-size="8" letter-spacing="2">CORE STATUS</text><circle cx="22" cy="56" r="6" fill="#66E39A"/><text x="38" y="60" fill="#F5F5F7" font-size="12" font-weight="700">Connected</text><text x="18" y="88" fill="#696973" font-size="9">15 HUD widgets</text><text x="18" y="108" fill="#696973" font-size="9">Local profiles synced</text><text x="18" y="128" fill="#FF5B68" font-size="8" font-weight="700">OPEN STUDIO →</text></g>
+  </g>
+</g>
+</svg>
