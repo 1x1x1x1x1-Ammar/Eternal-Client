@@ -14,12 +14,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class CoreConfig {
-    public static final CoreConfig INSTANCE = new CoreConfig();
+    // IMPORTANT: MODULES must be initialized before INSTANCE. The singleton constructor
+    // iterates this catalog, so reversing these declarations crashes Fabric during the
+    // client entrypoint with ExceptionInInitializerError/NullPointerException.
     public static final String[] MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
             "Memory", "Session", "Clock", "Zoom"
     };
+    public static final CoreConfig INSTANCE = new CoreConfig();
 
     public final Map<String, Boolean> enabled = new LinkedHashMap<>();
     public final Map<String, int[]> positions = new LinkedHashMap<>();
