@@ -11,7 +11,11 @@ import * as mods from './services/modService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
 import * as versions from './services/versionService.js';
-import { coreStatus, exportStandalone } from './services/coreService.js';
+import {
+  coreStatus, exportStandalone, readCoreConfig, patchCoreConfig, listCoreProfiles,
+  saveCoreProfile, applyCoreProfile, deleteCoreProfile, listCoreScreenshots,
+  deleteCoreScreenshot, coreScreenshotsDir
+} from './services/coreService.js';
 
 const { autoUpdater } = updaterPackage;
 if (!autoUpdater) throw new Error('electron-updater did not expose autoUpdater through its CommonJS default export.');
@@ -32,8 +36,8 @@ const tracedOperations = new Set([
   'instances:create', 'instances:patch', 'instances:duplicate', 'instances:remove', 'instances:openFolder', 'instances:launch', 'instances:stop',
   'mods:add', 'mods:remove', 'mods:toggle', 'mods:install',
   'servers:save', 'servers:remove', 'servers:ping', 'servers:join',
-  'core:exportStandalone', 'settings:patch',
-  'updater:check', 'updater:download', 'updater:install'
+  'core:exportStandalone', 'core:patchConfig', 'core:saveProfile', 'core:applyProfile', 'core:deleteProfile', 'core:deleteScreenshot',
+  'settings:patch', 'updater:check', 'updater:download', 'updater:install'
 ]);
 
 if (!singleInstance) app.quit();
@@ -87,7 +91,7 @@ function operationCopy(channel, payload, result, success = false) {
     case 'instances:stop': return success ? 'Minecraft processes stopped.' : 'Stopping Minecraft processes';
     case 'mods:add': return success ? 'Local mod files added.' : 'Adding local mod files';
     case 'mods:remove': return success ? 'Mod removed.' : 'Removing mod';
-    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : `Changing mod state`;
+    case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : 'Changing mod state';
     case 'mods:install': return success ? 'Modrinth install verified.' : 'Resolving and installing Modrinth project';
     case 'servers:ping': return success ? 'Minecraft server status received.' : 'Pinging Minecraft server';
     case 'servers:join': return success ? 'Server launch request accepted.' : 'Preparing server quick-join';
@@ -98,6 +102,11 @@ function operationCopy(channel, payload, result, success = false) {
     case 'accounts:activate': return success ? 'Active account changed.' : 'Switching active account';
     case 'accounts:remove': return success ? 'Account removed.' : 'Removing account';
     case 'core:exportStandalone': return success ? 'Standalone Eternal Core exported and verified.' : 'Exporting standalone Eternal Core';
+    case 'core:patchConfig': return success ? 'Eternal Core settings synced.' : 'Syncing Eternal Core settings';
+    case 'core:saveProfile': return success ? `Saved Core profile ${result?.name || ''}.`.trim() : 'Saving Eternal Core profile';
+    case 'core:applyProfile': return success ? 'Core profile applied.' : 'Applying Eternal Core profile';
+    case 'core:deleteProfile': return success ? 'Core profile deleted.' : 'Deleting Eternal Core profile';
+    case 'core:deleteScreenshot': return success ? 'Screenshot deleted.' : 'Deleting Minecraft screenshot';
     case 'settings:patch': return success ? 'Launcher settings saved.' : 'Saving launcher settings';
     case 'updater:check': return success ? 'Update check completed.' : 'Checking stable update channel';
     case 'updater:download': return success ? 'Update download started.' : 'Starting update download';
@@ -277,6 +286,18 @@ handle('servers:ping', server => servers.pingServer(server));
 handle('servers:join', data => launcher.launchInstance({ instanceId: data.instanceId, server: data.server, emit: event => send('launch:event', event) }));
 
 handle('core:status', id => coreStatus(id));
+handle('core:config', id => readCoreConfig(id));
+handle('core:patchConfig', data => patchCoreConfig(data?.instanceId, data?.patch || {}));
+handle('core:profiles', id => listCoreProfiles(id));
+handle('core:saveProfile', data => saveCoreProfile(data?.instanceId, data?.name));
+handle('core:applyProfile', data => applyCoreProfile(data?.instanceId, data?.profileId));
+handle('core:deleteProfile', data => deleteCoreProfile(data?.instanceId, data?.profileId));
+handle('core:screenshots', id => listCoreScreenshots(id));
+handle('core:deleteScreenshot', data => deleteCoreScreenshot(data?.instanceId, data?.filename));
+handle('core:openScreenshots', async id => {
+  await instances.getInstance(id);
+  return openFolder(coreScreenshotsDir(id));
+});
 handle('core:exportStandalone', async () => {
   const result = await dialog.showSaveDialog(mainWindow, {
     title: 'Export Eternal Core standalone mod',
