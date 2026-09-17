@@ -1,0 +1,43 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="900"><stop stop-color="#627187"/><stop offset=".46" stop-color="#2D3947"/><stop offset="1" stop-color="#101215"/></linearGradient>
+  <linearGradient id="ground" x1="0" y1="430" x2="0" y2="900"><stop stop-color="#4A524A"/><stop offset="1" stop-color="#181A19"/></linearGradient>
+  <linearGradient id="panel" x1="910" y1="110" x2="1430" y2="760"><stop stop-color="#17171B" stop-opacity=".96"/><stop offset="1" stop-color="#0B0B0E" stop-opacity=".97"/></linearGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF4B58"/><stop offset="1" stop-color="#D31A29"/></linearGradient>
+  <radialGradient id="sun"><stop stop-color="#F4D3A2" stop-opacity=".8"/><stop offset="1" stop-color="#F4D3A2" stop-opacity="0"/></radialGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="38"/></filter>
+  <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#000" flood-opacity=".55"/></filter>
+  <clipPath id="frame"><rect x="80" y="60" width="1440" height="780" rx="34"/></clipPath>
+</defs>
+<g filter="url(#shadow)"><rect x="80" y="60" width="1440" height="780" rx="34" fill="#0A0A0C" stroke="#2B2B30"/></g>
+<g clip-path="url(#frame)">
+  <rect x="80" y="60" width="1440" height="780" fill="url(#sky)"/>
+  <circle cx="1170" cy="190" r="180" fill="url(#sun)" opacity=".5" filter="url(#blur)"/>
+  <path d="M80 490L260 345L402 430L566 270L754 434L920 316L1106 447L1290 300L1520 450V840H80V490Z" fill="#35404A"/>
+  <path d="M80 555L250 450L406 516L552 404L740 532L920 430L1108 552L1278 438L1520 530V840H80V555Z" fill="#29302F"/>
+  <rect x="80" y="584" width="1440" height="256" fill="url(#ground)"/>
+  <g opacity=".35"><rect x="160" y="525" width="170" height="170" fill="#384239"/><rect x="330" y="552" width="168" height="168" fill="#313B32"/><rect x="498" y="518" width="170" height="170" fill="#3B463C"/><rect x="668" y="566" width="170" height="170" fill="#2D352F"/><rect x="838" y="526" width="170" height="170" fill="#39423A"/></g>
+  <g font-family="Arial, sans-serif">
+    <rect x="106" y="90" width="246" height="74" rx="18" fill="#0C0C0F" fill-opacity=".88" stroke="#FFFFFF" stroke-opacity=".12"/>
+    <text x="130" y="117" fill="#686871" font-size="9" letter-spacing="2">ETERNAL CLIENT 1.1</text><text x="130" y="145" fill="#F7F7F8" font-size="19" font-weight="700">128 FPS</text><text x="235" y="145" fill="#7D7D86" font-size="11">42 ms</text>
+    <rect x="106" y="180" width="164" height="86" rx="18" fill="#0C0C0F" fill-opacity=".88" stroke="#FFFFFF" stroke-opacity=".12"/><text x="128" y="208" fill="#6C6C75" font-size="8" letter-spacing="2">POSITION</text><text x="128" y="234" fill="#F4F4F6" font-size="13" font-weight="700">X  248.2</text><text x="128" y="253" fill="#F4F4F6" font-size="13" font-weight="700">Y  72.0</text>
+    <rect x="106" y="686" width="248" height="116" rx="20" fill="#0C0C0F" fill-opacity=".9" stroke="#FFFFFF" stroke-opacity=".12"/><text x="128" y="714" fill="#6C6C75" font-size="8" letter-spacing="2">KEYSTROKES</text><g font-size="12" font-weight="700" text-anchor="middle"><rect x="196" y="728" width="42" height="30" rx="8" fill="#1C1C21"/><text x="217" y="748" fill="#FFF">W</text><rect x="150" y="762" width="42" height="30" rx="8" fill="#151519"/><text x="171" y="782" fill="#BBBCC1">A</text><rect x="196" y="762" width="42" height="30" rx="8" fill="url(#red)"/><text x="217" y="782" fill="#FFF">S</text><rect x="242" y="762" width="42" height="30" rx="8" fill="#151519"/><text x="263" y="782" fill="#BBBCC1">D</text></g>
+    <rect x="1300" y="92" width="192" height="78" rx="18" fill="#0C0C0F" fill-opacity=".88" stroke="#FFFFFF" stroke-opacity=".12"/><text x="1322" y="118" fill="#6B6B74" font-size="8" letter-spacing="2">SESSION</text><text x="1322" y="145" fill="#F4F4F6" font-size="15" font-weight="700">01:42:16</text><text x="1415" y="145" fill="#67DD98" font-size="8">LIVE</text>
+  </g>
+  <g transform="translate(854 112)" font-family="Arial, sans-serif">
+    <rect width="590" height="614" rx="30" fill="url(#panel)" stroke="#FFFFFF" stroke-opacity=".14"/>
+    <rect x="22" y="22" width="546" height="58" rx="16" fill="#111115" stroke="#29292F"/>
+    <circle cx="51" cy="51" r="8" fill="#F13B48"/><text x="72" y="47" fill="#FFFFFF" font-size="12" font-weight="700" letter-spacing="2">ETERNAL CORE</text><text x="72" y="64" fill="#666670" font-size="8" letter-spacing="1">CLICKGUI 2.0</text><text x="479" y="54" fill="#6C6C75" font-size="9">RIGHT SHIFT</text>
+    <g transform="translate(22 100)"><rect width="118" height="488" rx="18" fill="#0D0D10" stroke="#242429"/><text x="18" y="31" fill="#575760" font-size="8" letter-spacing="2">MODULES</text><rect x="10" y="49" width="98" height="38" rx="11" fill="#1B1114" stroke="#55212A"/><text x="24" y="73" fill="#FF6570" font-size="10" font-weight="700">HUD</text><text x="24" y="116" fill="#95959E" font-size="10">CLIENT</text><text x="24" y="156" fill="#95959E" font-size="10">VISUAL</text><text x="24" y="196" fill="#95959E" font-size="10">STYLE</text><text x="24" y="236" fill="#95959E" font-size="10">ABOUT</text><line x1="18" y1="266" x2="100" y2="266" stroke="#26262B"/><text x="18" y="295" fill="#575760" font-size="8" letter-spacing="2">PRESETS</text><text x="24" y="327" fill="#85858D" font-size="9">Default</text><text x="24" y="360" fill="#85858D" font-size="9">Compact</text><text x="24" y="393" fill="#85858D" font-size="9">Corners</text></g>
+    <g transform="translate(158 100)"><text x="0" y="18" fill="#696972" font-size="8" letter-spacing="2">HUD MODULES</text><text x="0" y="47" fill="#F6F6F8" font-size="20" font-weight="700">Shape your overlay.</text><text x="0" y="69" fill="#71717A" font-size="9">Real telemetry. Saved locally.</text>
+      <g transform="translate(0 94)"><rect width="388" height="64" rx="14" fill="#111115" stroke="#29292F"/><text x="17" y="27" fill="#F2F2F4" font-size="11" font-weight="700">Watermark</text><text x="17" y="44" fill="#676771" font-size="8">Eternal identity + version</text><rect x="326" y="20" width="43" height="24" rx="12" fill="#D81E2C"/><circle cx="356" cy="32" r="8" fill="#FFF"/>
+      <rect y="76" width="388" height="64" rx="14" fill="#111115" stroke="#29292F"/><text x="17" y="103" fill="#F2F2F4" font-size="11" font-weight="700">Keystrokes</text><text x="17" y="120" fill="#676771" font-size="8">WASD + live CPS</text><rect x="326" y="96" width="43" height="24" rx="12" fill="#D81E2C"/><circle cx="356" cy="108" r="8" fill="#FFF"/>
+      <rect y="152" width="388" height="64" rx="14" fill="#111115" stroke="#29292F"/><text x="17" y="179" fill="#F2F2F4" font-size="11" font-weight="700">Coordinates</text><text x="17" y="196" fill="#676771" font-size="8">XYZ + facing direction</text><rect x="326" y="172" width="43" height="24" rx="12" fill="#D81E2C"/><circle cx="356" cy="184" r="8" fill="#FFF"/>
+      <rect y="228" width="388" height="64" rx="14" fill="#111115" stroke="#29292F"/><text x="17" y="255" fill="#F2F2F4" font-size="11" font-weight="700">Ping + FPS</text><text x="17" y="272" fill="#676771" font-size="8">Live performance telemetry</text><rect x="326" y="248" width="43" height="24" rx="12" fill="#D81E2C"/><circle cx="356" cy="260" r="8" fill="#FFF"/>
+      <rect y="304" width="388" height="64" rx="14" fill="#111115" stroke="#29292F"/><text x="17" y="331" fill="#F2F2F4" font-size="11" font-weight="700">Health + Armor</text><text x="17" y="348" fill="#676771" font-size="8">Combat-aware status</text><rect x="326" y="324" width="43" height="24" rx="12" fill="#27272C"/><circle cx="338" cy="336" r="8" fill="#8B8B94"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(632 718)" font-family="Arial, sans-serif"><rect width="236" height="84" rx="20" fill="#0C0C0F" fill-opacity=".9" stroke="#FFFFFF" stroke-opacity=".12"/><text x="22" y="28" fill="#686871" font-size="8" letter-spacing="2">ACTIVE PRESET</text><text x="22" y="56" fill="#F5F5F6" font-size="16" font-weight="700">Compact</text><text x="143" y="56" fill="#FF6470" font-size="9" font-weight="700">EDIT HUD →</text></g>
+</g>
+</svg>
