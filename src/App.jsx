@@ -12,6 +12,7 @@ import Library from './pages/Library.jsx';
 import Mods from './pages/Mods.jsx';
 import Servers from './pages/Servers.jsx';
 import Core from './pages/Core.jsx';
+import Studio from './pages/Studio.jsx';
 import Accounts from './pages/Accounts.jsx';
 import Downloads from './pages/Downloads.jsx';
 import Developer from './pages/Developer.jsx';
@@ -104,6 +105,7 @@ export default function App() {
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/developer" element={<Developer />} />
             <Route path="/core" element={<Core />} />
+            <Route path="/studio" element={<Studio />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

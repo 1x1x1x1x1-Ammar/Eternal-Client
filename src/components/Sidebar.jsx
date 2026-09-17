@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Boxes, Download, Home, MessageCircle, Puzzle, Server, Settings, ShieldCheck, TerminalSquare, UserRound } from 'lucide-react';
+import { Boxes, Download, Home, MessageCircle, Palette, Puzzle, Server, Settings, ShieldCheck, TerminalSquare, UserRound } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import MinecraftHead from './MinecraftHead.jsx';
 import eternalLogo from '../../assets/logo.svg';
@@ -10,6 +10,7 @@ const primaryLinks = [
   ['/mods', Puzzle, 'Mods'],
   ['/servers', Server, 'Servers'],
   ['/core', ShieldCheck, 'Eternal Core'],
+  ['/studio', Palette, 'Studio'],
   ['/accounts', UserRound, 'Accounts'],
   ['/settings', Settings, 'Settings']
 ];

@@ -20,7 +20,8 @@ public final class CoreConfig {
     public static final String[] MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
-            "Memory", "Session", "Clock", "Zoom"
+            "Memory", "Session", "Clock", "Zoom", "Crosshair", "Fullbright",
+            "ToggleSprint", "ToggleSneak", "Perspective"
     };
     public static final CoreConfig INSTANCE = new CoreConfig();
 
@@ -35,13 +36,25 @@ public final class CoreConfig {
     private int openKey = 344;
     private int hudEditorKey = 72;
     private int zoomKey = 67;
+    private int perspectiveKey = 86;
+    private boolean textShadow = true;
+    private boolean gradientHud = false;
+    private boolean smoothZoom = true;
+    private int zoomSpeed = 5;
+
+    private int crosshairColor = 0xFFFFFFFF;
+    private int crosshairHitColor = 0xFFFF3038;
+    private int crosshairGap = 3;
+    private int crosshairLength = 5;
+    private int crosshairThickness = 1;
+    private boolean crosshairDot = false;
+    private boolean crosshairOutline = true;
 
     private final Path file = FabricLoader.getInstance().getConfigDir().resolve("eternal-core.json");
+    private long lastModified = -1L;
+    private long nextReloadCheck = 0L;
 
     private CoreConfig() {
-        // Clean installs start with every module disabled. The player explicitly chooses
-        // what appears on-screen from Modules or the HUD editor instead of Eternal
-        // covering a fresh Minecraft session with telemetry immediately.
         for (String name : MODULES) enabled.put(name, false);
         load();
     }
@@ -49,8 +62,13 @@ public final class CoreConfig {
     public boolean on(String name) { return enabled.getOrDefault(name, false); }
     public void toggle(String name) { enabled.put(name, !on(name)); save(); }
     public void setAllModules(boolean value) {
-        for (String name : enabled.keySet()) if (!"Zoom".equals(name)) enabled.put(name, value);
+        for (String name : MODULES) if (isHudModule(name)) enabled.put(name, value);
         save();
+    }
+
+    private static boolean isHudModule(String name) {
+        return !"Zoom".equals(name) && !"Crosshair".equals(name) && !"Fullbright".equals(name)
+                && !"ToggleSprint".equals(name) && !"ToggleSneak".equals(name) && !"Perspective".equals(name);
     }
 
     public int[] pos(String name, int defaultX, int defaultY) { return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY}); }
@@ -63,6 +81,18 @@ public final class CoreConfig {
     public int openKey() { return openKey; }
     public int hudEditorKey() { return hudEditorKey; }
     public int zoomKey() { return zoomKey; }
+    public int perspectiveKey() { return perspectiveKey; }
+    public boolean textShadow() { return textShadow; }
+    public boolean gradientHud() { return gradientHud; }
+    public boolean smoothZoom() { return smoothZoom; }
+    public int zoomSpeed() { return zoomSpeed; }
+    public int crosshairColor() { return crosshairColor; }
+    public int crosshairHitColor() { return crosshairHitColor; }
+    public int crosshairGap() { return crosshairGap; }
+    public int crosshairLength() { return crosshairLength; }
+    public int crosshairThickness() { return crosshairThickness; }
+    public boolean crosshairDot() { return crosshairDot; }
+    public boolean crosshairOutline() { return crosshairOutline; }
 
     public void setAccentColor(int color) { accentColor = 0xFF000000 | (color & 0x00FFFFFF); save(); }
     public void setHudAlpha(int value) { hudAlpha = clamp(value, 80, 245); save(); }
@@ -72,6 +102,18 @@ public final class CoreConfig {
     public void setOpenKey(int value) { openKey = normalizeKey(value, 344); save(); }
     public void setHudEditorKey(int value) { hudEditorKey = normalizeKey(value, 72); save(); }
     public void setZoomKey(int value) { zoomKey = normalizeKey(value, 67); save(); }
+    public void setPerspectiveKey(int value) { perspectiveKey = normalizeKey(value, 86); save(); }
+    public void setTextShadow(boolean value) { textShadow = value; save(); }
+    public void setGradientHud(boolean value) { gradientHud = value; save(); }
+    public void setSmoothZoom(boolean value) { smoothZoom = value; save(); }
+    public void setZoomSpeed(int value) { zoomSpeed = clamp(value, 1, 10); save(); }
+    public void setCrosshairColor(int value) { crosshairColor = value; save(); }
+    public void setCrosshairHitColor(int value) { crosshairHitColor = value; save(); }
+    public void setCrosshairGap(int value) { crosshairGap = clamp(value, 0, 12); save(); }
+    public void setCrosshairLength(int value) { crosshairLength = clamp(value, 2, 14); save(); }
+    public void setCrosshairThickness(int value) { crosshairThickness = clamp(value, 1, 4); save(); }
+    public void setCrosshairDot(boolean value) { crosshairDot = value; save(); }
+    public void setCrosshairOutline(boolean value) { crosshairOutline = value; save(); }
     public void reset() { positions.clear(); save(); }
 
     public void applyPreset(String preset, int screenWidth, int screenHeight) {
@@ -132,12 +174,33 @@ public final class CoreConfig {
         save();
     }
 
-    private void load() {
-        if (!Files.exists(file)) return;
+    public synchronized boolean reloadIfChanged() {
+        long now = System.currentTimeMillis();
+        if (now < nextReloadCheck) return false;
+        nextReloadCheck = now + 500L;
+        try {
+            if (!Files.exists(file)) return false;
+            long modified = Files.getLastModifiedTime(file).toMillis();
+            if (modified <= lastModified) return false;
+            load();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private synchronized void load() {
+        if (!Files.exists(file)) {
+            lastModified = -1L;
+            return;
+        }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
-            if (root.has("enabled")) for (var entry : root.getAsJsonObject("enabled").entrySet()) enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
+            if (root.has("enabled")) for (var entry : root.getAsJsonObject("enabled").entrySet()) {
+                if (enabled.containsKey(entry.getKey())) enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
+            }
             if (root.has("positions")) {
+                positions.clear();
                 for (var entry : root.getAsJsonObject("positions").entrySet()) {
                     JsonArray position = entry.getValue().getAsJsonArray();
                     if (position.size() >= 2) positions.put(entry.getKey(), new int[]{position.get(0).getAsInt(), position.get(1).getAsInt()});
@@ -151,6 +214,22 @@ public final class CoreConfig {
             if (root.has("openKey")) openKey = normalizeKey(root.get("openKey").getAsInt(), 344);
             if (root.has("hudEditorKey")) hudEditorKey = normalizeKey(root.get("hudEditorKey").getAsInt(), 72);
             if (root.has("zoomKey")) zoomKey = normalizeKey(root.get("zoomKey").getAsInt(), 67);
+            if (root.has("perspectiveKey")) perspectiveKey = normalizeKey(root.get("perspectiveKey").getAsInt(), 86);
+            if (root.has("textShadow")) textShadow = root.get("textShadow").getAsBoolean();
+            if (root.has("gradientHud")) gradientHud = root.get("gradientHud").getAsBoolean();
+            if (root.has("smoothZoom")) smoothZoom = root.get("smoothZoom").getAsBoolean();
+            if (root.has("zoomSpeed")) zoomSpeed = clamp(root.get("zoomSpeed").getAsInt(), 1, 10);
+            if (root.has("crosshair") && root.get("crosshair").isJsonObject()) {
+                JsonObject crosshair = root.getAsJsonObject("crosshair");
+                if (crosshair.has("color")) crosshairColor = crosshair.get("color").getAsInt();
+                if (crosshair.has("hitColor")) crosshairHitColor = crosshair.get("hitColor").getAsInt();
+                if (crosshair.has("gap")) crosshairGap = clamp(crosshair.get("gap").getAsInt(), 0, 12);
+                if (crosshair.has("length")) crosshairLength = clamp(crosshair.get("length").getAsInt(), 2, 14);
+                if (crosshair.has("thickness")) crosshairThickness = clamp(crosshair.get("thickness").getAsInt(), 1, 4);
+                if (crosshair.has("dot")) crosshairDot = crosshair.get("dot").getAsBoolean();
+                if (crosshair.has("outline")) crosshairOutline = crosshair.get("outline").getAsBoolean();
+            }
+            lastModified = Files.getLastModifiedTime(file).toMillis();
         } catch (Exception error) {
             System.err.println("[Eternal Core] Invalid config, restoring defaults: " + error.getMessage());
             try {
@@ -160,6 +239,7 @@ public final class CoreConfig {
                 System.err.println("[Eternal Core] Could not back up invalid config: " + backupError.getMessage());
             }
             positions.clear();
+            lastModified = -1L;
         }
     }
 
@@ -172,7 +252,8 @@ public final class CoreConfig {
             enabled.forEach(enabledJson::addProperty);
             positions.forEach((name, position) -> {
                 JsonArray array = new JsonArray();
-                array.add(position[0]); array.add(position[1]);
+                array.add(position[0]);
+                array.add(position[1]);
                 positionsJson.add(name, array);
             });
             root.add("enabled", enabledJson);
@@ -185,6 +266,21 @@ public final class CoreConfig {
             root.addProperty("openKey", openKey);
             root.addProperty("hudEditorKey", hudEditorKey);
             root.addProperty("zoomKey", zoomKey);
+            root.addProperty("perspectiveKey", perspectiveKey);
+            root.addProperty("textShadow", textShadow);
+            root.addProperty("gradientHud", gradientHud);
+            root.addProperty("smoothZoom", smoothZoom);
+            root.addProperty("zoomSpeed", zoomSpeed);
+
+            JsonObject crosshair = new JsonObject();
+            crosshair.addProperty("color", crosshairColor);
+            crosshair.addProperty("hitColor", crosshairHitColor);
+            crosshair.addProperty("gap", crosshairGap);
+            crosshair.addProperty("length", crosshairLength);
+            crosshair.addProperty("thickness", crosshairThickness);
+            crosshair.addProperty("dot", crosshairDot);
+            crosshair.addProperty("outline", crosshairOutline);
+            root.add("crosshair", crosshair);
 
             String json = new GsonBuilder().setPrettyPrinting().create().toJson(root);
             Path temp = file.resolveSibling(file.getFileName() + ".tmp");
@@ -194,6 +290,7 @@ public final class CoreConfig {
             } catch (Exception atomicUnavailable) {
                 Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
             }
+            lastModified = Files.getLastModifiedTime(file).toMillis();
         } catch (Exception error) {
             System.err.println("[Eternal Core] Could not save config: " + error.getMessage());
         }

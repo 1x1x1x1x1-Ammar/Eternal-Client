@@ -67,6 +67,15 @@ contextBridge.exposeInMainWorld('eternal', {
   },
   core: {
     status: (id) => invoke('core:status', id),
+    config: (id) => invoke('core:config', id),
+    patchConfig: (data) => invoke('core:patchConfig', data),
+    profiles: (id) => invoke('core:profiles', id),
+    saveProfile: (data) => invoke('core:saveProfile', data),
+    applyProfile: (data) => invoke('core:applyProfile', data),
+    deleteProfile: (data) => invoke('core:deleteProfile', data),
+    screenshots: (id) => invoke('core:screenshots', id),
+    deleteScreenshot: (data) => invoke('core:deleteScreenshot', data),
+    openScreenshots: (id) => invoke('core:openScreenshots', id),
     exportStandalone: () => invoke('core:exportStandalone')
   },
   updater: {

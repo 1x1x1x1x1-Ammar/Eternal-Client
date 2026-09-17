@@ -34,12 +34,13 @@ test('Eternal replaces the vanilla title screen with its own real navigation sur
   assert.match(mixins, /MinecraftScreenMixin/);
   assert.match(mixin, /instanceof TitleScreen/);
   assert.match(mixin, /new EternalTitleScreen/);
-  for (const label of ['SINGLEPLAYER', 'MULTIPLAYER', 'MODULES', 'HUD EDITOR', 'OPTIONS', 'QUIT GAME']) assert.match(title, new RegExp(label));
+  for (const label of ['SINGLEPLAYER', 'MULTIPLAYER', 'MODULES', 'HUD EDITOR', 'OPTIONS', 'QUIT']) assert.match(title, new RegExp(label));
   assert.match(title, /SelectWorldScreen/);
   assert.match(title, /JoinMultiplayerScreen/);
   assert.match(title, /screens\.options\.OptionsScreen/);
   assert.match(title, /EternalCore\.openClickGui/);
   assert.match(title, /EternalCore\.openHudEditor/);
+  assert.match(title, /mc\.stop\(\)/);
 });
 
 test('Core emits a durable runtime diagnostic log that launcher Minecraft console can capture', () => {
