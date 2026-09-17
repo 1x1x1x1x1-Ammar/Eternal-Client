@@ -18,7 +18,6 @@ public final class HudRenderer {
     };
     private static final int TEXT = 0xFFF7F8FA;
     private static final int MUTED = 0xFF949AA4;
-    private static final int DIM = 0xFF5A606A;
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm");
 
     private HudRenderer() {}
@@ -39,6 +38,39 @@ public final class HudRenderer {
         NotificationCenter.render(graphics);
     }
 
+    public static void renderCrosshair(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        CoreConfig config = CoreConfig.INSTANCE;
+        if (!config.on("Crosshair") || mc.options.hideGui || mc.player == null) return;
+
+        int centerX = graphics.guiWidth() / 2;
+        int centerY = graphics.guiHeight() / 2;
+        int gap = config.crosshairGap();
+        int length = config.crosshairLength();
+        int thickness = config.crosshairThickness();
+        int half = thickness / 2;
+        int color = mc.crosshairPickEntity != null ? config.crosshairHitColor() : config.crosshairColor();
+
+        if (config.crosshairOutline()) {
+            int outline = 0xB0000000;
+            arm(graphics, centerX - gap - length - 1, centerY - half - 1, length + 2, thickness + 2, outline);
+            arm(graphics, centerX + gap - 1, centerY - half - 1, length + 2, thickness + 2, outline);
+            arm(graphics, centerX - half - 1, centerY - gap - length - 1, thickness + 2, length + 2, outline);
+            arm(graphics, centerX - half - 1, centerY + gap - 1, thickness + 2, length + 2, outline);
+            if (config.crosshairDot()) arm(graphics, centerX - half - 1, centerY - half - 1, thickness + 2, thickness + 2, outline);
+        }
+
+        arm(graphics, centerX - gap - length, centerY - half, length, thickness, color);
+        arm(graphics, centerX + gap, centerY - half, length, thickness, color);
+        arm(graphics, centerX - half, centerY - gap - length, thickness, length, color);
+        arm(graphics, centerX - half, centerY + gap, thickness, length, color);
+        if (config.crosshairDot()) arm(graphics, centerX - half, centerY - half, thickness, thickness, color);
+    }
+
+    private static void arm(GuiGraphics graphics, int x, int y, int width, int height, int color) {
+        graphics.fill(x, y, x + Math.max(1, width), y + Math.max(1, height), color);
+    }
+
     public static int boxWidth(String name) {
         Minecraft mc = Minecraft.getInstance();
         if ("Keystrokes".equals(name)) return 118;
@@ -53,10 +85,11 @@ public final class HudRenderer {
 
     public static void drawModule(GuiGraphics graphics, String name, int x, int y, boolean hover, boolean selected) {
         Minecraft mc = Minecraft.getInstance();
+        CoreConfig config = CoreConfig.INSTANCE;
         int width = boxWidth(name);
         int height = boxHeight(name);
-        int alpha = CoreConfig.INSTANCE.hudAlpha();
-        int accent = CoreConfig.INSTANCE.accentColor();
+        int alpha = config.hudAlpha();
+        int accent = accentAt(config.accentColor(), y);
         int panelRgb = selected ? 0x00180A0D : hover ? 0x0013171C : 0x00090B0E;
         int panel = (alpha << 24) | panelRgb;
 
@@ -74,7 +107,19 @@ public final class HudRenderer {
         int pulse = 150 + (int) (75 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 360.0)));
         int dot = (pulse << 24) | (accent & 0x00FFFFFF);
         graphics.fill(x + 8, y + 9, x + 11, y + 12, dot);
-        graphics.drawString(mc.font, value(name), x + 17, y + 7, TEXT, true);
+        graphics.drawString(mc.font, value(name), x + 17, y + 7, TEXT, config.textShadow());
+    }
+
+    private static int accentAt(int base, int y) {
+        if (!CoreConfig.INSTANCE.gradientHud()) return base;
+        double wave = 0.12D + 0.16D * (0.5D + 0.5D * Math.sin((System.currentTimeMillis() / 760.0D) + y * 0.035D));
+        int r = (base >> 16) & 0xFF;
+        int g = (base >> 8) & 0xFF;
+        int b = base & 0xFF;
+        r = Math.min(255, r + (int) ((255 - r) * wave));
+        g = Math.min(255, g + (int) ((255 - g) * wave));
+        b = Math.min(255, b + (int) ((255 - b) * wave));
+        return (base & 0xFF000000) | (r << 16) | (g << 8) | b;
     }
 
     private static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height, int panel, int accent, boolean hover, boolean selected) {
@@ -91,10 +136,11 @@ public final class HudRenderer {
     private static void drawWatermark(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int accent) {
         long now = System.currentTimeMillis();
         int pulse = 150 + (int) (90 * (0.5 + 0.5 * Math.sin(now / 420.0)));
+        boolean shadow = CoreConfig.INSTANCE.textShadow();
         graphics.fill(x + 9, y + 9, x + 14, y + 14, (pulse << 24) | (accent & 0x00FFFFFF));
-        graphics.drawString(mc.font, "ETERNAL", x + 20, y + 8, TEXT, true);
+        graphics.drawString(mc.font, "ETERNAL", x + 20, y + 8, TEXT, shadow);
         int brandWidth = mc.font.width("ETERNAL");
-        graphics.drawString(mc.font, "CORE", x + 25 + brandWidth, y + 8, accent, true);
+        graphics.drawString(mc.font, "CORE", x + 25 + brandWidth, y + 8, accent, shadow);
         graphics.drawString(mc.font, "V1", x + width - 21, y + 8, 0xFF777E89, false);
     }
 
@@ -126,7 +172,7 @@ public final class HudRenderer {
         graphics.renderOutline(x, y, size, size, down ? 0x99FFFFFF : 0x4A474E58);
         if (down) graphics.fill(x, y, x + size, y + 1, 0x77FFFFFF);
         int textX = x + (size - mc.font.width(label)) / 2;
-        graphics.drawString(mc.font, label, textX, y + 5, down ? 0xFFFFFFFF : 0xFFC3C7CE, false);
+        graphics.drawString(mc.font, label, textX, y + 5, down ? 0xFFFFFFFF : 0xFFC3C7CE, CoreConfig.INSTANCE.textShadow());
     }
 
     private static void drawMouseKey(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int height, String label, int cps, boolean down, int accent) {
