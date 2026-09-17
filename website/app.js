@@ -20,23 +20,20 @@ function bytes(value) {
   return `${amount >= 100 || exponent === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[exponent]}`;
 }
 
+function setHref(selector, href) {
+  if (!href) return;
+  $$(selector).forEach(node => { node.href = href; });
+}
+
 function applyRelease(data) {
   $$('[data-release-version]').forEach(node => { node.textContent = data.version; });
   $$('[data-release-date]').forEach(node => { node.textContent = data.date; });
-  const links = {
-    '#hero-download': data.installer,
-    '#download-installer': data.installer,
-    '#final-download': data.installer,
-    '#core-download': data.core,
-    '#download-core': data.core,
-    '#checksums-link': data.checksums,
-    '#release-link': data.releaseUrl,
-    '#footer-release': data.releaseUrl
-  };
-  Object.entries(links).forEach(([selector, href]) => {
-    const node = $(selector);
-    if (node && href) node.href = href;
-  });
+
+  setHref('#hero-download, #download-installer, #final-download', data.installer);
+  setHref('#core-download, #download-core', data.core);
+  setHref('#checksums-link', data.checksums);
+  setHref('#release-link, #footer-release', data.releaseUrl);
+
   const installerSize = $('#installer-size');
   const coreSize = $('#core-size');
   if (installerSize && data.installerSize) installerSize.textContent = data.installerSize;
@@ -58,6 +55,7 @@ async function loadLatestRelease() {
     const date = release.published_at
       ? new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(release.published_at))
       : fallback.date;
+
     applyRelease({
       version,
       releaseUrl: release.html_url || fallback.releaseUrl,
@@ -69,7 +67,7 @@ async function loadLatestRelease() {
       coreSize: core ? bytes(core.size) : fallback.coreSize
     });
   } catch {
-    // The fallback is intentionally complete so the page remains fully usable offline/API-limited.
+    // The fallback is intentionally complete so the site remains usable when GitHub is unavailable or rate limited.
   }
 }
 
@@ -79,14 +77,15 @@ function setupReveal() {
     nodes.forEach(node => node.classList.add('visible'));
     return;
   }
+
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+  }, { threshold: 0.1, rootMargin: '0px 0px -32px' });
+
   nodes.forEach(node => observer.observe(node));
 }
 
@@ -102,15 +101,46 @@ function setupExperienceTabs() {
   });
 }
 
+function setupFeatureTabs() {
+  const buttons = $$('.feature-tab');
+  const panels = $$('[data-feature-panel]');
+  if (!buttons.length || !panels.length) return;
+
+  const activate = feature => {
+    buttons.forEach(button => {
+      const active = button.dataset.feature === feature;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    panels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.featurePanel !== feature));
+  };
+
+  buttons.forEach((button, index) => {
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-selected', String(button.classList.contains('active')));
+    button.addEventListener('click', () => activate(button.dataset.feature));
+    button.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      const direction = event.key === 'ArrowRight' ? 1 : -1;
+      const next = buttons[(index + direction + buttons.length) % buttons.length];
+      next.focus();
+      activate(next.dataset.feature);
+    });
+  });
+}
+
 function setupMobileMenu() {
   const button = $('.menu-button');
   const menu = $('.mobile-nav');
   if (!button || !menu) return;
+
   const close = () => {
     menu.classList.remove('open');
     menu.setAttribute('aria-hidden', 'true');
     button.setAttribute('aria-expanded', 'false');
   };
+
   button.addEventListener('click', () => {
     const open = !menu.classList.contains('open');
     menu.classList.toggle('open', open);
@@ -118,12 +148,14 @@ function setupMobileMenu() {
     button.setAttribute('aria-expanded', String(open));
   });
   $$('.mobile-nav a').forEach(link => link.addEventListener('click', close));
-  addEventListener('resize', () => { if (innerWidth > 760) close(); });
+  addEventListener('resize', () => { if (innerWidth > 860) close(); });
+  addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
 }
 
 function setupCursorGlow() {
   const glow = $('.cursor-glow');
   if (!glow || matchMedia('(pointer: coarse)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
   let frame = 0;
   addEventListener('pointermove', event => {
     cancelAnimationFrame(frame);
@@ -135,10 +167,34 @@ function setupCursorGlow() {
   addEventListener('pointerleave', () => { glow.style.opacity = '0'; });
 }
 
+function setupShowcaseMotion() {
+  const stage = $('.dawn-launcher-showcase');
+  const windowNode = $('.dawn-window');
+  if (!stage || !windowNode || matchMedia('(pointer: coarse)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let frame = 0;
+  const reset = () => {
+    windowNode.style.transform = 'perspective(1500px) rotateX(4deg) rotateY(0deg) translateY(0px)';
+  };
+
+  stage.addEventListener('pointermove', event => {
+    const rect = stage.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const rotateY = x * 5;
+      const rotateX = 4 - y * 3;
+      windowNode.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${-Math.abs(x) * 2}px)`;
+    });
+  }, { passive: true });
+  stage.addEventListener('pointerleave', reset);
+}
+
 function setupHeader() {
   const header = $('.site-header');
   if (!header) return;
-  const update = () => header.classList.toggle('scrolled', scrollY > 28);
+  const update = () => header.classList.toggle('scrolled', scrollY > 24);
   update();
   addEventListener('scroll', update, { passive: true });
 }
@@ -156,11 +212,9 @@ function setupFaq() {
 
 function setupDownloadTelemetry() {
   ['#hero-download', '#download-installer', '#download-core', '#core-download', '#final-download'].forEach(selector => {
-    const link = $(selector);
-    if (!link) return;
-    link.addEventListener('click', () => {
-      link.dataset.clicked = 'true';
-    }, { passive: true });
+    $$(selector).forEach(link => {
+      link.addEventListener('click', () => { link.dataset.clicked = 'true'; }, { passive: true });
+    });
   });
 }
 
@@ -168,8 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadLatestRelease();
   setupReveal();
   setupExperienceTabs();
+  setupFeatureTabs();
   setupMobileMenu();
   setupCursorGlow();
+  setupShowcaseMotion();
   setupHeader();
   setupFaq();
   setupDownloadTelemetry();
