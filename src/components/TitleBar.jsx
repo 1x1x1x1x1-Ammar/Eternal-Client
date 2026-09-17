@@ -10,6 +10,7 @@ const pageNames = {
   '/mods': 'MOD HUB',
   '/servers': 'SERVERS',
   '/core': 'ETERNAL CORE',
+  '/studio': 'CUSTOMIZATION STUDIO',
   '/accounts': 'ACCOUNTS',
   '/settings': 'SETTINGS',
   '/downloads': 'DOWNLOADS',
