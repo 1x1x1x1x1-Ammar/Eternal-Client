@@ -8,9 +8,11 @@ test('v1.1 Studio is routed and its CSS loads last', () => {
   const app = read('src/App.jsx');
   const sidebar = read('src/components/Sidebar.jsx');
   const main = read('src/main.jsx');
+  const corePage = read('src/pages/Core.jsx');
   assert.match(app, /import Studio from '.\/pages\/Studio\.jsx'/);
   assert.match(app, /path="\/studio" element=\{<Studio \/>\}/);
   assert.match(sidebar, /\['\/studio', Palette, 'Studio'\]/);
+  assert.match(corePage, /to="\/studio"/);
   assert.ok(main.lastIndexOf("./v11-studio.css") > main.lastIndexOf("./v101-client.css"));
 });
 
@@ -43,6 +45,7 @@ test('Core preserves safe static ordering and adds live v1.1 settings', () => {
   assert.ok(config.indexOf('public static final String[] MODULES') < config.indexOf('public static final CoreConfig INSTANCE'));
   for (const name of ['Crosshair', 'Fullbright', 'ToggleSprint', 'ToggleSneak', 'Perspective']) assert.ok(config.includes(`"${name}"`));
   for (const field of ['perspectiveKey', 'textShadow', 'gradientHud', 'smoothZoom', 'zoomSpeed', 'crosshairColor', 'crosshairHitColor']) assert.ok(config.includes(field));
+  for (const setter of ['setCrosshairGap', 'setCrosshairLength', 'setCrosshairThickness', 'setCrosshairDot', 'setCrosshairOutline']) assert.ok(config.includes(setter));
   assert.match(config, /reloadIfChanged\(\)/);
   assert.match(core, /CoreConfig\.INSTANCE|config\.reloadIfChanged\(\)/);
   assert.match(core, /toggleSprint\(\)/);
@@ -51,6 +54,15 @@ test('Core preserves safe static ordering and adds live v1.1 settings', () => {
   assert.match(renderer, /renderCrosshair/);
   assert.match(guiMixin, /method = "renderCrosshair"/);
   assert.match(mixins, /MinecraftTickMixin/);
+});
+
+test('ClickGUI 2.0 exposes the real v1.1 customization surface', () => {
+  const clickGui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
+  for (const section of ['HUD', 'CLIENT', 'VISUAL', 'STYLE', 'ABOUT']) assert.ok(clickGui.includes(`"${section}"`));
+  for (const module of ['Zoom', 'Fullbright', 'ToggleSprint', 'ToggleSneak', 'Perspective', 'Crosshair']) assert.ok(clickGui.includes(`"${module}"`));
+  for (const action of ['setPerspectiveKey', 'setCrosshairGap', 'setCrosshairLength', 'setCrosshairThickness', 'setSmoothZoom', 'applyPreset']) assert.ok(clickGui.includes(action));
+  assert.match(clickGui, /OPEN HUD EDITOR/);
+  assert.match(clickGui, /CUSTOMIZATION STUDIO/);
 });
 
 test('v1.1 Studio presentation is responsive and motion-safe', () => {
