@@ -79,6 +79,7 @@ test('premium in-game shell is shared across title, Start, ClickGUI, HUD, HUD St
   for (const phrase of ['WELCOME BACK', 'QUICK MODULES', 'HUD WORKSPACE', 'ClickGUI 2.0']) assert.ok(home.includes(phrase));
   for (const phrase of ['PLAY YOUR WAY', 'VISUAL LAB', 'STYLE + LAYOUT', 'BUILT AS A REAL CLIENT']) assert.ok(click.includes(phrase));
   for (const phrase of ['HUD STUDIO', 'HUD CANVAS', 'INSPECTOR', 'CONFIG AUTO-SAVES']) assert.ok(editor.includes(phrase));
+  assert.match(title, /ORIGINAL CLIENT UI/);
   assert.match(editor, /EternalUi\.veil/);
   assert.match(hud, /EternalUi\.livingAccent/);
   assert.match(hud, /ETERNAL/);
