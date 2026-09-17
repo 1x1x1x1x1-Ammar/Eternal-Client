@@ -17,11 +17,11 @@ const backendFiles = [
   'electron/services/versionService.js'
 ];
 
-test('launcher and Core ship as stable v1.0.1', () => {
+test('launcher and Core version metadata stay aligned on v1.1.0', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '1.0.1');
-  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.0\.1/);
-  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.0\.1"/);
+  assert.equal(pkg.version, '1.1.0');
+  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.1\.0/);
+  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.1\.0"/);
   assert.doesNotMatch(pkg.version, /beta|alpha|rc/i);
 });
 
