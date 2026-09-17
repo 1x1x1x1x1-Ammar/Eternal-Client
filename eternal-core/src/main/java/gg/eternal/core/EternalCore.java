@@ -19,7 +19,10 @@ public final class EternalCore implements ClientModInitializer {
     public static final String VERSION = "1.0.1";
     private static long sessionStarted;
     private static boolean zoomed;
+    private static boolean zoomHeld;
     private static int previousFov = 70;
+    private static boolean fullbrightApplied;
+    private static double previousGamma = 0.5D;
     private static final AtomicBoolean screenOpenQueued = new AtomicBoolean(false);
 
     @Override
@@ -38,6 +41,62 @@ public final class EternalCore implements ClientModInitializer {
         return zoomed;
     }
 
+    public static void tick() {
+        try {
+            CoreConfig config = CoreConfig.INSTANCE;
+            config.reloadIfChanged();
+            Minecraft mc = Minecraft.getInstance();
+            if (mc == null || mc.options == null) return;
+
+            syncToggleOptions(mc, config);
+            syncFullbright(mc, config);
+            tickZoom(mc, config);
+        } catch (Throwable error) {
+            CoreLog.error("Eternal runtime tick failed", error);
+        }
+    }
+
+    private static void syncToggleOptions(Minecraft mc, CoreConfig config) {
+        boolean sprint = config.on("ToggleSprint");
+        boolean sneak = config.on("ToggleSneak");
+        if (mc.options.toggleSprint().get() != sprint) mc.options.toggleSprint().set(sprint);
+        if (mc.options.toggleCrouch().get() != sneak) mc.options.toggleCrouch().set(sneak);
+    }
+
+    private static void syncFullbright(Minecraft mc, CoreConfig config) {
+        if (config.on("Fullbright")) {
+            if (!fullbrightApplied) {
+                previousGamma = mc.options.gamma().get();
+                fullbrightApplied = true;
+            }
+            if (mc.options.gamma().get() < 0.999D) mc.options.gamma().set(1.0D);
+        } else if (fullbrightApplied) {
+            mc.options.gamma().set(previousGamma);
+            fullbrightApplied = false;
+        }
+    }
+
+    private static void tickZoom(Minecraft mc, CoreConfig config) {
+        if (!zoomed) return;
+        if (!config.on("Zoom")) zoomHeld = false;
+        int target = zoomHeld ? config.zoomFov() : previousFov;
+        int current = mc.options.fov().get();
+        if (!config.smoothZoom()) {
+            mc.options.fov().set(target);
+            if (!zoomHeld) zoomed = false;
+            return;
+        }
+        int difference = target - current;
+        if (Math.abs(difference) <= 1) {
+            mc.options.fov().set(target);
+            if (!zoomHeld) zoomed = false;
+            return;
+        }
+        double factor = 0.10D + config.zoomSpeed() * 0.025D;
+        int step = Math.max(1, (int) Math.ceil(Math.abs(difference) * factor));
+        mc.options.fov().set(current + (difference > 0 ? step : -step));
+    }
+
     public static void restoreZoom() {
         if (!zoomed) return;
         Minecraft mc = Minecraft.getInstance();
@@ -47,6 +106,7 @@ public final class EternalCore implements ClientModInitializer {
             CoreLog.error("Could not restore zoom FOV", error);
         } finally {
             zoomed = false;
+            zoomHeld = false;
         }
     }
 
@@ -86,21 +146,31 @@ public final class EternalCore implements ClientModInitializer {
             CoreConfig config = CoreConfig.INSTANCE;
 
             if (key == config.zoomKey()) {
-                if (!down && zoomed) {
-                    restoreZoom();
+                if (!down) {
+                    zoomHeld = false;
+                    if (zoomed && !config.smoothZoom()) restoreZoom();
                     return;
                 }
-                if (down && config.on("Zoom") && !zoomed && mc.screen == null) {
+                if (config.on("Zoom") && !zoomed && mc.screen == null) {
                     previousFov = mc.options.fov().get();
-                    mc.options.fov().set(config.zoomFov());
+                    zoomHeld = true;
                     zoomed = true;
+                    if (!config.smoothZoom()) mc.options.fov().set(config.zoomFov());
+                } else if (config.on("Zoom") && zoomed) {
+                    zoomHeld = true;
                 }
                 return;
             }
 
             if (!down || mc.screen != null) return;
-            if (key == config.openKey()) openHome();
-            else if (key == config.hudEditorKey()) openHudEditor();
+            if (key == config.openKey()) {
+                openHome();
+            } else if (key == config.hudEditorKey()) {
+                openHudEditor();
+            } else if (key == config.perspectiveKey() && config.on("Perspective")) {
+                mc.options.setCameraType(mc.options.getCameraType().cycle());
+                NotificationCenter.push("PERSPECTIVE", mc.options.getCameraType().name());
+            }
         } catch (Throwable error) {
             CoreLog.error("Keyboard handler failed for key " + key, error);
         }
