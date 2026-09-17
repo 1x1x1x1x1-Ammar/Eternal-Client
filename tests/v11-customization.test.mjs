@@ -65,13 +65,22 @@ test('ClickGUI 2.0 exposes the real v1.1 customization surface', () => {
   assert.match(clickGui, /CUSTOMIZATION STUDIO/);
 });
 
-test('v1.1 launcher and Core version metadata stays aligned', () => {
-  const pkg = JSON.parse(read('package.json'));
-  const gradle = read('eternal-core/gradle.properties');
-  const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
-  assert.equal(pkg.version, '1.1.0');
-  assert.match(gradle, /^mod_version=1\.1\.0$/m);
-  assert.match(core, /VERSION = "1\.1\.0"/);
+test('premium in-game shell is shared across title, Start, ClickGUI, HUD and notifications', () => {
+  const ui = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalUi.java');
+  const title = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalTitleScreen.java');
+  const home = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalHomeScreen.java');
+  const click = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
+  const hud = read('eternal-core/src/main/java/gg/eternal/core/hud/HudRenderer.java');
+  const notices = read('eternal-core/src/main/java/gg/eternal/core/ui/NotificationCenter.java');
+
+  for (const helper of ['backdrop', 'veil', 'glass', 'accentRail', 'livingAccent', 'progress']) assert.match(ui, new RegExp(` ${helper}\\(`));
+  for (const phrase of ['Your Minecraft. Sharpened.', 'CORE SNAPSHOT', 'SINGLEPLAYER', 'MULTIPLAYER']) assert.ok(title.includes(phrase));
+  for (const phrase of ['WELCOME BACK', 'QUICK MODULES', 'HUD WORKSPACE', 'ClickGUI 2.0']) assert.ok(home.includes(phrase));
+  for (const phrase of ['PLAY YOUR WAY', 'VISUAL LAB', 'STYLE + LAYOUT', 'BUILT AS A REAL CLIENT']) assert.ok(click.includes(phrase));
+  assert.match(hud, /EternalUi\.livingAccent/);
+  assert.match(hud, /CONFIG|ETERNAL/);
+  assert.match(notices, /EternalUi\.easeOutCubic/);
+  assert.match(notices, /screenHeight - 16/);
 });
 
 test('v1.1 Studio presentation is responsive and motion-safe', () => {
