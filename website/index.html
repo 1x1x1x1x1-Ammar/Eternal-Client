@@ -3,263 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#080808" />
+  <meta name="theme-color" content="#08080a" />
   <meta name="color-scheme" content="dark" />
-  <meta name="description" content="Eternal Client is a premium Minecraft launcher and Fabric client with isolated profiles, Mod Hub, Customization Studio, Eternal Core, ClickGUI 2.0 and HUD Studio." />
-  <meta name="keywords" content="Eternal Client, Minecraft client, Minecraft launcher, Fabric client, Minecraft HUD, Mod Hub, Eternal Core" />
-  <meta property="og:title" content="Eternal Client — Your Minecraft, your way." />
-  <meta property="og:description" content="A premium Minecraft launcher and in-game client built as one product." />
+  <meta name="description" content="Eternal Client is a premium Minecraft launcher and standalone Fabric client with isolated instances, Mod Hub, Customization Studio, Eternal Core, ClickGUI 2.0 and HUD Studio." />
+  <meta property="og:title" content="Eternal Client — Minecraft, your way." />
+  <meta property="og:description" content="A premium launcher and in-game client designed as one product." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/logo.svg" />
+  <meta property="og:image" content="assets/launcher-showcase.svg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <title>Eternal Client — Your Minecraft, your way.</title>
+  <title>Eternal Client — Minecraft, your way.</title>
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
   <link rel="manifest" href="site.webmanifest" />
-  <link rel="preconnect" href="https://api.github.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="dawn-plus.css" />
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"SoftwareApplication",
-    "name":"Eternal Client",
-    "operatingSystem":"Windows 10, Windows 11",
-    "applicationCategory":"GameApplication",
-    "softwareVersion":"1.1.0",
-    "description":"A premium Minecraft launcher and standalone Fabric client with isolated instances, Mod Hub, Customization Studio, Eternal Core, ClickGUI 2.0 and HUD Studio.",
-    "downloadUrl":"https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/latest"
-  }
-  </script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Eternal Client","operatingSystem":"Windows 10, Windows 11","applicationCategory":"GameApplication","softwareVersion":"1.1.0","description":"A premium Minecraft launcher and standalone Fabric client for Minecraft Java Edition.","downloadUrl":"https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/latest"}</script>
 </head>
-<body class="dawn4">
+<body>
   <div class="cursor-glow" aria-hidden="true"></div>
 
   <header class="site-header" id="top">
-    <div class="d4-nav section-shell">
-      <a class="d4-brand" href="#top" aria-label="Eternal Client home">
-        <img src="assets/logo.svg" alt="" />
-        <span>Eternal</span>
-      </a>
-      <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="#features">The launcher</a>
-        <a href="#experience">In-game client</a>
-        <a href="#core">Eternal Core</a>
-        <a href="#download">Download</a>
-      </nav>
-      <div class="d4-nav-actions">
-        <a class="d4-nav-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a>
-        <a class="d4-nav-download" href="#download">Get Eternal <span>↓</span></a>
-        <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
-      </div>
+    <div class="nav-wrap">
+      <a class="brand" href="#top" aria-label="Eternal Client home"><img src="assets/logo.svg" alt=""/><span>Eternal</span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation"><a href="#features">The launcher</a><a href="#experience">The client</a><a href="#core">Eternal Core</a></nav>
+      <div class="nav-actions"><a class="nav-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a><a class="nav-download" href="#download">Get Eternal ↓</a><button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div>
     </div>
-    <div class="mobile-nav" aria-hidden="true">
-      <a href="#features">The launcher</a>
-      <a href="#experience">In-game client</a>
-      <a href="#core">Eternal Core</a>
-      <a href="#download">Download</a>
-      <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a>
-    </div>
+    <div class="mobile-nav" aria-hidden="true"><a href="#features">The launcher</a><a href="#experience">The client</a><a href="#core">Eternal Core</a><a href="#download">Download</a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a></div>
   </header>
 
   <main>
-    <section class="d4-hero section-shell">
-      <div class="d4-hero-copy reveal">
-        <a class="d4-version" href="#release"><span></span><b data-release-version>v1.1.0</b><em>Stable release</em><i>↗</i></a>
-        <h1>The Minecraft<br/>client, <span>refined.</span></h1>
-        <p>Eternal combines a focused launcher, isolated profiles, real mod management and a deeply customizable Fabric client into one clean experience.</p>
-        <div class="d4-choice">Choose your desktop download <span>↓</span></div>
-        <div class="d4-downloads">
-          <a id="hero-download" class="d4-download-primary" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe">
-            <span class="d4-os">⊞</span><span><small>WINDOWS</small><b>Download Eternal</b></span><i>↓</i>
-          </a>
-          <a id="core-download" class="d4-download-secondary" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar">
-            <span class="d4-core-icon">◆</span><span><small>FABRIC 1.21.11</small><b>Standalone Core</b></span><i>↗</i>
-          </a>
+    <section class="hero section-shell">
+      <div class="hero-copy reveal">
+        <a class="release-pill" href="#release"><i></i><span>ETERNAL</span><b data-release-version>v1.1.0</b><em>The Client Update</em><strong>↗</strong></a>
+        <h1>The Minecraft client.<br/><span>Rebuilt around you.</span></h1>
+        <p>Eternal combines a clean launcher, isolated profiles, Mod Hub and a customizable in-game Fabric client in one focused experience.</p>
+        <div class="choice-label">Choose your desktop download <span>↓</span></div>
+        <div class="hero-actions">
+          <a class="download-button primary" id="hero-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="platform-mark">⊞</span><span><small>WINDOWS X64</small><b>Download Eternal</b></span><strong>↓</strong></a>
+          <a class="download-button secondary" id="core-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="platform-mark">◆</span><span><small>FABRIC 1.21.11</small><b>Standalone Core</b></span><strong>↗</strong></a>
         </div>
+        <div class="hero-meta"><span><i></i> Stable</span><span>Windows 10 / 11</span><span>Minecraft 1.21.11</span><span>Java 21</span></div>
       </div>
 
-      <div class="dawn-launcher-showcase d4-hero-product reveal delay-1" aria-label="Eternal Client launcher preview">
-        <div class="d4-product-glow"></div>
-        <div class="launcher-window dawn-window d4-launcher">
-          <div class="d4-launcher-top">
-            <div class="d4-top-brand"><img src="assets/logo.svg" alt=""/><b>ETERNAL</b></div>
-            <nav><span class="active">Home</span><span>Mods</span><span>Instances</span><span>Studio</span><span>Core</span></nav>
-            <div class="d4-account"><i></i><span>Player</span><b>⌄</b></div>
-          </div>
-          <div class="d4-launcher-body">
-            <div class="d4-scene">
-              <div class="d4-sky"></div>
-              <div class="d4-moon"></div>
-              <div class="d4-mountain m1"></div><div class="d4-mountain m2"></div><div class="d4-mountain m3"></div>
-              <div class="d4-ground"></div>
-              <div class="d4-character"><div class="head"></div><div class="body"></div><div class="arm a1"></div><div class="arm a2"></div><div class="leg l1"></div><div class="leg l2"></div></div>
-              <div class="d4-home-copy">
-                <span>ETERNAL CLIENT</span>
-                <h2>Ready when<br/>you are.</h2>
-                <p>Fabric 1.21.11 · Core connected</p>
-                <button>PLAY NOW <b>▶</b></button>
-              </div>
-            </div>
-            <aside class="d4-launcher-side">
-              <div class="d4-side-title"><span>RECENT PROFILES</span><b>View all</b></div>
-              <article><i class="thumb red">E</i><span><b>Eternal PvP</b><small>Fabric 1.21.11</small></span><em>▶</em></article>
-              <article><i class="thumb blue">S</i><span><b>Survival</b><small>Vanilla 1.21.11</small></span><em>▶</em></article>
-              <article><i class="thumb purple">D</i><span><b>Dev Sandbox</b><small>Fabric test profile</small></span><em>▶</em></article>
-              <div class="d4-side-title friends"><span>CORE</span><b>Connected</b></div>
-              <div class="d4-core-status"><i></i><span><b>Customization Studio</b><small>Live local configuration</small></span></div>
-            </aside>
-          </div>
-        </div>
+      <div class="hero-product reveal delay-1">
+        <div class="product-glow"></div>
+        <div class="launcher-window"><img src="assets/launcher-showcase.svg" alt="Eternal Client launcher showing the active profile, isolated instances and Eternal Core status" /></div>
       </div>
     </section>
 
-    <section id="features" class="d4-launcher-section section-shell">
-      <div class="d4-section-heading reveal"><h2>Your launcher.</h2></div>
-      <div class="d4-feature-tabs reveal" role="tablist" aria-label="Launcher features">
-        <button class="feature-tab active" type="button" data-feature="profiles"><span class="tab-art profile-art-mini"><i></i><i></i><i></i></span><b>Your profiles</b></button>
-        <button class="feature-tab" type="button" data-feature="mods"><span class="tab-art mod-art-mini"><i>M</i><i>S</i><i>I</i></span><b>Mods & modpacks</b></button>
-        <button class="feature-tab" type="button" data-feature="studio"><span class="tab-art studio-art-mini"><i></i><i></i><i></i></span><b>Customization Studio</b></button>
+    <section class="launcher-section section-shell" id="features">
+      <div class="section-title reveal"><h2>Your launcher.</h2></div>
+      <div class="feature-tabs reveal" role="tablist" aria-label="Launcher features">
+        <button class="feature-tab active" type="button" data-feature="profiles"><span>01</span>Your profiles</button>
+        <button class="feature-tab" type="button" data-feature="mods"><span>02</span>Mods & Mod Hub</button>
+        <button class="feature-tab" type="button" data-feature="studio"><span>03</span>Customization Studio</button>
       </div>
 
-      <article class="d4-feature-panel reveal" data-feature-panel="profiles">
-        <div class="d4-feature-copy">
-          <span>YOUR PROFILES</span>
-          <h3>Your worlds,<br/>organized your way.</h3>
-          <p>Keep worlds, mods and settings separate. Build a PvP setup, a clean survival profile and a test environment without turning one Minecraft folder into a mess.</p>
-          <a href="#download">Try it in Eternal ↗</a>
-        </div>
-        <div class="d4-feature-visual profiles-visual">
-          <div class="d4-profile-window">
-            <div class="d4-profile-head"><b>Profiles</b><button>+ New profile</button></div>
-            <div class="d4-folder"><span>Favorites</span><small>3 profiles</small></div>
-            <div class="d4-profile-cards">
-              <div><i class="p1">E</i><span><b>Eternal PvP</b><small>1.21.11 · Fabric</small></span></div>
-              <div><i class="p2">S</i><span><b>Survival</b><small>1.21.11 · Vanilla</small></span></div>
-              <div><i class="p3">D</i><span><b>Dev Sandbox</b><small>1.21.11 · Fabric</small></span></div>
-            </div>
-          </div>
-        </div>
+      <article class="feature-panel reveal" data-feature-panel="profiles">
+        <div class="feature-copy"><span class="eyebrow">ISOLATED INSTANCES</span><h3>Your profiles,<br/>organized your way.</h3><p>Keep worlds, mods, settings and versions separated. Build a PvP profile, a clean survival instance and a safe test environment without turning one Minecraft folder into a mess.</p><a href="#download">Try it in Eternal ↗</a></div>
+        <div class="feature-visual"><img src="assets/launcher-showcase.svg" alt="Eternal launcher profiles and active Minecraft instance" /></div>
       </article>
 
-      <article class="d4-feature-panel hidden" data-feature-panel="mods">
-        <div class="d4-feature-copy">
-          <span>MOD HUB</span>
-          <h3>Your mods,<br/>without the mess.</h3>
-          <p>Browse compatible content, install it into the instance you choose, and keep every profile's mods exactly where they belong.</p>
-          <a href="#download">Open Mod Hub ↗</a>
-        </div>
-        <div class="d4-feature-visual mods-visual">
-          <div class="d4-mod-window">
-            <div class="d4-search">⌕ <span>Search mods and modpacks</span><kbd>Ctrl K</kbd></div>
-            <div class="d4-mod-grid">
-              <article><i>S</i><span><b>Sodium</b><small>Performance</small></span><em>Installed</em></article>
-              <article><i>I</i><span><b>Iris</b><small>Shaders</small></span><button>Install</button></article>
-              <article><i>F</i><span><b>Fabric API</b><small>Library</small></span><em>Ready</em></article>
-              <article><i>L</i><span><b>Lithium</b><small>Optimization</small></span><button>Install</button></article>
-            </div>
-          </div>
-        </div>
+      <article class="feature-panel hidden" data-feature-panel="mods">
+        <div class="feature-copy"><span class="eyebrow">MOD HUB</span><h3>Find mods.<br/>Install without the mess.</h3><p>Discover compatible content, install it directly into the instance you choose and keep every other profile untouched.</p><a href="#download">Open the Mod Hub ↗</a></div>
+        <div class="feature-visual"><img src="assets/modhub-showcase.svg" alt="Eternal Mod Hub with Sodium, Iris and Fabric API" /></div>
       </article>
 
-      <article class="d4-feature-panel hidden" data-feature-panel="studio">
-        <div class="d4-feature-copy">
-          <span>CUSTOMIZATION STUDIO</span>
-          <h3>Make Eternal<br/>feel like yours.</h3>
-          <p>Configure HUD, client behavior, Crosshair settings, presets and local profiles from the launcher before Minecraft even starts.</p>
-          <a href="#experience">See the in-game client ↓</a>
-        </div>
-        <div class="d4-feature-visual studio-visual">
-          <div class="d4-studio-window">
-            <aside><b>Studio</b><button class="active">HUD</button><button>Client</button><button>Visual</button><button>Style</button></aside>
-            <div class="d4-studio-main"><div class="d4-studio-title"><span>Customization Studio</span><b><i></i> Core connected</b></div>
-              <label><span>Watermark<small>Show Eternal identity</small></span><u class="toggle on"></u></label>
-              <label><span>Living accent<small>Animated UI accent</small></span><u class="toggle on"></u></label>
-              <label><span>Smooth Zoom<small>Interpolated FOV</small></span><u class="toggle on"></u></label>
-              <div class="d4-slider"><span>HUD opacity</span><b>86%</b><i><u></u></i></div>
-            </div>
-          </div>
-        </div>
+      <article class="feature-panel hidden" data-feature-panel="studio">
+        <div class="feature-copy"><span class="eyebrow">CUSTOMIZATION STUDIO</span><h3>Shape your client<br/>before you launch.</h3><p>Configure Eternal Core, HUD modules, visual settings, Crosshair behavior and local profiles from the launcher. Your choices carry into Minecraft.</p><a href="#experience">See the client ↓</a></div>
+        <div class="feature-visual"><img src="assets/studio-showcase.svg" alt="Eternal Customization Studio controlling HUD and client settings" /></div>
       </article>
     </section>
 
-    <section id="experience" class="d4-client-section section-shell">
-      <div class="d4-section-heading reveal"><h2>Customize your game.</h2><p>Eternal Core lives inside Minecraft. Change your HUD, utilities, Crosshair and layout without leaving the game.</p></div>
-      <div class="d4-module-tags reveal"><span>Custom HUD</span><span>Zoom</span><span>Keystrokes</span><span>Crosshair</span><span>Fullbright</span><span>Perspective</span><span>Notifications</span></div>
-      <div class="experience-tabs d4-client-tabs reveal" role="tablist" aria-label="Eternal client views">
-        <button class="active" data-view="launcher">Eternal Start</button><button data-view="start">Quick modules</button><button data-view="clickgui">ClickGUI 2.0</button><button data-view="hud">HUD Studio</button>
-      </div>
-      <div class="experience-frame d4-game-frame reveal">
-        <div class="d4-game-world"></div>
-        <div class="d4-hud-chip top-left">ETERNAL <b>1.1</b></div>
-        <div class="d4-hud-chip fps">FPS <b>244</b></div>
-        <div class="d4-hud-chip ping">PING <b>31ms</b></div>
-        <div class="d4-keystrokes"><span></span><div><i>W</i></div><div><i>A</i><i>S</i><i>D</i></div><div><i>LMB</i><i>RMB</i></div></div>
+    <section class="experience section-shell" id="experience">
+      <div class="section-title reveal"><h2>Customize your game.</h2><p>Eternal Core takes over once Minecraft starts. Build your HUD, tune visual utilities and move faster with persistent local settings.</p></div>
+      <div class="module-strip reveal" aria-label="Client highlights"><span>Custom HUD</span><span>ClickGUI 2.0</span><span>HUD Studio</span><span>Zoom</span><span>Crosshair</span><span>Keystrokes</span><span>FPS & Ping</span></div>
 
-        <div class="d4-game-ui" data-screen="launcher">
-          <div class="d4-game-panel start-panel">
-            <div class="d4-game-panel-head"><span>ETERNAL START</span><b>Right Shift</b></div>
-            <h3>Your Minecraft.<br/><span>Sharpened.</span></h3>
-            <div class="d4-start-buttons"><button>Resume</button><button>Modules</button><button>HUD Editor</button><button>Options</button></div>
-            <div class="d4-start-stats"><span><small>FPS</small><b>244</b></span><span><small>PING</small><b>31ms</b></span><span><small>HEALTH</small><b>20</b></span></div>
-          </div>
-        </div>
-        <div class="d4-game-ui hidden" data-screen="start">
-          <div class="d4-game-panel modules-panel"><div class="d4-game-panel-head"><span>QUICK MODULES</span><b>Core connected</b></div>
-            <div class="d4-module-grid"><button class="on">Zoom <i></i></button><button>Fullbright <i></i></button><button class="on">Crosshair <i></i></button><button>Perspective <i></i></button><button>ToggleSprint <i></i></button><button>ToggleSneak <i></i></button></div>
-          </div>
-        </div>
-        <div class="d4-game-ui hidden" data-screen="clickgui">
-          <div class="d4-game-panel clickgui-panel"><div class="d4-game-panel-head"><span>ClickGUI 2.0</span><b>Client</b></div>
-            <div class="d4-click-layout"><aside><button class="active">HUD</button><button>CLIENT</button><button>VISUAL</button><button>STYLE</button></aside><div><label>Watermark <i></i></label><label>FPS <i></i></label><label>Keystrokes <i></i></label><label>Coordinates <i></i></label><label>Ping <i></i></label></div></div>
-          </div>
-        </div>
-        <div class="d4-game-ui hidden" data-screen="hud">
-          <div class="d4-game-panel hud-panel"><div class="d4-game-panel-head"><span>HUD Studio</span><b>Auto-save</b></div>
-            <div class="d4-hud-canvas"><span class="widget w1">ETERNAL</span><span class="widget w2">FPS 244</span><span class="widget w3">XYZ 128 64 -42</span><span class="widget w4">31ms</span><div class="guide g1"></div><div class="guide g2"></div></div>
-          </div>
-        </div>
-        <div class="experience-copy" data-copy="launcher"><span>Eternal Start</span><h3>Your in-game command center.</h3><p>Resume, launch modules, edit HUD and see live session telemetry from one place.</p></div>
-        <div class="experience-copy hidden" data-copy="start"><span>Quick modules</span><h3>Toggle what matters.</h3><p>Fast access to Zoom, Crosshair, Perspective and other client utilities.</p></div>
-        <div class="experience-copy hidden" data-copy="clickgui"><span>ClickGUI 2.0</span><h3>Everything, configurable.</h3><p>HUD, client, visual and style settings with persistent local configuration.</p></div>
-        <div class="experience-copy hidden" data-copy="hud"><span>HUD Studio</span><h3>Put every pixel where you want it.</h3><p>Drag, snap, nudge and save live telemetry widgets directly on the canvas.</p></div>
+      <div class="experience-frame reveal">
+        <div class="experience-screen" data-screen="launcher"><img src="assets/client-showcase.svg" alt="Eternal in-game client with HUD telemetry and ClickGUI 2.0"/></div>
+        <div class="experience-screen hidden" data-screen="start"><img src="assets/client-showcase.svg" alt="Eternal Start in-game client workspace"/></div>
+        <div class="experience-screen hidden" data-screen="clickgui"><img src="assets/client-showcase.svg" alt="Eternal ClickGUI 2.0 module controls"/></div>
+        <div class="experience-screen hidden" data-screen="hud"><img src="assets/studio-showcase.svg" alt="Eternal HUD Studio controls and live preview"/></div>
+      </div>
+
+      <div class="experience-tabs reveal" role="tablist" aria-label="Eternal client views"><button class="active" data-view="launcher">Eternal Core</button><button data-view="start">Eternal Start</button><button data-view="clickgui">ClickGUI 2.0</button><button data-view="hud">HUD Studio</button></div>
+      <div class="experience-copy-row reveal">
+        <div class="experience-copy" data-copy="launcher"><h3>Eternal Core</h3><p>The standalone Fabric client that powers live HUD telemetry, utilities and persistent settings.</p></div>
+        <div class="experience-copy hidden" data-copy="start"><h3>Eternal Start</h3><p>Press Right Shift for the in-world command center with quick modules, live stats and presets.</p></div>
+        <div class="experience-copy hidden" data-copy="clickgui"><h3>ClickGUI 2.0</h3><p>HUD, Client, Visual and Style controls with real toggles, keybinds and persistent configuration.</p></div>
+        <div class="experience-copy hidden" data-copy="hud"><h3>HUD Studio</h3><p>Drag, snap, nudge and arrange live widgets directly on a visual canvas.</p></div>
       </div>
     </section>
 
-    <section id="core" class="d4-core-section section-shell reveal">
-      <div class="d4-core-copy"><span>STANDALONE FABRIC MOD</span><h2>Just want the client?</h2><p>Eternal Core works without the desktop launcher too. Drop the verified JAR into a compatible Fabric 1.21.11 setup and keep the same Eternal Start, ClickGUI 2.0, HUD Studio and client utilities.</p><a id="download-core" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar">Download Eternal Core ↗</a></div>
-      <div class="d4-core-visual"><div class="d4-jar"><img src="assets/logo.svg" alt=""/><span>Eternal Core</span><b data-release-version>v1.1.0</b><small>Fabric 1.21.11 · Java 21</small></div><div class="d4-core-list"><span>HUD Studio</span><span>ClickGUI 2.0</span><span>Zoom</span><span>Crosshair</span><span>Keystrokes</span><span>Fullbright</span></div></div>
+    <section class="core-section section-shell" id="core">
+      <div class="core-grid reveal"><div class="core-copy"><span class="eyebrow">STANDALONE FABRIC MOD</span><h2>Eternal Core.<br/><span>No launcher required.</span></h2><p>Use the same verified in-game experience in a compatible Fabric 1.21.11 install. Keep the HUD, ClickGUI 2.0, HUD Studio, Zoom, Crosshair, Fullbright, Toggle Sprint, Toggle Sneak and Perspective.</p><a class="text-link" id="download-core" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar">Download the standalone JAR ↗</a></div><div class="core-mark"><img src="assets/logo.svg" alt=""/><strong>ETERNAL CORE</strong><span data-release-version>v1.1.0</span></div></div>
     </section>
 
-    <section id="release" class="d4-release section-shell reveal">
-      <div><span>LATEST RELEASE</span><h2 data-release-version>v1.1.0</h2><p>The Client Update · <b data-release-date>September 17, 2026</b></p></div>
-      <a id="release-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">View release notes ↗</a>
+    <section class="release-section section-shell" id="release">
+      <div class="release-grid reveal"><div><span class="eyebrow">LATEST RELEASE</span><h2 data-release-version>v1.1.0</h2><p>The Client Update · <span data-release-date>September 17, 2026</span></p></div><div class="release-links"><a id="release-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">Release notes ↗</a><a id="checksums-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/SHA256SUMS.txt">SHA256 checksums ↗</a></div></div>
     </section>
 
-    <section id="download" class="d4-download-section section-shell">
-      <div class="d4-download-heading reveal"><h2>Download Eternal.</h2><p>Choose the full Windows launcher or the standalone Fabric client.</p></div>
-      <div class="d4-download-grid reveal">
-        <a id="download-installer" class="download-card d4-platform-card primary" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="platform-icon">⊞</span><div><small>WINDOWS 10 / 11</small><h3>Eternal Client</h3><p>Launcher + Eternal Core + Studio</p><b id="installer-size">~113 MB</b></div><i>↓</i></a>
-        <a class="download-card d4-platform-card" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="platform-icon core">◆</span><div><small>FABRIC 1.21.11</small><h3>Standalone Core</h3><p>In-game Eternal client only</p><b id="core-size">~90 KB</b></div><i>↓</i></a>
+    <section class="download-section section-shell" id="download">
+      <div class="download-head reveal"><h2>Download Eternal.</h2><p>Choose the full Windows launcher or the standalone Fabric Core.</p></div>
+      <div class="download-grid reveal">
+        <a class="download-card" id="download-installer" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="download-platform">⊞</span><div><small>WINDOWS 10 / 11 · X64</small><h3>Eternal Client</h3><p>Launcher + profiles + Mod Hub + Studio + verified Core.</p><b id="installer-size">~113 MB</b></div><strong>↓</strong></a>
+        <a class="download-card" id="final-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="download-platform">◆</span><div><small>FABRIC 1.21.11 · JAVA 21</small><h3>Standalone Core</h3><p>Install Eternal Core without the desktop launcher.</p><b id="core-size">~90 KB</b></div><strong>↓</strong></a>
       </div>
-      <div class="d4-integrity reveal"><span><i></i> Stable release</span><span>SHA-256 checksums published</span><a id="checksums-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/SHA256SUMS.txt">Verify downloads ↗</a></div>
-    </section>
-
-    <section class="faq section-shell">
-      <div class="d4-faq-head reveal"><h2>Questions.</h2></div>
-      <div class="faq-list reveal">
-        <details><summary>Is Eternal Client free?<span>+</span></summary><p>Yes. The current Eternal Client release and standalone Core are available from the project's public GitHub release.</p></details>
-        <details><summary>Does the launcher include Eternal Core?<span>+</span></summary><p>Yes. The full launcher stages the verified Core build and exposes the Customization Studio for its settings.</p></details>
-        <details><summary>Can I use Eternal Core without the launcher?<span>+</span></summary><p>Yes. Use the standalone JAR on a compatible Fabric 1.21.11 installation with Java 21.</p></details>
-      </div>
+      <p class="download-note reveal">Free to download. Minecraft Java Edition is required to play.</p>
     </section>
   </main>
 
-  <footer class="d4-footer section-shell">
-    <a class="d4-brand" href="#top"><img src="assets/logo.svg" alt=""/><span>Eternal</span></a>
-    <nav><a href="#features">The launcher</a><a href="#experience">Client</a><a href="#download">Download</a><a id="footer-release" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">Release</a></nav>
-    <p>© 2026 Eternal Client. Minecraft is a trademark of Mojang Studios / Microsoft.</p>
-  </footer>
+  <footer class="site-footer"><div class="section-shell footer-grid"><a class="brand footer-brand" href="#top"><img src="assets/logo.svg" alt=""/><span>Eternal</span></a><div><a href="#features">The launcher</a><a href="#experience">The client</a><a id="footer-release" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">Release</a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a></div><small>© 2026 Eternal Client. Original Eternal product design.</small></div></footer>
 
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
