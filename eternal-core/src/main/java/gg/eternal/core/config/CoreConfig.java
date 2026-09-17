@@ -55,9 +55,6 @@ public final class CoreConfig {
     private long nextReloadCheck = 0L;
 
     private CoreConfig() {
-        // Clean installs start with every module disabled. The player explicitly chooses
-        // what appears on-screen from Modules or the HUD editor instead of Eternal
-        // covering a fresh Minecraft session with telemetry immediately.
         for (String name : MODULES) enabled.put(name, false);
         load();
     }
@@ -110,6 +107,13 @@ public final class CoreConfig {
     public void setGradientHud(boolean value) { gradientHud = value; save(); }
     public void setSmoothZoom(boolean value) { smoothZoom = value; save(); }
     public void setZoomSpeed(int value) { zoomSpeed = clamp(value, 1, 10); save(); }
+    public void setCrosshairColor(int value) { crosshairColor = value; save(); }
+    public void setCrosshairHitColor(int value) { crosshairHitColor = value; save(); }
+    public void setCrosshairGap(int value) { crosshairGap = clamp(value, 0, 12); save(); }
+    public void setCrosshairLength(int value) { crosshairLength = clamp(value, 2, 14); save(); }
+    public void setCrosshairThickness(int value) { crosshairThickness = clamp(value, 1, 4); save(); }
+    public void setCrosshairDot(boolean value) { crosshairDot = value; save(); }
+    public void setCrosshairOutline(boolean value) { crosshairOutline = value; save(); }
     public void reset() { positions.clear(); save(); }
 
     public void applyPreset(String preset, int screenWidth, int screenHeight) {
@@ -248,7 +252,8 @@ public final class CoreConfig {
             enabled.forEach(enabledJson::addProperty);
             positions.forEach((name, position) -> {
                 JsonArray array = new JsonArray();
-                array.add(position[0]); array.add(position[1]);
+                array.add(position[0]);
+                array.add(position[1]);
                 positionsJson.add(name, array);
             });
             root.add("enabled", enabledJson);
