@@ -1,0 +1,63 @@
+name: Deploy Eternal Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify static website
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f website/index.html
+          test -f website/client.html
+          test -f website/styles.css
+          test -f website/app.js
+          test -f website/assets/logo.svg
+          test -f website/assets/launcher-showcase.svg
+          test -f website/assets/client-showcase.svg
+          test -f website/assets/team/celestial.svg
+          test -f website/assets/team/pycraft.svg
+          test -f website/assets/team/dragon.svg
+          test -f website/assets/team/aljenral.svg
+          test -f website/assets/armor-strip.svg
+          grep -q 'styles.css' website/index.html
+          grep -q 'client.html' website/index.html
+          grep -q 'prefers-reduced-motion' website/styles.css
+          grep -q 'releases/latest' website/app.js
+          grep -q 'Eternal.Client.Setup.1.1.0.exe' website/app.js
+          grep -q 'Eternal-Core-Standalone-1.1.0.jar' website/app.js
+          grep -q "['\"']#download-core['\"']" website/app.js
+
+  deploy:
+    needs: verify
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
