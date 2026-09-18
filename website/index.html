@@ -3,118 +3,144 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#08080a" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="description" content="Eternal Client is a premium Minecraft launcher and standalone Fabric client with isolated instances, Mod Hub, Customization Studio, Eternal Core, ClickGUI 2.0 and HUD Studio." />
-  <meta property="og:title" content="Eternal Client — Minecraft, your way." />
-  <meta property="og:description" content="A premium launcher and in-game client designed as one product." />
+  <meta name="theme-color" content="#08080b" />
+  <meta name="description" content="Eternal SMP Season Update — Celestial Armor, legendary abilities, ranks, custom combat content, and the Eternal Client." />
+  <meta property="og:title" content="Eternal SMP — Celestial Season" />
+  <meta property="og:description" content="Discover Celestial Armor, new ranks, hidden abilities and the Eternal Client." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/launcher-showcase.svg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <title>Eternal Client — Minecraft, your way.</title>
+  <title>Eternal SMP — Celestial Season</title>
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
-  <link rel="manifest" href="site.webmanifest" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="styles.css" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Eternal Client","operatingSystem":"Windows 10, Windows 11","applicationCategory":"GameApplication","softwareVersion":"1.1.0","description":"A premium Minecraft launcher and standalone Fabric client for Minecraft Java Edition.","downloadUrl":"https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/latest"}</script>
+  <script src="app.js" defer></script>
 </head>
-<body>
-  <div class="cursor-glow" aria-hidden="true"></div>
+<body class="season-page">
+  <div class="page-noise" aria-hidden="true"></div>
+  <div class="mouse-glow" aria-hidden="true"></div>
 
-  <header class="site-header" id="top">
-    <div class="nav-wrap">
-      <a class="brand" href="#top" aria-label="Eternal Client home"><img src="assets/logo.svg" alt=""/><span>Eternal</span></a>
-      <nav class="desktop-nav" aria-label="Primary navigation"><a href="#features">The launcher</a><a href="#experience">The client</a><a href="#core">Eternal Core</a></nav>
-      <div class="nav-actions"><a class="nav-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a><a class="nav-download" href="#download">Get Eternal ↓</a><button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div>
-    </div>
-    <div class="mobile-nav" aria-hidden="true"><a href="#features">The launcher</a><a href="#experience">The client</a><a href="#core">Eternal Core</a><a href="#download">Download</a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a></div>
+  <header class="site-nav" id="top">
+    <a class="brand" href="#top" aria-label="Eternal home">
+      <img src="assets/logo.svg" alt="" />
+      <span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="#top">Home</a>
+      <a class="active" href="#abilities">Seasons</a>
+      <a href="client.html">Client</a>
+      <a href="#ranks">Ranks</a>
+      <a href="#update">Update</a>
+      <a href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer">Discord</a>
+    </nav>
+    <a class="nav-cta" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><span class="icon-discord">◆</span> Join Now <b>+</b></a>
+    <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span><span></span></button>
   </header>
+  <div class="mobile-menu" aria-hidden="true">
+    <a href="#top">Home</a><a href="#abilities">Seasons</a><a href="client.html">Client</a><a href="#ranks">Ranks</a><a href="#update">Update</a><a href="https://discord.gg/HaN8HxzqCV">Discord</a>
+  </div>
 
   <main>
-    <section class="hero section-shell">
-      <div class="hero-copy reveal">
-        <a class="release-pill" href="#release"><i></i><span>ETERNAL</span><b data-release-version>v1.1.0</b><em>The Client Update</em><strong>↗</strong></a>
-        <h1>The Minecraft client.<br/><span>Rebuilt around you.</span></h1>
-        <p>Eternal combines a clean launcher, isolated profiles, Mod Hub and a customizable in-game Fabric client in one focused experience.</p>
-        <div class="choice-label">Choose your desktop download <span>↓</span></div>
-        <div class="hero-actions">
-          <a class="download-button primary" id="hero-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="platform-mark">⊞</span><span><small>WINDOWS X64</small><b>Download Eternal</b></span><strong>↓</strong></a>
-          <a class="download-button secondary" id="core-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="platform-mark">◆</span><span><small>FABRIC 1.21.11</small><b>Standalone Core</b></span><strong>↗</strong></a>
+    <section class="season-hero">
+      <div class="hero-sky" aria-hidden="true"><div class="red-moon"></div><div class="floating-island i1"></div><div class="floating-island i2"></div><div class="floating-island i3"></div></div>
+      <div class="hero-grid container">
+        <div class="hero-copy reveal">
+          <div class="season-badges"><span>SEASON UPDATE</span><span>v2.0</span></div>
+          <h1><span>CELESTIAL</span><strong>ARMOR</strong><em>ETERNAL SMP</em></h1>
+          <p class="hero-kicker">THE MOST POWERFUL ARMOR YET<br/>IN ETERNAL SMP.</p>
+          <p class="hero-desc">Forge your legend. Wield impossible power.<br/>Step into a new era of survival.</p>
+          <div class="hero-actions">
+            <a class="btn btn-red" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><span>▶</span> Join the Season</a>
+            <a class="btn btn-dark" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><span>◆</span> Open Discord</a>
+          </div>
+          <button class="invite-copy" type="button" data-copy="https://discord.gg/HaN8HxzqCV"><span class="discord-orb">◆</span><span><small>Join our Discord Community</small><b>discord.gg/HaN8HxzqCV</b></span><span class="copy-state">▢</span></button>
         </div>
-        <div class="hero-meta"><span><i></i> Stable</span><span>Windows 10 / 11</span><span>Minecraft 1.21.11</span><span>Java 21</span></div>
-      </div>
 
-      <div class="hero-product reveal delay-1">
-        <div class="product-glow"></div>
-        <div class="launcher-window"><img src="assets/launcher-showcase.svg" alt="Eternal Client launcher showing the active profile, isolated instances and Eternal Core status" /></div>
-      </div>
-    </section>
-
-    <section class="launcher-section section-shell" id="features">
-      <div class="section-title reveal"><h2>Your launcher.</h2></div>
-      <div class="feature-tabs reveal" role="tablist" aria-label="Launcher features">
-        <button class="feature-tab active" type="button" data-feature="profiles"><span>01</span>Your profiles</button>
-        <button class="feature-tab" type="button" data-feature="mods"><span>02</span>Mods & Mod Hub</button>
-        <button class="feature-tab" type="button" data-feature="studio"><span>03</span>Customization Studio</button>
-      </div>
-
-      <article class="feature-panel reveal" data-feature-panel="profiles">
-        <div class="feature-copy"><span class="eyebrow">ISOLATED INSTANCES</span><h3>Your profiles,<br/>organized your way.</h3><p>Keep worlds, mods, settings and versions separated. Build a PvP profile, a clean survival instance and a safe test environment without turning one Minecraft folder into a mess.</p><a href="#download">Try it in Eternal ↗</a></div>
-        <div class="feature-visual"><img src="assets/launcher-showcase.svg" alt="Eternal launcher profiles and active Minecraft instance" /></div>
-      </article>
-
-      <article class="feature-panel hidden" data-feature-panel="mods">
-        <div class="feature-copy"><span class="eyebrow">MOD HUB</span><h3>Find mods.<br/>Install without the mess.</h3><p>Discover compatible content, install it directly into the instance you choose and keep every other profile untouched.</p><a href="#download">Open the Mod Hub ↗</a></div>
-        <div class="feature-visual"><img src="assets/modhub-showcase.svg" alt="Eternal Mod Hub with Sodium, Iris and Fabric API" /></div>
-      </article>
-
-      <article class="feature-panel hidden" data-feature-panel="studio">
-        <div class="feature-copy"><span class="eyebrow">CUSTOMIZATION STUDIO</span><h3>Shape your client<br/>before you launch.</h3><p>Configure Eternal Core, HUD modules, visual settings, Crosshair behavior and local profiles from the launcher. Your choices carry into Minecraft.</p><a href="#experience">See the client ↓</a></div>
-        <div class="feature-visual"><img src="assets/studio-showcase.svg" alt="Eternal Customization Studio controlling HUD and client settings" /></div>
-      </article>
-    </section>
-
-    <section class="experience section-shell" id="experience">
-      <div class="section-title reveal"><h2>Customize your game.</h2><p>Eternal Core takes over once Minecraft starts. Build your HUD, tune visual utilities and move faster with persistent local settings.</p></div>
-      <div class="module-strip reveal" aria-label="Client highlights"><span>Custom HUD</span><span>ClickGUI 2.0</span><span>HUD Studio</span><span>Zoom</span><span>Crosshair</span><span>Keystrokes</span><span>FPS & Ping</span></div>
-
-      <div class="experience-frame reveal">
-        <div class="experience-screen" data-screen="launcher"><img src="assets/client-showcase.svg" alt="Eternal in-game client with HUD telemetry and ClickGUI 2.0"/></div>
-        <div class="experience-screen hidden" data-screen="start"><img src="assets/client-showcase.svg" alt="Eternal Start in-game client workspace"/></div>
-        <div class="experience-screen hidden" data-screen="clickgui"><img src="assets/client-showcase.svg" alt="Eternal ClickGUI 2.0 module controls"/></div>
-        <div class="experience-screen hidden" data-screen="hud"><img src="assets/studio-showcase.svg" alt="Eternal HUD Studio controls and live preview"/></div>
-      </div>
-
-      <div class="experience-tabs reveal" role="tablist" aria-label="Eternal client views"><button class="active" data-view="launcher">Eternal Core</button><button data-view="start">Eternal Start</button><button data-view="clickgui">ClickGUI 2.0</button><button data-view="hud">HUD Studio</button></div>
-      <div class="experience-copy-row reveal">
-        <div class="experience-copy" data-copy="launcher"><h3>Eternal Core</h3><p>The standalone Fabric client that powers live HUD telemetry, utilities and persistent settings.</p></div>
-        <div class="experience-copy hidden" data-copy="start"><h3>Eternal Start</h3><p>Press Right Shift for the in-world command center with quick modules, live stats and presets.</p></div>
-        <div class="experience-copy hidden" data-copy="clickgui"><h3>ClickGUI 2.0</h3><p>HUD, Client, Visual and Style controls with real toggles, keybinds and persistent configuration.</p></div>
-        <div class="experience-copy hidden" data-copy="hud"><h3>HUD Studio</h3><p>Drag, snap, nudge and arrange live widgets directly on a visual canvas.</p></div>
+        <div class="celestial-stage reveal delay-1" aria-label="Celestial armor showcase">
+          <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+          <div class="armor-aura"></div>
+          <div class="armor-figure">
+            <div class="armor-wing left"></div><div class="armor-wing right"></div>
+            <div class="armor-head"></div><div class="armor-body"></div>
+            <div class="armor-arm arm-left"></div><div class="armor-arm arm-right"></div>
+            <div class="armor-leg leg-left"></div><div class="armor-leg leg-right"></div>
+            <div class="celestial-core"></div><div class="pixel-sword"></div>
+          </div>
+          <div class="legacy-note">MORE<br/>THAN A GAME<br/><strong>A LEGACY</strong></div>
+          <div class="hero-vertical">FIGHT<br/>EXPLORE<br/>BUILD<br/>DOMINATE<br/>TOGETHER<br/>FOREVER</div>
+        </div>
       </div>
     </section>
 
-    <section class="core-section section-shell" id="core">
-      <div class="core-grid reveal"><div class="core-copy"><span class="eyebrow">STANDALONE FABRIC MOD</span><h2>Eternal Core.<br/><span>No launcher required.</span></h2><p>Use the same verified in-game experience in a compatible Fabric 1.21.11 install. Keep the HUD, ClickGUI 2.0, HUD Studio, Zoom, Crosshair, Fullbright, Toggle Sprint, Toggle Sneak and Perspective.</p><a class="text-link" id="download-core" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar">Download the standalone JAR ↗</a></div><div class="core-mark"><img src="assets/logo.svg" alt=""/><strong>ETERNAL CORE</strong><span data-release-version>v1.1.0</span></div></div>
-    </section>
-
-    <section class="release-section section-shell" id="release">
-      <div class="release-grid reveal"><div><span class="eyebrow">LATEST RELEASE</span><h2 data-release-version>v1.1.0</h2><p>The Client Update · <span data-release-date>September 17, 2026</span></p></div><div class="release-links"><a id="release-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">Release notes ↗</a><a id="checksums-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/SHA256SUMS.txt">SHA256 checksums ↗</a></div></div>
-    </section>
-
-    <section class="download-section section-shell" id="download">
-      <div class="download-head reveal"><h2>Download Eternal.</h2><p>Choose the full Windows launcher or the standalone Fabric Core.</p></div>
-      <div class="download-grid reveal">
-        <a class="download-card" id="download-installer" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="download-platform">⊞</span><div><small>WINDOWS 10 / 11 · X64</small><h3>Eternal Client</h3><p>Launcher + profiles + Mod Hub + Studio + verified Core.</p><b id="installer-size">~113 MB</b></div><strong>↓</strong></a>
-        <a class="download-card" id="final-download" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="download-platform">◆</span><div><small>FABRIC 1.21.11 · JAVA 21</small><h3>Standalone Core</h3><p>Install Eternal Core without the desktop launcher.</p><b id="core-size">~90 KB</b></div><strong>↓</strong></a>
+    <section class="content-section container" id="abilities">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">UNLEASH THE POWER WITHIN</span><h2>CELESTIAL ARMOR ABILITIES</h2></div>
+        <p>POWER. MYSTERY. EVOLUTION.<br/>THIS IS <b>CELESTIAL.</b></p>
       </div>
-      <p class="download-note reveal">Free to download. Minecraft Java Edition is required to play.</p>
+      <div class="ability-grid reveal">
+        <article class="feature-card"><span class="feature-icon red">↯</span><h3>Super Speed</h3><p>Move faster than ever before. Outspeed danger, chase enemies and own the battlefield.</p></article>
+        <article class="feature-card"><span class="feature-icon purple">⇈</span><h3>High Jump</h3><p>Reach impossible heights, cross terrain faster and attack from angles nobody expects.</p></article>
+        <article class="feature-card"><span class="feature-icon blue">◇</span><h3>Legendary Strength &amp; Protection</h3><p>Equip the complete set to unlock devastating combat bonuses and elite protection.</p></article>
+        <article class="feature-card featured"><span class="feature-icon red">✦</span><h3>Laser Ability — Chestplate</h3><p>Fire a powerful beam that burns your target and applies negative effects during battle.</p></article>
+        <article class="feature-card"><span class="feature-icon purple">◉</span><h3>Hidden Abilities</h3><p>Each armor piece hides unique powers. Discover them as the season evolves.</p></article>
+      </div>
+    </section>
+
+    <section class="content-section container" id="ranks">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">MORE THAN A RANK. A HIGHER PURPOSE.</span><h2>NEW RANK SYSTEM</h2></div>
+        <p>CLIMB HIGHER.<br/>UNLOCK MORE.</p>
+      </div>
+      <div class="ability-grid ranks reveal">
+        <article class="feature-card"><span class="feature-icon red">♛</span><h3>Exclusive Abilities &amp; Perks</h3><p>Unique abilities and practical perks for every rank.</p></article>
+        <article class="feature-card"><span class="feature-icon purple">★</span><h3>Special Rewards</h3><p>Get exclusive items, cosmetics and season rewards.</p></article>
+        <article class="feature-card"><span class="feature-icon blue">▥</span><h3>Extra Benefits</h3><p>Unlock greater power and convenience as you climb.</p></article>
+        <article class="feature-card"><span class="feature-icon red">▣</span><h3>Unique Advantages</h3><p>Stand out with one-of-a-kind features and progression.</p></article>
+        <article class="feature-card"><span class="feature-icon blue">◇</span><h3>Exclusive Content</h3><p>Access content created specifically for high-rank players.</p></article>
+      </div>
+    </section>
+
+    <section class="update-shell" id="update">
+      <div class="container">
+        <div class="section-heading reveal"><div><span class="eyebrow">A BIGGER WORLD. A STRONGER YOU.</span><h2>ETERNAL SMP — NEW UPDATE</h2></div><p>NEW POWERS. NEW CHALLENGES.<br/>A BRIGHTER TOMORROW.</p></div>
+        <div class="update-strip reveal" role="list">
+          <div class="update-tile" role="listitem"><span class="tile-art armor-art"><img src="assets/armor-strip.svg" alt="Celestial armor set" /></span><b>Celestial Armor</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art sword-art">⚔</span><b>Legendary Abilities</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art crown-art">♛</span><b>New Rank System</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art chest-art">▣</span><b>Exclusive Perks</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art orb-art">◉</span><b>Special Rewards</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art combat-art">⚔</span><b>New Combat Features</b></div>
+          <div class="update-tile" role="listitem"><span class="tile-art portal-art">⌁</span><b>Brand-New Content</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="power-cta">
+      <div class="container power-grid">
+        <div class="power-copy reveal"><span class="eyebrow red-text">ARE YOU READY?</span><h2>THE POWER OF CELESTIAL<br/>IS WAITING FOR YOU...</h2><p>Will you become one of the strongest players on ETERNAL SMP?</p><blockquote>Discover the Celestial Power. Master its abilities.<br/>Rise through the ranks. Dominate ETERNAL SMP.</blockquote><div class="hero-actions"><a class="btn btn-red" href="https://discord.gg/HaN8HxzqCV">▶ Join Now</a><a class="btn btn-dark" href="https://discord.gg/HaN8HxzqCV">◆ Open Discord</a></div></div>
+        <div class="dragon-scene reveal delay-1" aria-hidden="true"><div class="dragon-moon"></div><div class="dragon-body"></div><div class="dragon-wing w1"></div><div class="dragon-wing w2"></div><div class="dragon-tail"></div><p>LEGENDS<br/>ARE NOT BORN.<br/><strong>THEY ARE MADE.</strong></p></div>
+      </div>
+    </section>
+
+    <section class="staff-section container" id="team">
+      <div class="section-heading reveal"><div><span class="eyebrow">THE MINDS BEHIND ETERNAL SMP</span><h2>ADMINS &amp; BUILDERS</h2></div><p>DEDICATED PEOPLE.<br/>A STRONGER COMMUNITY.</p></div>
+      <div class="staff-carousel reveal" data-carousel>
+        <div class="staff-track">
+          <article class="staff-card founder"><div class="staff-top"><img src="assets/team/celestial.svg" alt="Celestial avatar"/><span>FOUNDER</span></div><h3>Celestial</h3><div class="role-row"><b>Founder</b><b class="gold">Server Owner</b></div><p>Building more than a server.<br/>Building a home.</p></article>
+          <article class="staff-card"><div class="staff-top"><img src="assets/team/pycraft.svg" alt="PYCRAFT avatar"/><span>ADMIN</span></div><h3>『PYCRAFT』 Snare</h3><div class="role-row"><b>Co-Founder</b><b>Administrator</b></div><p>Turning ideas into reality,<br/>for a stronger tomorrow.</p></article>
+          <article class="staff-card"><div class="staff-top"><img src="assets/team/dragon.svg" alt="DRAGON avatar"/><span>BUILDER</span></div><h3>✦ DRAGON ✦</h3><div class="role-row"><b>Builder</b><b>Administrator</b></div><p>I don't just build worlds.<br/>I build legacies.</p></article>
+          <article class="staff-card"><div class="staff-top"><img src="assets/team/aljenral.svg" alt="Aljenral avatar"/><span>BUILDER</span></div><h3>Aljenral</h3><div class="role-row"><b>Builder</b><b>Administrator</b></div><p>Details today.<br/>Greater worlds tomorrow.</p></article>
+        </div>
+        <div class="carousel-controls"><button type="button" data-prev aria-label="Previous staff member">‹</button><div class="carousel-dots" aria-hidden="true"><span class="active"></span><span></span><span></span></div><button type="button" data-next aria-label="Next staff member">›</button></div>
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer"><div class="section-shell footer-grid"><a class="brand footer-brand" href="#top"><img src="assets/logo.svg" alt=""/><span>Eternal</span></a><div><a href="#features">The launcher</a><a href="#experience">The client</a><a id="footer-release" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.1.0">Release</a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" target="_blank" rel="noreferrer">GitHub ↗</a></div><small>© 2026 Eternal Client. Original Eternal product design.</small></div></footer>
-
-  <script src="app.js" defer></script>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <a class="brand" href="#top"><img src="assets/logo.svg" alt=""/><span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span></a>
+      <nav><a href="#top">Home</a><a href="#abilities">Seasons</a><a href="client.html">Client</a><a href="#ranks">Ranks</a><a href="#update">Update</a><a href="https://discord.gg/HaN8HxzqCV">Discord</a></nav>
+      <a class="footer-discord" href="https://discord.gg/HaN8HxzqCV"><span>◆</span><small>Join our community</small><b>discord.gg/HaN8HxzqCV</b></a>
+    </div>
+    <div class="container footer-bottom"><span>© 2026 ETERNAL SMP. Beyond Survival.</span><span>SAME BLOCKS. A HIGHER DESTINY.</span></div>
+  </footer>
 </body>
 </html>
