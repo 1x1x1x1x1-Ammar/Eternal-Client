@@ -1,10 +1,168 @@
-const $=(s,r=document)=>r.querySelector(s);const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const FALLBACK={version:'v1.1.0',installer:'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe',core:'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar'};
-function initNav(){const h=$('.site-nav'),b=$('.nav-toggle'),m=$('.mobile-menu');const sync=()=>h?.classList.toggle('scrolled',scrollY>18);sync();addEventListener('scroll',sync,{passive:true});if(!b||!m)return;const close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.setAttribute('aria-expanded','false')};b.addEventListener('click',()=>{const open=!m.classList.contains('open');m.classList.toggle('open',open);m.setAttribute('aria-hidden',String(!open));b.setAttribute('aria-expanded',String(open))});$$('a',m).forEach(a=>a.addEventListener('click',close));addEventListener('keydown',e=>{if(e.key==='Escape')close()})}
-function initReveal(){const items=$$('.reveal');if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver'in window)){items.forEach(i=>i.classList.add('visible'));return}const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.08,rootMargin:'0px 0px -42px'});items.forEach(i=>io.observe(i))}
-function initGlow(){const g=$('.mouse-glow');if(!g||matchMedia('(pointer:coarse)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches)return;let raf=0;addEventListener('pointermove',e=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{g.style.left=e.clientX+'px';g.style.top=e.clientY+'px';g.style.opacity='1'})},{passive:true});addEventListener('pointerleave',()=>g.style.opacity='0')}
-function initCopy(){$$('[data-copy]').forEach(btn=>btn.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(btn.dataset.copy);const s=$('.copy-state',btn);if(s){s.textContent='✓';setTimeout(()=>s.textContent='▢',1600)}}catch{}}))}
-function initClientTabs(){const buttons=$$('[data-client-tab]'),panels=$$('[data-client-panel]');if(!buttons.length)return;const activate=id=>{buttons.forEach(b=>b.classList.toggle('active',b.dataset.clientTab===id));panels.forEach(p=>p.classList.toggle('hidden',p.dataset.clientPanel!==id))};buttons.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.clientTab)))}
-function initCarousel(){const wrap=$('[data-carousel]'),track=wrap&&$('.staff-track',wrap),cards=track&&$$('.staff-card',track),prev=wrap&&$('[data-prev]',wrap),next=wrap&&$('[data-next]',wrap);if(!wrap||!track||!cards?.length)return;let idx=0;const update=()=>{if(innerWidth>720){track.style.removeProperty('--staff-offset');return}const cardW=cards[0].getBoundingClientRect().width+12;const max=Math.max(0,cards.length-1);idx=Math.max(0,Math.min(idx,max));track.style.setProperty('--staff-offset',`${-idx*cardW}px`);$$('.carousel-dots span',wrap).forEach((d,i)=>d.classList.toggle('active',i===Math.min(idx,2)))};prev?.addEventListener('click',()=>{idx--;update()});next?.addEventListener('click',()=>{idx++;update()});addEventListener('resize',update,{passive:true});update()}
-async function initRelease(){const apply=(version,installer,core)=>{$$('[data-release-version]').forEach(n=>n.textContent=version);['#hero-download','#download-installer'].forEach(s=>$$(s).forEach(a=>a.href=installer));['#core-download','#download-core'].forEach(s=>$(s).forEach(a=>a.href=core))};apply(FALLBACK.version,FALLBACK.installer,FALLBACK.core);try{const r=await fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/latest',{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)return;const j=await r.json();const exe=j.assets?.find(a=>/Eternal\.Client\.Setup\..*\.exe$/i.test(a.name));const jar=j.assets?.find(a=>/Eternal-Core-Standalone-.*\.jar$/i.test(a.name));apply(j.tag_name||FALLBACK.version,exe?.browser_download_url||FALLBACK.installer,jar?.browser_download_url||FALLBACK.core)}catch{}}
-document.addEventListener('DOMContentLoaded',()=>{initNav();initReveal();initGlow();initCopy();initClientTabs();initCarousel();initRelease()});
+(() => {
+  'use strict';
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(pointer:fine)').matches;
+  const nav = document.querySelector('[data-nav]');
+  const progress = document.querySelector('[data-scroll-progress]');
+
+  const onScroll = () => {
+    nav?.classList.toggle('scrolled', scrollY > 18);
+    if (progress) {
+      const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+      progress.style.width = `${Math.min(100, Math.max(0, (scrollY / max) * 100))}%`;
+    }
+  };
+  onScroll();
+  addEventListener('scroll', onScroll, { passive: true });
+
+  const reveals = [...document.querySelectorAll('.reveal')];
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    reveals.forEach(el => el.classList.add('is-visible'));
+  } else {
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -54px' });
+    reveals.forEach(el => revealObserver.observe(el));
+  }
+
+  const hero = document.querySelector('.hero-section');
+  const heroMedia = document.querySelector('.hero-media');
+  if (!reduceMotion && finePointer && hero && heroMedia) {
+    let frame = 0;
+    hero.addEventListener('pointermove', event => {
+      const rect = hero.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        heroMedia.style.transform = `scale(1.045) translate3d(${x * -12}px,${y * -9}px,0)`;
+      });
+    }, { passive: true });
+    hero.addEventListener('pointerleave', () => { heroMedia.style.transform = 'scale(1.02)'; });
+  }
+
+  if (!reduceMotion && finePointer) {
+    document.querySelectorAll('[data-tilt]').forEach(card => {
+      let frame = 0;
+      card.addEventListener('pointermove', event => {
+        const rect = card.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          card.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${y * -4}deg) translateY(-5px)`;
+        });
+      }, { passive: true });
+      card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    });
+
+    document.querySelectorAll('[data-tilt-soft]').forEach(stage => {
+      const target = stage.querySelector('.product-window') || stage;
+      let frame = 0;
+      stage.addEventListener('pointermove', event => {
+        const rect = stage.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          target.style.transform = `perspective(1600px) rotateY(${-5 + x * 3.5}deg) rotateX(${1.8 - y * 2.2}deg) translateY(${-Math.abs(x) * 3}px)`;
+        });
+      }, { passive: true });
+      stage.addEventListener('pointerleave', () => { target.style.transform = ''; });
+    });
+  }
+
+  document.querySelectorAll('[data-copy]').forEach(copyButton => {
+    copyButton.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(copyButton.dataset.copy || '');
+        const toastEl = document.getElementById('copyToast');
+        if (toastEl && window.bootstrap) bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 1800 }).show();
+      } catch (_) {}
+    });
+  });
+
+  const sections = [...document.querySelectorAll('main section[id]')];
+  const navLinks = [...document.querySelectorAll('.navbar .nav-link[href^="#"]')];
+  if ('IntersectionObserver' in window && sections.length && navLinks.length) {
+    const sectionObserver = new IntersectionObserver(entries => {
+      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+    }, { rootMargin: '-34% 0px -56%', threshold: [0.01, 0.15, 0.35] });
+    sections.forEach(section => sectionObserver.observe(section));
+  }
+
+
+
+  // Premium pointer spotlight for cards and panels.
+  if (!reduceMotion && finePointer) {
+    document.querySelectorAll('.premium-frame,.member-card,.glass-feature,.rank-card,.story-card,.system-shell,.download-shell,.gallery-panel').forEach(el => {
+      el.addEventListener('pointermove', event => {
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
+        el.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+      }, { passive: true });
+    });
+  }
+
+  // Real image lightbox: only opens actual generated artwork files.
+  const artModalEl = document.getElementById('artModal');
+  if (artModalEl && window.bootstrap) {
+    const artModal = bootstrap.Modal.getOrCreateInstance(artModalEl);
+    const artImage = artModalEl.querySelector('[data-art-image]');
+    const artTitle = artModalEl.querySelector('[data-art-title]');
+    document.querySelectorAll('[data-lightbox]').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const src = trigger.dataset.lightbox;
+        if (!src) return;
+        artImage.src = src;
+        artImage.alt = trigger.dataset.lightboxTitle || 'Eternal artwork';
+        artTitle.textContent = trigger.dataset.lightboxTitle || 'Eternal artwork';
+        artModal.show();
+      });
+    });
+    artModalEl.addEventListener('hidden.bs.modal', () => { artImage.src = ''; });
+  }
+
+  // Magnetic feel for primary actions without moving layout.
+  if (!reduceMotion && finePointer) {
+    document.querySelectorAll('.btn-eternal,.nav-btn-red').forEach(button => {
+      button.addEventListener('pointermove', event => {
+        const rect = button.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - .5) * 7;
+        const y = ((event.clientY - rect.top) / rect.height - .5) * 5;
+        button.style.transform = `translate3d(${x}px,${y}px,0)`;
+      }, { passive: true });
+      button.addEventListener('pointerleave', () => { button.style.transform = ''; });
+    });
+  }
+
+  const fallback = {
+    version: 'v1.1.0',
+    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe',
+    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar'
+  };
+
+  const applyRelease = (version, installer, core) => {
+    document.querySelectorAll('[data-release-version]').forEach(el => { el.textContent = version; });
+    document.querySelectorAll('#hero-download,#download-installer').forEach(el => { el.href = installer; });
+    document.querySelectorAll('#core-download,#download-core').forEach(el => { el.href = core; });
+  };
+  applyRelease(fallback.version, fallback.installer, fallback.core);
+
+  fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (!data) return;
+      const exe = data.assets?.find(asset => /Eternal\.Client\.Setup\..*\.exe$/i.test(asset.name));
+      const jar = data.assets?.find(asset => /Eternal-Core-Standalone-.*\.jar$/i.test(asset.name));
+      applyRelease(data.tag_name || fallback.version, exe?.browser_download_url || fallback.installer, jar?.browser_download_url || fallback.core);
+    })
+    .catch(() => {});
+})();

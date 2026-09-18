@@ -1,17 +1,9 @@
 {
-  "name": "Eternal Client",
+  "name": "Eternal SMP",
   "short_name": "Eternal",
-  "description": "Premium Minecraft launcher and standalone in-game client.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#07080a",
-  "theme_color": "#08090b",
-  "icons": [
-    {
-      "src": "assets/logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "background_color": "#06080c",
+  "theme_color": "#07090d",
+  "description": "Eternal SMP — Beyond Survival"
 }
