@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, nativeImage } from 'electron';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,7 @@ import * as mods from './services/modService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
 import * as versions from './services/versionService.js';
+import { validateSkin } from './services/skinService.js';
 import {
   coreStatus, exportStandalone, readCoreConfig, patchCoreConfig, listCoreProfiles,
   saveCoreProfile, applyCoreProfile, deleteCoreProfile, listCoreScreenshots,
@@ -249,6 +250,15 @@ handle('accounts:list', () => ({ accounts: accounts.listAccounts(), activeId: st
 handle('accounts:addOffline', username => accounts.addOffline(username));
 handle('accounts:remove', id => accounts.removeAccount(id));
 handle('accounts:activate', id => accounts.activateAccount(id));
+handle('accounts:skin', async data => {
+  if (!data?.reset) {
+    const skin = validateSkin(data?.dataUrl, data?.variant);
+    const decoded = nativeImage.createFromBuffer(skin.bytes);
+    const size = decoded.getSize();
+    if (decoded.isEmpty() || size.width !== skin.width || size.height !== skin.height) throw new Error('The PNG skin could not be decoded.');
+  }
+  return accounts.updateSkin(data || {});
+});
 handle('accounts:loginMicrosoft', () => accounts.loginMicrosoft(code => send('account:event', { type: 'device-code', message: code.message, userCode: code.userCode, verificationUri: code.verificationUri })));
 
 handle('instances:list', () => instances.listInstances());

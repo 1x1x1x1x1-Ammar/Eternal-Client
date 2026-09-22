@@ -10,19 +10,24 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class HudRenderer {
     private static final String[] MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
-            "Memory", "Session", "Clock"
+            "Memory", "Session", "Clock", "AttackCooldown", "HeldItem", "ArmorDurability",
+            "Offhand", "Movement", "CombatSupplies"
     };
     private static final int TEXT = EternalUi.TEXT;
     private static final int MUTED = EternalUi.MUTED;
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm");
+    private static final Map<String, String> VALUES = new HashMap<>();
 
     private HudRenderer() {}
     public static void install() {}
+    public static void tick() { VALUES.clear(); }
     public static String[] modules() { return MODULES.clone(); }
 
     public static void render(GuiGraphics graphics) {
@@ -33,7 +38,9 @@ public final class HudRenderer {
         for (String name : MODULES) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] pos = CoreConfig.INSTANCE.pos(name, 10, fallbackY);
-            drawModule(graphics, name, pos[0], pos[1], false, false);
+            int x = Math.max(0, Math.min(graphics.guiWidth() - boxWidth(name), pos[0]));
+            int y = Math.max(0, Math.min(graphics.guiHeight() - boxHeight(name), pos[1]));
+            drawModule(graphics, name, x, y, false, false);
             fallbackY += boxHeight(name) + 5;
         }
         NotificationCenter.render(graphics);
@@ -76,7 +83,7 @@ public final class HudRenderer {
         Minecraft mc = Minecraft.getInstance();
         if ("Keystrokes".equals(name)) return 126;
         if ("Watermark".equals(name)) return 146;
-        return Math.max(80, mc.font.width(value(name)) + 30);
+        return Math.min(mc.getWindow().getGuiScaledWidth(), Math.max(80, mc.font.width(value(name)) + 30));
     }
 
     public static int boxHeight(String name) {
@@ -109,7 +116,11 @@ public final class HudRenderer {
         int dot = EternalUi.alpha(accent, pulse);
         graphics.fill(x + 9, y + 9, x + 13, y + 13, dot);
         graphics.fill(x + 10, y + 8, x + 12, y + 14, EternalUi.alpha(accent, Math.max(50, pulse / 2)));
-        graphics.drawString(mc.font, value(name), x + 19, y + 8, TEXT, config.textShadow());
+        graphics.drawString(mc.font, mc.font.plainSubstrByWidth(value(name), Math.max(1, width - 26)), x + 19, y + 8, TEXT, config.textShadow());
+        if ("AttackCooldown".equals(name) && mc.player != null) {
+            int progress = Math.round((width - 4) * mc.player.getAttackStrengthScale(0.0F));
+            graphics.fill(x + 2, y + height - 2, x + 2 + progress, y + height - 1, accent);
+        }
     }
 
     private static int accentAt(int base, int y) {
@@ -197,6 +208,10 @@ public final class HudRenderer {
     }
 
     public static String value(String name) {
+        return VALUES.computeIfAbsent(name, HudRenderer::readValue);
+    }
+
+    private static String readValue(String name) {
         Minecraft mc = Minecraft.getInstance();
         if (name.equals("Watermark")) return "ETERNAL CORE";
         if (name.equals("FPS")) return "FPS  " + mc.getFps();
@@ -223,6 +238,7 @@ public final class HudRenderer {
                         + " / " + (runtime.maxMemory() / 1048576) + " MB";
             }
             case "Session" -> "SESSION  " + format(EternalCore.sessionMillis());
+            case "AttackCooldown", "HeldItem", "ArmorDurability", "Offhand", "Movement", "CombatSupplies" -> CombatHud.value(name);
             default -> name;
         };
     }

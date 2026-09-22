@@ -33,7 +33,8 @@ contextBridge.exposeInMainWorld('eternal', {
     addOffline: (username) => invoke('accounts:addOffline', username),
     loginMicrosoft: () => invoke('accounts:loginMicrosoft'),
     remove: (id) => invoke('accounts:remove', id),
-    activate: (id) => invoke('accounts:activate', id)
+    activate: (id) => invoke('accounts:activate', id),
+    skin: (data) => invoke('accounts:skin', data)
   },
   instances: {
     list: () => invoke('instances:list'),

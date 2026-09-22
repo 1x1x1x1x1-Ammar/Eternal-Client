@@ -26,15 +26,23 @@ public final class EternalTitleScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        MenuViewport view = viewport();
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(view.scale(), view.scale());
+        try { renderMenu(graphics, view.pointer(mouseX), view.pointer(mouseY), delta); }
+        finally { graphics.pose().popMatrix(); }
+    }
+
+    private void renderMenu(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         CoreConfig config = CoreConfig.INSTANCE;
         int accent = config.accentColor();
         long now = System.currentTimeMillis();
         float intro = EternalUi.easeOutCubic((now - openedAt) / 420.0F);
         Layout layout = layout();
 
-        EternalUi.backdrop(graphics, width, height, accent);
+        EternalUi.backdrop(graphics, viewport().width(), viewport().height(), accent);
 
-        int lift = Math.round((1.0F - intro) * 14.0F);
+        int lift = 0;
         int alpha = Math.max(34, Math.round(255.0F * intro));
         int titleY = layout.y + 2 + lift;
 
@@ -84,7 +92,7 @@ public final class EternalTitleScreen extends Screen {
         EternalUi.accentRail(graphics, x, y, h, accent, true);
         graphics.drawString(font, "ETERNAL START", x + 20, y + 18, DIM, false);
         graphics.drawString(font, "Your Minecraft. Sharpened.", x + 20, y + 38, TEXT, false);
-        graphics.drawString(font, "Fast access to worlds, servers, HUD tools and the live Core without leaving the game flow.", x + 20, y + 56, MUTED, false);
+        graphics.drawString(font, "Worlds, servers and your combat workspace.", x + 20, y + 56, MUTED, false);
 
         int chipY = y + h - 31;
         int enabled = enabledCount();
@@ -201,8 +209,8 @@ public final class EternalTitleScreen extends Screen {
         int cardW = (layout.mainW - gap) / 2;
         int dockGap = 7;
         int dockW = (layout.mainW - dockGap * 3) / 4;
-        int mx = (int) event.x();
-        int my = (int) event.y();
+        int mx = viewport().pointer(event.x());
+        int my = viewport().pointer(event.y());
         Minecraft mc = Minecraft.getInstance();
 
         try {
@@ -238,7 +246,11 @@ public final class EternalTitleScreen extends Screen {
         return super.mouseClicked(event, doubleClick);
     }
 
+    private MenuViewport viewport() { return MenuViewport.fit(width, height, 1000, 560); }
+
     private Layout layout() {
+        int width = viewport().width();
+        int height = viewport().height();
         int w = Math.min(960, Math.max(360, width - 34));
         int h = Math.min(510, Math.max(350, height - 34));
         int x = (width - w) / 2;

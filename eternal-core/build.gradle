@@ -16,6 +16,7 @@ dependencies {
 }
 
 processResources {
+    from(project.file('../shared/combat-presets.json')) { into 'assets/eternal-core' }
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
         expand 'version': inputs.properties.version
