@@ -3,6 +3,7 @@ import { Check, CheckCircle2, Copy, ExternalLink, LogIn, ShieldCheck, Trash2, Us
 import { useEternalStore } from '../store/useEternalStore.js';
 import { api, call } from '../lib/api.js';
 import MinecraftHead from '../components/MinecraftHead.jsx';
+import SkinStudio from '../components/SkinStudio.jsx';
 
 export default function Accounts() {
   const accounts = useEternalStore(s => s.accounts);
@@ -77,6 +78,7 @@ export default function Accounts() {
 
     {(error || message) && <div className={error ? 'release-error beta8-inline-error' : 'beta8-success'}>{error ? error : <><CheckCircle2/>{message}</>}</div>}
 
+    <SkinStudio accounts={accounts} activeId={activeId} refreshAccounts={refreshAccounts}/>
     <div className="account-page-grid beta8-account-grid">
       <section className="release-panel account-manager beta8-account-manager">
         <div className="release-panel-head"><div><small>YOUR PROFILES</small><h2>Minecraft accounts</h2></div><span>{accounts.length}</span></div>

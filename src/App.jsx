@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import Sidebar from './components/Sidebar.jsx';
 import TitleBar from './components/TitleBar.jsx';
@@ -82,7 +82,7 @@ export default function App() {
     <button className="primary" onClick={() => bootstrap().catch(() => {})}><RefreshCw/>Retry</button>
   </div>;
 
-  return <div className="app-shell">
+  return <MotionConfig reducedMotion={reducedMotion ? 'always' : 'user'}><div className="app-shell" data-reduced-motion={reducedMotion ? 'true' : undefined}>
     <TitleBar onSearch={() => setCommand(true)} />
     <Sidebar />
     <main className="content">
@@ -115,5 +115,5 @@ export default function App() {
     <ActivityDock />
     <OperationConsole />
     <CommandCenter open={command} onClose={() => setCommand(false)} navigate={navigate} />
-  </div>;
+  </div></MotionConfig>;
 }

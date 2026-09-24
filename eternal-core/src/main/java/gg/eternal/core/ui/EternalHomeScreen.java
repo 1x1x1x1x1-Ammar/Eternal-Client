@@ -28,14 +28,19 @@ public final class EternalHomeScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        MenuViewport view = viewport();
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(view.scale(), view.scale());
         try {
-            renderEternal(graphics, mouseX, mouseY, delta);
+            renderEternal(graphics, view.pointer(mouseX), view.pointer(mouseY), delta);
         } catch (Throwable error) {
             if (!renderFailureLogged) {
                 renderFailureLogged = true;
                 CoreLog.error("Eternal Start render failed", error);
             }
             renderFallback(graphics);
+        } finally {
+            graphics.pose().popMatrix();
         }
     }
 
@@ -46,7 +51,7 @@ public final class EternalHomeScreen extends Screen {
         long now = System.currentTimeMillis();
         float intro = EternalUi.easeOutCubic((now - openedAt) / 300.0F);
 
-        EternalUi.veil(graphics, width, height, accent);
+        EternalUi.veil(graphics, viewport().width(), viewport().height(), accent);
         drawHeader(graphics, l, accent, intro);
         drawRail(graphics, mouseX, mouseY, l, accent);
         drawOverview(graphics, l, accent);
@@ -231,8 +236,8 @@ public final class EternalHomeScreen extends Screen {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         try {
             Layout l = layout();
-            int mx = (int) event.x();
-            int my = (int) event.y();
+        int mx = viewport().pointer(event.x());
+        int my = viewport().pointer(event.y());
             Minecraft mc = Minecraft.getInstance();
 
             if (inside(mx, my, l.railX + 10, l.bodyY + 39, l.railW - 20, 42)) { mc.setScreen(null); return true; }
@@ -269,7 +274,11 @@ public final class EternalHomeScreen extends Screen {
         }
     }
 
+    private MenuViewport viewport() { return MenuViewport.fit(width, height, 1000, 560); }
+
     private Layout layout() {
+        int width = viewport().width();
+        int height = viewport().height();
         int w = Math.min(950, Math.max(560, width - 24));
         int h = Math.min(520, Math.max(390, height - 24));
         int x = (width - w) / 2;

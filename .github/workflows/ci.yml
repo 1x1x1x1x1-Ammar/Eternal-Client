@@ -55,8 +55,8 @@ jobs:
         run: node scripts/stage-core.mjs
       - name: Tests and renderer build
         run: npm run verify
-      - name: Package unpacked Windows app
-        run: npx electron-builder --win dir --x64 --publish never
+      - name: Package Windows installer
+        run: npx electron-builder --win nsis --x64 --publish never
       - name: Smoke test packaged Electron main process
         shell: pwsh
         run: |
@@ -66,3 +66,43 @@ jobs:
           $process = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -PassThru -Wait
           if ($process.ExitCode -ne 0) { throw "Packaged Eternal Client smoke test failed with exit code $($process.ExitCode)" }
           Write-Host "Packaged Eternal Client startup smoke test passed." -ForegroundColor Green
+      - name: Prepare downloadable installer and standalone Core
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $installer = Get-Item "release/Eternal.Client.Setup.$version.exe"
+          $core = "release/Eternal-Core-Standalone-$version.jar"
+          Copy-Item assets/eternal-core.jar $core
+          $entries = & jar tf $core
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect standalone Core.' }
+          foreach ($required in @('fabric.mod.json', 'assets/eternal-core/combat-presets.json', 'gg/eternal/core/hud/CombatHud.class', 'gg/eternal/core/ui/MenuViewport.class', 'gg/eternal/core/ui/ClickGuiScreen.class')) {
+            if ($entries -notcontains $required) { throw "Standalone Core is missing $required" }
+          }
+          $targets = @($installer, (Get-Item $core))
+          $checksums = foreach ($file in $targets) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($file.Name)"
+          }
+          $checksums | Set-Content release/SHA256SUMS.txt -Encoding ascii
+          @(
+            "Eternal Client $version - updated UI build",
+            "Commit: $env:GITHUB_SHA",
+            "Build: https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID",
+            'Windows: run the Setup EXE. The launcher bundles this same Core JAR.',
+            'Standalone: install Fabric for Minecraft 1.21.11 and place the JAR in mods. Use Java 21.',
+            'Remove an older Eternal Core JAR from mods before installing this one.',
+            'These are CI builds, not a published automatic update. Live Minecraft testing remains required.',
+            'Offline skins are launcher-local. Aternos setup opens its official dashboard.'
+          ) | Set-Content release/BUILD-INFO.txt -Encoding utf8
+      - name: Upload Windows installer and Core JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eternal-Client-Windows-and-Core-${{ github.run_number }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            release/Eternal.Client.Setup.*.exe
+            release/Eternal-Core-Standalone-*.jar
+            release/SHA256SUMS.txt
+            release/BUILD-INFO.txt

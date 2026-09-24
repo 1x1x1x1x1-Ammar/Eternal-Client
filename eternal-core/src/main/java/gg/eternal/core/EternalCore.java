@@ -16,13 +16,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public final class EternalCore implements ClientModInitializer {
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.1.1";
     private static long sessionStarted;
     private static boolean zoomed;
     private static boolean zoomHeld;
     private static int previousFov = 70;
     private static boolean fullbrightApplied;
     private static double previousGamma = 0.5D;
+    private static boolean sprintApplied;
+    private static boolean sneakApplied;
+    private static boolean previousSprint;
+    private static boolean previousSneak;
     private static final AtomicBoolean screenOpenQueued = new AtomicBoolean(false);
 
     @Override
@@ -43,6 +47,7 @@ public final class EternalCore implements ClientModInitializer {
 
     public static void tick() {
         try {
+            HudRenderer.tick();
             CoreConfig config = CoreConfig.INSTANCE;
             config.reloadIfChanged();
             Minecraft mc = Minecraft.getInstance();
@@ -59,8 +64,22 @@ public final class EternalCore implements ClientModInitializer {
     private static void syncToggleOptions(Minecraft mc, CoreConfig config) {
         boolean sprint = config.on("ToggleSprint");
         boolean sneak = config.on("ToggleSneak");
-        if (mc.options.toggleSprint().get() != sprint) mc.options.toggleSprint().set(sprint);
-        if (mc.options.toggleCrouch().get() != sneak) mc.options.toggleCrouch().set(sneak);
+        if (sprint && !sprintApplied) {
+            previousSprint = mc.options.toggleSprint().get();
+            mc.options.toggleSprint().set(true);
+            sprintApplied = true;
+        } else if (!sprint && sprintApplied) {
+            mc.options.toggleSprint().set(previousSprint);
+            sprintApplied = false;
+        }
+        if (sneak && !sneakApplied) {
+            previousSneak = mc.options.toggleCrouch().get();
+            mc.options.toggleCrouch().set(true);
+            sneakApplied = true;
+        } else if (!sneak && sneakApplied) {
+            mc.options.toggleCrouch().set(previousSneak);
+            sneakApplied = false;
+        }
     }
 
     private static void syncFullbright(Minecraft mc, CoreConfig config) {
@@ -78,7 +97,7 @@ public final class EternalCore implements ClientModInitializer {
 
     private static void tickZoom(Minecraft mc, CoreConfig config) {
         if (!zoomed) return;
-        if (!config.on("Zoom")) zoomHeld = false;
+        if (!config.on("Zoom") || mc.screen != null || mc.player == null) zoomHeld = false;
         int target = zoomHeld ? config.zoomFov() : previousFov;
         int current = mc.options.fov().get();
         if (!config.smoothZoom()) {

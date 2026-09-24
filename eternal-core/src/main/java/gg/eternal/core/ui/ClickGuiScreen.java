@@ -13,12 +13,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class ClickGuiScreen extends Screen {
-    private static final String[] SECTIONS = {"HUD", "CLIENT", "VISUAL", "STYLE", "ABOUT"};
-    private static final String[] SECTION_SUBS = {"Telemetry", "Gameplay", "Crosshair", "Theme", "Runtime"};
+    private static final String[] SECTIONS = {"HUD", "CLIENT", "VISUAL", "STYLE", "COMBAT", "ABOUT"};
+    private static final String[] SECTION_SUBS = {"Telemetry", "Gameplay", "Crosshair", "Theme", "PvP presets", "Runtime"};
+    private static final String[] COMBAT_PRESETS = {"sword", "mace", "spear", "crystal", "cart"};
     private static final String[] HUD_MODULES = {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
-            "Memory", "Session", "Clock"
+            "Memory", "Session", "Clock", "AttackCooldown", "HeldItem", "ArmorDurability", "Offhand", "Movement", "CombatSupplies"
     };
     private static final String[] CLIENT_MODULES = {"Zoom", "Fullbright", "ToggleSprint", "ToggleSneak", "Perspective"};
     private static final int[] ACCENTS = {0xFFFF3038, 0xFFFF6B35, 0xFF8B5CF6, 0xFF3B82F6, 0xFF22C55E};
@@ -51,6 +52,12 @@ public final class ClickGuiScreen extends Screen {
         DESCRIPTIONS.put("ToggleSneak", "Native Minecraft toggle sneak");
         DESCRIPTIONS.put("Perspective", "Cycle camera perspective");
         DESCRIPTIONS.put("Crosshair", "Pixel-perfect custom crosshair");
+        DESCRIPTIONS.put("AttackCooldown", "Attack recovery");
+        DESCRIPTIONS.put("HeldItem", "Held item + wear");
+        DESCRIPTIONS.put("ArmorDurability", "Lowest armor %");
+        DESCRIPTIONS.put("Offhand", "Offhand status");
+        DESCRIPTIONS.put("Movement", "Fall + vertical speed");
+        DESCRIPTIONS.put("CombatSupplies", "Carried PvP supplies");
     }
 
     private int section;
@@ -64,6 +71,14 @@ public final class ClickGuiScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        MenuViewport view = viewport();
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(view.scale(), view.scale());
+        try { renderMenu(graphics, view.pointer(mouseX), view.pointer(mouseY), delta); }
+        finally { graphics.pose().popMatrix(); }
+    }
+
+    private void renderMenu(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         CoreConfig config = CoreConfig.INSTANCE;
         int accent = config.accentColor();
         Layout l = layout();
@@ -71,12 +86,12 @@ public final class ClickGuiScreen extends Screen {
         float intro = EternalUi.easeOutCubic((now - openedAt) / 280.0F);
         float sectionIntro = EternalUi.easeOutCubic((now - sectionChangedAt) / 180.0F);
 
-        EternalUi.veil(graphics, width, height, accent);
+        EternalUi.veil(graphics, viewport().width(), viewport().height(), accent);
         drawShell(graphics, l, accent, intro);
         drawSidebar(graphics, mouseX, mouseY, l, accent);
         drawTopbar(graphics, l, accent);
 
-        int shift = Math.round((1.0F - sectionIntro) * 10.0F);
+        int shift = 0;
         int cx = l.contentX + shift;
         int cy = l.contentY;
         int cw = l.contentW - shift;
@@ -87,6 +102,7 @@ public final class ClickGuiScreen extends Screen {
             case 1 -> renderClient(graphics, mouseX, mouseY, cx, cy, cw);
             case 2 -> renderVisual(graphics, mouseX, mouseY, cx, cy, cw);
             case 3 -> renderStyle(graphics, mouseX, mouseY, cx, cy, cw);
+            case 4 -> renderCombat(graphics, mouseX, mouseY, cx, cy, cw);
             default -> renderAbout(graphics, cx, cy, cw);
         }
 
@@ -159,7 +175,7 @@ public final class ClickGuiScreen extends Screen {
             moduleCard(graphics, mouseX, mouseY, cardX, cardY, cardW, 41, name, DESCRIPTIONS.get(name), CoreConfig.INSTANCE.on(name), CoreConfig.INSTANCE.accentColor());
         }
 
-        int actionY = startY + 5 * 48 + 7;
+        int actionY = startY + ((HUD_MODULES.length + 2) / 3) * 48 + 7;
         actionButton(graphics, mouseX, mouseY, x, actionY, 105, 28, "ENABLE ALL", false);
         actionButton(graphics, mouseX, mouseY, x + 112, actionY, 105, 28, "DISABLE ALL", false);
         actionButton(graphics, mouseX, mouseY, x + 224, actionY, 142, 28, "OPEN HUD EDITOR", true);
@@ -181,6 +197,18 @@ public final class ClickGuiScreen extends Screen {
         keyRow(graphics, mouseX, mouseY, x, keysY + 47, width, "HUD", keyName(CoreConfig.INSTANCE.hudEditorKey()), "Open HUD editor", "HUD");
         keyRow(graphics, mouseX, mouseY, x, keysY + 76, width, "ZOOM", keyName(CoreConfig.INSTANCE.zoomKey()), "Hold to zoom", "ZOOM");
         keyRow(graphics, mouseX, mouseY, x, keysY + 105, width, "VIEW", keyName(CoreConfig.INSTANCE.perspectiveKey()), "Cycle perspective", "PERSPECTIVE");
+    }
+
+    private void renderCombat(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
+        sectionHeader(graphics, x, y, "COMBAT WORKSPACE", "PVP PRESETS", "Local telemetry + crosshair. Existing modules and layout stay intact.");
+        String[] details = {"Attack recovery, armor durability and offhand", "Fall distance, wind charges and vertical speed",
+                "Movement speed, weapon wear and attack recovery", "Crystal, obsidian and totem counts", "TNT minecart, rail and ignition tool status"};
+        for (int i = 0; i < COMBAT_PRESETS.length; i++) {
+            String id = COMBAT_PRESETS[i];
+            moduleCard(graphics, mouseX, mouseY, x, y + 59 + i * 55, width, 47, id,
+                    details[i], id.equals(CoreConfig.INSTANCE.combatPreset()), CoreConfig.INSTANCE.accentColor());
+        }
+        graphics.drawString(font, "Read-only helpers. No automatic attacks, aiming or item switching.", x, y + 350, MUTED, false);
     }
 
     private void renderVisual(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int width) {
@@ -297,8 +325,8 @@ public final class ClickGuiScreen extends Screen {
         boolean hover = inside(mouseX, mouseY, x, y, width, height);
         EternalUi.glass(graphics, x, y, width, height, accent, hover || enabled);
         EternalUi.accentRail(graphics, x, y, height, accent, enabled);
-        graphics.drawString(font, prettyName(name), x + 11, y + 8, enabled ? TEXT : 0xFFD0D4DB, false);
-        if (width > 135 && description != null) graphics.drawString(font, description, x + 11, y + 23, enabled ? 0xFF848C97 : DIM, false);
+        graphics.drawString(font, font.plainSubstrByWidth(prettyName(name), width - 52), x + 11, y + 8, enabled ? TEXT : 0xFFD0D4DB, false);
+        if (width > 135 && description != null) graphics.drawString(font, font.plainSubstrByWidth(description, width - 52), x + 11, y + 23, enabled ? 0xFF848C97 : DIM, false);
         else graphics.drawString(font, enabled ? "ENABLED" : "DISABLED", x + 11, y + 23, enabled ? 0xFF83DFA0 : DIM, false);
         drawToggle(graphics, x + width - 37, y + 14, enabled, accent);
     }
@@ -377,8 +405,8 @@ public final class ClickGuiScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         Layout l = layout();
-        int mx = (int) event.x();
-        int my = (int) event.y();
+        int mx = viewport().pointer(event.x());
+        int my = viewport().pointer(event.y());
         int accent = CoreConfig.INSTANCE.accentColor();
 
         int navY = l.y + 67;
@@ -408,7 +436,7 @@ public final class ClickGuiScreen extends Screen {
                     return true;
                 }
             }
-            int actionY = startY + 5 * 48 + 7;
+            int actionY = startY + ((HUD_MODULES.length + 2) / 3) * 48 + 7;
             if (inside(mx, my, x, actionY, 105, 28)) { CoreConfig.INSTANCE.setAllModules(true); NotificationCenter.push("HUD", "All HUD modules enabled"); return true; }
             if (inside(mx, my, x + 112, actionY, 105, 28)) { CoreConfig.INSTANCE.setAllModules(false); NotificationCenter.push("HUD", "All HUD modules disabled"); return true; }
             if (inside(mx, my, x + 224, actionY, 142, 28)) { Minecraft.getInstance().setScreen(new HudEditorScreen()); return true; }
@@ -442,6 +470,14 @@ public final class ClickGuiScreen extends Screen {
             if (stepperClick(mx, my, x, rowY, width, () -> CoreConfig.INSTANCE.setZoomSpeed(CoreConfig.INSTANCE.zoomSpeed() - 1), () -> CoreConfig.INSTANCE.setZoomSpeed(CoreConfig.INSTANCE.zoomSpeed() + 1))) return true;
             rowY += 38;
             if (inside(mx, my, x, rowY, width, 32)) { CoreConfig.INSTANCE.setSmoothZoom(!CoreConfig.INSTANCE.smoothZoom()); return true; }
+        } else if (section == 4) {
+            for (int i = 0; i < COMBAT_PRESETS.length; i++) {
+                if (inside(mx, my, x, y + 59 + i * 55, width, 47)) {
+                    CoreConfig.INSTANCE.applyCombatPreset(COMBAT_PRESETS[i]);
+                    NotificationCenter.push("COMBAT", COMBAT_PRESETS[i].toUpperCase() + " preset applied");
+                    return true;
+                }
+            }
         } else if (section == 3) {
             int rowY = y + 62;
             for (int i = 0; i < ACCENTS.length; i++) {
@@ -463,9 +499,9 @@ public final class ClickGuiScreen extends Screen {
             rowY += 39;
             if (inside(mx, my, x, rowY, width, 32)) { CoreConfig.INSTANCE.setNotifications(!CoreConfig.INSTANCE.notifications()); if (CoreConfig.INSTANCE.notifications()) NotificationCenter.push("NOTIFICATIONS", "Enabled"); return true; }
             rowY += 48;
-            if (inside(mx, my, x, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("DEFAULT", width, height); NotificationCenter.push("HUD PRESET", "Default layout applied"); return true; }
-            if (inside(mx, my, x + 95, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("COMPACT", width, height); NotificationCenter.push("HUD PRESET", "Compact layout applied"); return true; }
-            if (inside(mx, my, x + 190, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("CORNERS", width, height); NotificationCenter.push("HUD PRESET", "Corners layout applied"); return true; }
+            if (inside(mx, my, x, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("DEFAULT", this.width, height); NotificationCenter.push("HUD PRESET", "Default layout applied"); return true; }
+            if (inside(mx, my, x + 95, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("COMPACT", this.width, height); NotificationCenter.push("HUD PRESET", "Compact layout applied"); return true; }
+            if (inside(mx, my, x + 190, rowY + 18, 88, 28)) { CoreConfig.INSTANCE.applyPreset("CORNERS", this.width, height); NotificationCenter.push("HUD PRESET", "Corners layout applied"); return true; }
             if (inside(mx, my, x + 288, rowY + 18, 138, 28)) { Minecraft.getInstance().setScreen(new HudEditorScreen()); return true; }
         }
         return super.mouseClicked(event, doubleClick);
@@ -517,14 +553,18 @@ public final class ClickGuiScreen extends Screen {
                 || (!"PERSPECTIVE".equals(target) && config.perspectiveKey() == key);
     }
 
+    private MenuViewport viewport() { return MenuViewport.fit(width, height, 960, 560); }
+
     private Layout layout() {
+        int width = viewport().width();
+        int height = viewport().height();
         int panelW = Math.min(930, Math.max(560, width - 16));
         int panelH = Math.min(520, Math.max(420, height - 16));
         int x = (width - panelW) / 2;
         int y = (height - panelH) / 2;
         int sidebarW = 146;
         int contentX = x + sidebarW + 18;
-        int contentY = y + 18;
+        int contentY = y + 62;
         int contentW = panelW - sidebarW - 36;
         return new Layout(x, y, panelW, panelH, sidebarW, contentX, contentY, contentW);
     }

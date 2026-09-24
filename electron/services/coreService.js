@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import AdmZip from 'adm-zip';
 import { getInstance, instanceDir } from './instanceService.js';
 import { ensureDir } from './fsService.js';
+import { createSerialQueue } from '../../shared/serialQueue.js';
+
+const configWrites = createSerialQueue();
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const staged = path.resolve(here, '../../assets/eternal-core.jar');
@@ -13,7 +16,8 @@ export const CORE_MODULES = [
   'Watermark', 'FPS', 'CPS', 'Keystrokes', 'Coordinates', 'Ping',
   'Speed', 'Direction', 'Health', 'Armor', 'Food', 'Server',
   'Memory', 'Session', 'Clock', 'Zoom', 'Crosshair', 'Fullbright',
-  'ToggleSprint', 'ToggleSneak', 'Perspective'
+  'ToggleSprint', 'ToggleSneak', 'Perspective', 'AttackCooldown', 'HeldItem',
+  'ArmorDurability', 'Offhand', 'Movement', 'CombatSupplies'
 ];
 
 const DEFAULT_CROSSHAIR = Object.freeze({
@@ -51,6 +55,7 @@ function defaultCoreConfig() {
     gradientHud: false,
     smoothZoom: true,
     zoomSpeed: 5,
+    combatPreset: 'sword',
     crosshair: { ...DEFAULT_CROSSHAIR }
   };
 }
@@ -92,6 +97,7 @@ function sanitizeCoreConfig(input = {}) {
     gradientHud: input.gradientHud === undefined ? defaults.gradientHud : Boolean(input.gradientHud),
     smoothZoom: input.smoothZoom === undefined ? defaults.smoothZoom : Boolean(input.smoothZoom),
     zoomSpeed: clamp(input.zoomSpeed, 1, 10, defaults.zoomSpeed),
+    combatPreset: ['sword', 'mace', 'spear', 'crystal', 'cart'].includes(input.combatPreset) ? input.combatPreset : defaults.combatPreset,
     crosshair: {
       color: argb(crosshairInput.color, defaults.crosshair.color),
       hitColor: argb(crosshairInput.hitColor, defaults.crosshair.hitColor),
@@ -171,6 +177,10 @@ export async function readCoreConfig(instanceId) {
 }
 
 export async function patchCoreConfig(instanceId, patch = {}) {
+  return configWrites(instanceId, () => patchCoreConfigNow(instanceId, patch));
+}
+
+async function patchCoreConfigNow(instanceId, patch = {}) {
   await validateInstance(instanceId);
   const current = await readCoreConfig(instanceId);
   const merged = {
@@ -216,6 +226,10 @@ export async function saveCoreProfile(instanceId, name) {
   return { id, name: row.name, createdAt: row.createdAt };
 }
 export async function applyCoreProfile(instanceId, profileId) {
+  return configWrites(instanceId, () => applyCoreProfileNow(instanceId, profileId));
+}
+
+async function applyCoreProfileNow(instanceId, profileId) {
   await validateInstance(instanceId);
   const id = assertProfileId(profileId);
   const row = await readJson(path.join(profilesDir(instanceId), `${id}.json`));

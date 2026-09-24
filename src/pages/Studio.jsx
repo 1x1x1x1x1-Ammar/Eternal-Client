@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Aperture, Check, ChevronRight, Crosshair, Eye, FolderOpen, Gauge, Image, Keyboard,
@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { api, call } from '../lib/api.js';
+import { combatPresets, combatPatch } from '../lib/combatPresets.js';
+import { createSerialQueue } from '../../shared/serialQueue.js';
 
 const moduleCatalog = [
   ['Watermark', 'HUD', Sparkles, 'Eternal identity chip'],
@@ -24,6 +26,12 @@ const moduleCatalog = [
   ['Memory', 'HUD', Gauge, 'JVM memory usage'],
   ['Session', 'HUD', Gauge, 'Session timer'],
   ['Clock', 'HUD', Gauge, 'Local time'],
+  ['AttackCooldown', 'COMBAT', Crosshair, 'Live attack recovery and ready indicator'],
+  ['HeldItem', 'COMBAT', Shield, 'Held item count and remaining durability'],
+  ['ArmorDurability', 'COMBAT', Shield, 'Lowest equipped armor durability'],
+  ['Offhand', 'COMBAT', Shield, 'Offhand item, count and durability'],
+  ['Movement', 'COMBAT', Gauge, 'Fall distance and vertical speed for mace play'],
+  ['CombatSupplies', 'COMBAT', LayoutDashboard, 'Carried crystals, totems, wind charges or carts'],
   ['Zoom', 'UTILITY', Eye, 'Smooth configurable FOV zoom'],
   ['Crosshair', 'VISUAL', Crosshair, 'Custom crosshair renderer'],
   ['Fullbright', 'VISUAL', Sun, 'Maximum Minecraft brightness'],
@@ -65,11 +73,14 @@ function Switch({ value, onChange, label }) {
 }
 
 function RangeSetting({ title, description, min, max, step = 1, value, suffix = '', onChange }) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => { setDraft(value); }, [value]);
+  const commit = () => { if (draft !== value) onChange(draft); };
   return <div className="v11-setting-row">
     <div><b>{title}</b><span>{description}</span></div>
     <div className="v11-range-wrap">
-      <strong>{value}{suffix}</strong>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={event => onChange(Number(event.target.value))} />
+      <strong>{draft}{suffix}</strong>
+      <input aria-label={title} type="range" min={min} max={max} step={step} value={draft} onChange={event => setDraft(Number(event.target.value))} onPointerUp={commit} onKeyUp={commit} onBlur={commit} />
     </div>
   </div>;
 }
@@ -90,6 +101,12 @@ export default function Studio() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const activeInstance = useRef(instanceId);
+  activeInstance.current = instanceId;
+  const loadRevision = useRef(0);
+  const editRevision = useRef(0);
+  const pendingWrites = useRef(0);
+  const writeQueue = useRef(createSerialQueue());
 
   const selected = instances.find(item => item.id === instanceId);
   const isRunning = Boolean(selected && running.some(row => row.instanceId === selected.id));
@@ -100,7 +117,8 @@ export default function Studio() {
   }, [instances, compatible, instanceId]);
 
   async function loadStudio(id = instanceId) {
-    if (!id) return;
+    const revision = ++loadRevision.current;
+    if (!id) { setConfig(null); setLoading(false); return; }
     setLoading(true);
     setError('');
     try {
@@ -110,36 +128,55 @@ export default function Studio() {
         call(api.core.screenshots(id)),
         call(api.core.status(id))
       ]);
+      if (activeInstance.current !== id || revision !== loadRevision.current) return;
       setConfig(nextConfig);
       setProfiles(nextProfiles);
       setScreenshots(nextScreenshots);
       setStatus(nextStatus);
     } catch (e) {
-      setError(e.message);
+      if (activeInstance.current === id && revision === loadRevision.current) setError(e.message);
     } finally {
-      setLoading(false);
+      if (activeInstance.current === id && revision === loadRevision.current) setLoading(false);
     }
   }
 
-  useEffect(() => { loadStudio(instanceId); }, [instanceId]);
+  useEffect(() => { setConfig(null); setNotice(''); loadStudio(instanceId); return () => { loadRevision.current++; }; }, [instanceId]);
 
   async function patch(patchValue, successMessage = '') {
     if (!instanceId || !config) return;
+    const target = instanceId;
+    const revision = ++editRevision.current;
+    pendingWrites.current++;
+    setConfig(current => ({ ...current, ...patchValue,
+      enabled: { ...current.enabled, ...patchValue.enabled },
+      crosshair: { ...current.crosshair, ...patchValue.crosshair }
+    }));
     setSaving(true);
     setError('');
     try {
-      const next = await call(api.core.patchConfig({ instanceId, patch: patchValue }));
-      setConfig(next);
-      if (successMessage) setNotice(successMessage);
+      const next = await writeQueue.current(target, () => call(api.core.patchConfig({ instanceId: target, patch: patchValue })));
+      if (activeInstance.current === target && revision === editRevision.current) {
+        setConfig(next);
+        if (successMessage) setNotice(successMessage);
+      }
     } catch (e) {
-      setError(e.message);
+      if (activeInstance.current === target) {
+        setError(e.message);
+        if (revision === editRevision.current) {
+          try {
+            const saved = await call(api.core.config(target));
+            if (activeInstance.current === target && revision === editRevision.current) setConfig(saved);
+          } catch { /* Keep the error visible when the config cannot be recovered. */ }
+        }
+      }
     } finally {
-      setSaving(false);
+      pendingWrites.current--;
+      setSaving(pendingWrites.current > 0);
     }
   }
 
   async function createProfile() {
-    if (!profileName.trim()) return;
+    if (saving || profileName.trim().length < 2) return;
     setSaving(true);
     setError('');
     try {
@@ -152,6 +189,7 @@ export default function Studio() {
   }
 
   async function applyProfile(profileId, name) {
+    if (saving) return;
     setSaving(true);
     setError('');
     try {
@@ -192,8 +230,8 @@ export default function Studio() {
     <motion.header className="v11-studio-hero" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <div className="v11-hero-copy">
         <span className="v11-kicker"><Sparkles /> ETERNAL STUDIO</span>
-        <h1>Make the client <em>yours.</em></h1>
-        <p>One control surface for real Core modules, HUD styling, crosshair settings, profiles and Minecraft media.</p>
+        <h1>Eternal Studio</h1>
+        <p>Your combat workspace, HUD and crosshair.</p>
         <div className="v11-live-row">
           <span className={isRunning ? 'v11-live-pill live' : 'v11-live-pill'}><i />{isRunning ? 'MINECRAFT LIVE' : 'MINECRAFT OFFLINE'}</span>
           <span className="v11-live-pill"><Shield />LOCAL CONFIG</span>
@@ -202,7 +240,7 @@ export default function Studio() {
       </div>
       <div className="v11-instance-panel">
         <span>EDITING PROFILE</span>
-        <select value={instanceId} onChange={event => setInstanceId(event.target.value)}>
+        <select aria-label="Minecraft profile" value={instanceId} disabled={saving} onChange={event => setInstanceId(event.target.value)}>
           {!instances.length && <option value="">No Minecraft instances</option>}
           {instances.map(item => <option key={item.id} value={item.id}>{item.name} · {item.minecraftVersion} · {item.loader}</option>)}
         </select>
@@ -210,7 +248,7 @@ export default function Studio() {
           <div><b>{selected?.name || 'No instance selected'}</b><span>{selected ? `${selected.minecraftVersion} · ${selected.loader}` : 'Create an instance first'}</span></div>
           <i className={status?.supported ? 'ok' : ''}>{status?.supported ? <Check /> : '!'}</i>
         </div>
-        <button className="v11-refresh" disabled={!instanceId || loading} onClick={() => loadStudio()}><RefreshCw className={loading ? 'spin' : ''}/>{loading ? 'Reading Core…' : 'Refresh from disk'}</button>
+        <button className="v11-refresh" disabled={!instanceId || loading || saving} onClick={() => loadStudio()}><RefreshCw className={loading ? 'spin' : ''}/>{loading ? 'Reading Core…' : 'Refresh from disk'}</button>
       </div>
       <div className="v11-hero-glow" />
     </motion.header>
@@ -226,12 +264,22 @@ export default function Studio() {
 
     {!config && !loading ? <section className="v11-empty"><Sparkles/><h2>Select an instance</h2><p>Eternal Studio writes only to the selected instance's local Core config.</p></section> : null}
 
-    {config && tab === 'MODULES' && <motion.section className="v11-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    {loading && <div className="v11-empty" role="status">Loading workspace...</div>}
+    {config && !loading && tab === 'MODULES' && <motion.section className="v11-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="combat-workspace">
+        <div className="combat-heading"><Crosshair/><h2>PvP loadout</h2><span>HUD + crosshair</span></div>
+        <div className="combat-presets" aria-label="Combat presets">
+          {combatPresets.map(preset => <button key={preset.id} className={config.combatPreset === preset.id ? 'active' : ''} aria-pressed={config.combatPreset === preset.id} title={preset.description} onClick={() => patch(combatPatch(preset.id), `${preset.name} preset saved. Existing modules and positions preserved.`)}>
+            <Crosshair/><b>{preset.name}</b><span>{preset.description}</span>
+          </button>)}
+        </div>
+      </div>
       <div className="v11-panel-head">
         <div><span>CORE MODULES</span><h2>Everything you actually use.</h2><p>Clean installs stay off. Enable only the parts you want.</p></div>
         <label className="v11-search"><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search modules…"/></label>
       </div>
       <div className="v11-module-grid">
+        {!filteredModules.length && <p role="status">No modules match "{query}".</p>}
         {filteredModules.map(([name, category, Icon, description], index) => {
           const enabled = Boolean(config.enabled?.[name]);
           return <motion.article className={enabled ? 'v11-module-card active' : 'v11-module-card'} key={name} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * .018, .2) }}>
@@ -306,7 +354,7 @@ export default function Studio() {
         {profiles.map(profile => <article className="v11-profile-card" key={profile.id}>
           <div className="v11-profile-glyph"><Sparkles/></div>
           <div><span>LOCAL PRESET</span><b>{profile.name}</b><p>Saved {dateLabel(profile.createdAt)}</p></div>
-          <button className="v11-apply" onClick={() => applyProfile(profile.id, profile.name)}>APPLY <ChevronRight/></button>
+          <button className="v11-apply" disabled={saving} onClick={() => applyProfile(profile.id, profile.name)}>APPLY <ChevronRight/></button>
           <button className="v11-icon-danger" aria-label={`Delete ${profile.name}`} onClick={() => removeProfile(profile.id)}><Trash2/></button>
         </article>)}
         {!profiles.length && <div className="v11-list-empty"><Save/><b>No profiles yet</b><span>Save the current Core setup above.</span></div>}

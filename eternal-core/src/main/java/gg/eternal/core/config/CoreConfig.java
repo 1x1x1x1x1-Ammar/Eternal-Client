@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.charset.StandardCharsets;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -21,7 +22,8 @@ public final class CoreConfig {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
             "Memory", "Session", "Clock", "Zoom", "Crosshair", "Fullbright",
-            "ToggleSprint", "ToggleSneak", "Perspective"
+            "ToggleSprint", "ToggleSneak", "Perspective", "AttackCooldown", "HeldItem",
+            "ArmorDurability", "Offhand", "Movement", "CombatSupplies"
     };
     public static final CoreConfig INSTANCE = new CoreConfig();
 
@@ -41,6 +43,7 @@ public final class CoreConfig {
     private boolean gradientHud = false;
     private boolean smoothZoom = true;
     private int zoomSpeed = 5;
+    private String combatPreset = "sword";
 
     private int crosshairColor = 0xFFFFFFFF;
     private int crosshairHitColor = 0xFFFF3038;
@@ -73,6 +76,8 @@ public final class CoreConfig {
 
     public int[] pos(String name, int defaultX, int defaultY) { return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY}); }
     public void setPos(String name, int x, int y) { positions.put(name, new int[]{x, y}); save(); }
+    public void previewPos(String name, int x, int y) { positions.put(name, new int[]{x, y}); }
+    public void savePositions() { save(); }
     public int accentColor() { return accentColor; }
     public int hudAlpha() { return hudAlpha; }
     public int zoomFov() { return zoomFov; }
@@ -86,6 +91,32 @@ public final class CoreConfig {
     public boolean gradientHud() { return gradientHud; }
     public boolean smoothZoom() { return smoothZoom; }
     public int zoomSpeed() { return zoomSpeed; }
+    public String combatPreset() { return combatPreset; }
+
+    public void applyCombatPreset(String id) {
+        try (var stream = CoreConfig.class.getResourceAsStream("/assets/eternal-core/combat-presets.json")) {
+            if (stream == null) throw new IllegalStateException("Combat presets are missing");
+            JsonArray presets = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonArray();
+            for (var value : presets) {
+                JsonObject preset = value.getAsJsonObject();
+                if (!preset.get("id").getAsString().equals(id)) continue;
+                combatPreset = id;
+                for (var module : preset.getAsJsonArray("modules")) enabled.put(module.getAsString(), true);
+                JsonObject crosshair = preset.getAsJsonObject("crosshair");
+                crosshairGap = crosshair.get("gap").getAsInt();
+                crosshairLength = crosshair.get("length").getAsInt();
+                crosshairThickness = crosshair.get("thickness").getAsInt();
+                crosshairDot = crosshair.get("dot").getAsBoolean();
+                crosshairOutline = crosshair.get("outline").getAsBoolean();
+                gradientHud = false;
+                save();
+                return;
+            }
+            throw new IllegalArgumentException("Unknown combat preset: " + id);
+        } catch (Exception error) {
+            gg.eternal.core.util.CoreLog.error("Could not apply combat preset", error);
+        }
+    }
     public int crosshairColor() { return crosshairColor; }
     public int crosshairHitColor() { return crosshairHitColor; }
     public int crosshairGap() { return crosshairGap; }
@@ -219,6 +250,10 @@ public final class CoreConfig {
             if (root.has("gradientHud")) gradientHud = root.get("gradientHud").getAsBoolean();
             if (root.has("smoothZoom")) smoothZoom = root.get("smoothZoom").getAsBoolean();
             if (root.has("zoomSpeed")) zoomSpeed = clamp(root.get("zoomSpeed").getAsInt(), 1, 10);
+            if (root.has("combatPreset")) {
+                String value = root.get("combatPreset").getAsString();
+                if (java.util.Set.of("sword", "mace", "spear", "crystal", "cart").contains(value)) combatPreset = value;
+            }
             if (root.has("crosshair") && root.get("crosshair").isJsonObject()) {
                 JsonObject crosshair = root.getAsJsonObject("crosshair");
                 if (crosshair.has("color")) crosshairColor = crosshair.get("color").getAsInt();
@@ -271,6 +306,7 @@ public final class CoreConfig {
             root.addProperty("gradientHud", gradientHud);
             root.addProperty("smoothZoom", smoothZoom);
             root.addProperty("zoomSpeed", zoomSpeed);
+            root.addProperty("combatPreset", combatPreset);
 
             JsonObject crosshair = new JsonObject();
             crosshair.addProperty("color", crosshairColor);

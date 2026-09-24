@@ -61,11 +61,17 @@ export default function Servers() {
     catch (e) { setError(e.message); }
   }
 
+  async function createAternos() {
+    setForm(current => ({ ...current, provider: 'aternos' }));
+    await openAternos();
+  }
+
   return <div className="beta8-page beta8-servers-page">
     <div className="page-head beta8-page-head"><div><small>SERVERS</small><h1>Real Minecraft server status.</h1><p>Eternal performs the Minecraft status handshake, resolves standard Minecraft SRV records, and launches Quick Play with the saved address.</p></div><div className="head-actions"><button className="secondary" disabled={!servers.length} onClick={pingAll}><RefreshCw/>Ping all</button><select className="instance-select" value={instanceId} onChange={e => setInstanceId(e.target.value)}>{!instances.length && <option value="">No profiles</option>}{instances.map(instance => <option key={instance.id} value={instance.id}>Join with {instance.name}</option>)}</select></div></div>
 
     <div className="server-add beta8-server-add"><input placeholder="Display name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}/><input placeholder="play.example.net" value={form.host} onChange={e => setForm({ ...form, host: e.target.value })} onKeyDown={e => e.key === 'Enter' && save()}/><input className="port" type="number" min="1" max="65535" value={form.port} onChange={e => setForm({ ...form, port: Number(e.target.value) })}/><select value={form.provider} onChange={e => setForm({ ...form, provider: e.target.value })}><option value="custom">Custom</option><option value="aternos">Aternos</option></select><button className="primary" disabled={saving || !form.host.trim()} onClick={save}><Plus/>{saving ? 'Saving…' : 'Add server'}</button></div>
 
+    <section className="aternos-connect" aria-label="Aternos server setup"><div><span>PLAY TOGETHER</span><h2>Your own Aternos server</h2><p>Create or start your server on Aternos, then save its Minecraft address above.</p></div><button className="primary" onClick={createAternos}><Plus/>Create on Aternos<ExternalLink size={14}/></button><button className="secondary" onClick={openAternos}><ExternalLink/>Open dashboard</button></section>
     {error && <div className="release-error beta8-inline-error"><AlertTriangle/>{error}</div>}
 
     <div className="server-grid beta8-server-grid">{servers.map(server => {
@@ -81,6 +87,6 @@ export default function Servers() {
       </article>;
     })}{!servers.length && <div className="empty-card big beta8-empty"><ServerIcon/><b>No saved servers</b><span>Add a real Minecraft address above, then ping or quick-join it.</span></div>}</div>
 
-    <div className="notice beta8-notice"><b>Aternos:</b> Eternal can save, resolve, ping and quick-join your server and open the official dashboard. Start/stop/console are deliberately not shown as working controls without an authorized Aternos API.</div>
+    <div className="notice beta8-notice">Aternos setup and server management open in your browser. Eternal is not an official Aternos partner.</div>
   </div>;
 }

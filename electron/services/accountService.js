@@ -1,6 +1,10 @@
 import crypto from 'node:crypto';
 import { PublicClientApplication } from '@azure/msal-node';
 import { store, encryptSecret, decryptSecret } from './store.js';
+import { changeSkin } from './skinService.js';
+import { createSerialQueue } from '../../shared/serialQueue.js';
+
+const skinWrites = createSerialQueue();
 
 const MICROSOFT_SCOPES = ['XboxLive.signin', 'offline_access'];
 
@@ -159,5 +163,16 @@ export function activateAccount(id){
   if(!store.get('accounts').some(a=>a.id===id)) throw new Error('Account not found.');
   store.set('activeAccountId',id);
   return true;
+}
+export async function updateSkin({ accountId, dataUrl, variant = 'classic', reset = false }) {
+  return skinWrites(accountId, async () => {
+    const account = store.get('accounts').find(item => item.id === accountId);
+    if (!account) throw new Error('Account not found.');
+    const patch = await changeSkin({ account, dataUrl, variant, reset, authorize: launcherAuthorization });
+    // Refresh may have replaced the encrypted session while uploading.
+    const current = store.get('accounts').find(item => item.id === accountId);
+    if (!current) throw new Error('Account was removed while the skin was being updated.');
+    return publicAccount(saveAccount({ ...current, ...patch }));
+  });
 }
 export {offlineUuid};
