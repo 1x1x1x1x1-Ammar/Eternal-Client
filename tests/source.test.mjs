@@ -17,11 +17,13 @@ const backendFiles = [
   'electron/services/versionService.js'
 ];
 
-test('launcher and Core version metadata stay aligned on v1.1.0', () => {
+test('launcher and Core version metadata stay aligned', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '1.1.0');
-  assert.match(read('eternal-core/gradle.properties'), /mod_version=1\.1\.0/);
-  assert.match(read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java'), /VERSION = "1\.1\.0"/);
+  assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
+  const coreVersion = read('eternal-core/gradle.properties').match(/^mod_version=(.+)$/m)?.[1].trim();
+  const sourceVersion = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java').match(/VERSION = "([^"]+)"/)?.[1];
+  assert.equal(coreVersion, pkg.version);
+  assert.equal(sourceVersion, pkg.version);
   assert.doesNotMatch(pkg.version, /beta|alpha|rc/i);
 });
 
