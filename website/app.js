@@ -20,6 +20,7 @@
   if (reduceMotion || !('IntersectionObserver' in window)) {
     reveals.forEach(el => el.classList.add('is-visible'));
   } else {
+    document.documentElement.classList.add('motion-ready');
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
@@ -111,7 +112,7 @@
     });
   }
 
-  // Real image lightbox: only opens actual generated artwork files.
+  // Artwork and interface preview lightbox.
   const artModalEl = document.getElementById('artModal');
   if (artModalEl && window.bootstrap) {
     const artModal = bootstrap.Modal.getOrCreateInstance(artModalEl);
@@ -127,7 +128,7 @@
         artModal.show();
       });
     });
-    artModalEl.addEventListener('hidden.bs.modal', () => { artImage.src = ''; });
+    artModalEl.addEventListener('hidden.bs.modal', () => { artImage.removeAttribute('src'); });
   }
 
   // Magnetic feel for primary actions without moving layout.
@@ -144,9 +145,9 @@
   }
 
   const fallback = {
-    version: 'v1.1.0',
-    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe',
-    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar'
+    version: 'v1.1.1',
+    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal.Client.Setup.1.1.1.exe',
+    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal-Core-Standalone-1.1.1.jar'
   };
 
   const applyRelease = (version, installer, core) => {
@@ -159,10 +160,59 @@
   fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
     .then(res => res.ok ? res.json() : null)
     .then(data => {
-      if (!data) return;
+      if (!data || data.draft || data.prerelease || !/^v\d+\.\d+\.\d+$/.test(data.tag_name)) return;
       const exe = data.assets?.find(asset => /Eternal\.Client\.Setup\..*\.exe$/i.test(asset.name));
       const jar = data.assets?.find(asset => /Eternal-Core-Standalone-.*\.jar$/i.test(asset.name));
-      applyRelease(data.tag_name || fallback.version, exe?.browser_download_url || fallback.installer, jar?.browser_download_url || fallback.core);
+      const prefix = `https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/${data.tag_name}/`;
+      // Keep the version and both downloads together if a release is incomplete.
+      if (exe?.browser_download_url?.startsWith(prefix) && jar?.browser_download_url?.startsWith(prefix)) {
+        applyRelease(data.tag_name, exe.browser_download_url, jar.browser_download_url);
+      }
     })
     .catch(() => {});
+
+  // Same catalog as the launcher and Core; this only previews it on the website.
+  const presetButtons = [...document.querySelectorAll('[data-preset]')];
+  if (presetButtons.length) {
+    const labels = { AttackCooldown: 'Attack cooldown', ArmorDurability: 'Armor durability', HeldItem: 'Held item', CombatSupplies: 'Combat supplies' };
+    fetch('combat-presets.json')
+      .then(res => { if (!res.ok) throw new Error('Preset catalog unavailable'); return res.json(); })
+      .then(presets => {
+        presetButtons.forEach(button => button.addEventListener('click', () => {
+          const index = presets.findIndex(preset => preset.id === button.dataset.preset);
+          if (index < 0) return;
+          const preset = presets[index];
+          presetButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+          document.getElementById('preset-count').textContent = `${String(index + 1).padStart(2, '0')} / 05`;
+          document.getElementById('preset-name').textContent = preset.name;
+          document.getElementById('preset-description').textContent = preset.description;
+          document.getElementById('preset-modules').replaceChildren(...preset.modules.map(name => {
+            const chip = document.createElement('span');
+            chip.textContent = labels[name] || name;
+            return chip;
+          }));
+        }));
+      })
+      .catch(() => {
+        presetButtons.forEach(button => { button.disabled = true; });
+        document.getElementById('preset-description').textContent += ' Other previews are unavailable. Reload to try again.';
+      });
+  }
+
+  // Close the menu itself before following a section anchor.
+  document.querySelectorAll('.mobile-nav a[href^="#"]').forEach(link => {
+    link.addEventListener('click', event => {
+      const target = document.querySelector(link.getAttribute('href'));
+      const menu = document.getElementById('mobileNav');
+      if (!target || !menu || !window.bootstrap) return;
+      event.preventDefault();
+      menu.addEventListener('hidden.bs.offcanvas', () => {
+        target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth' });
+        history.replaceState(null, '', link.getAttribute('href'));
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll:true });
+      }, { once: true });
+      bootstrap.Offcanvas.getOrCreateInstance(menu).hide();
+    });
+  });
 })();
