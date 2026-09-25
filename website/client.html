@@ -9,9 +9,12 @@
   <meta property="og:description" content="A premium Minecraft launcher and real in-game Fabric client built as one experience.">
   <meta property="og:image" content="assets/client-showcase.webp">
   <title>Eternal Client — Play Your Way</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Vendored bootstrap@5.3.3 and bootstrap-icons@1.11.3; see vendor/README.md. -->
+  <link href="vendor/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="refresh.css">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 </head>
 <body class="client-page">
   <a class="skip-link" href="#client-main">Skip to content</a>
@@ -21,7 +24,7 @@
     <nav class="navbar navbar-expand-lg" aria-label="Client navigation">
       <div class="container-xxl px-3 px-lg-4">
         <div class="nav-shell w-100">
-          <a class="navbar-brand brand-lockup" href="index.html"><span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></a>
+          <a class="navbar-brand brand-lockup" href="index.html"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></a>
           <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-label="Open navigation"><i class="bi bi-list fs-2"></i></button>
           <div class="collapse navbar-collapse">
             <ul class="navbar-nav mx-auto gap-lg-1">
@@ -38,7 +41,7 @@
     </nav>
   </header>
 
-  <div class="offcanvas offcanvas-end mobile-nav" tabindex="-1" id="mobileNav"><div class="offcanvas-header"><div class="brand-lockup"><span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button></div><div class="offcanvas-body d-flex flex-column"><nav class="mobile-links"><a href="index.html"><span>01</span>Eternal SMP</a><a href="#top" data-bs-dismiss="offcanvas"><span>02</span>Client</a><a href="#launcher" data-bs-dismiss="offcanvas"><span>03</span>Launcher</a><a href="#ingame" data-bs-dismiss="offcanvas"><span>04</span>In-game</a><a href="#download" data-bs-dismiss="offcanvas"><span>05</span>Download</a></nav><a class="btn btn-eternal btn-lg mt-auto" href="#download"><i class="bi bi-windows"></i> Download Eternal</a></div></div>
+  <div class="offcanvas offcanvas-end mobile-nav" tabindex="-1" id="mobileNav"><div class="offcanvas-header"><div class="brand-lockup"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button></div><div class="offcanvas-body d-flex flex-column"><nav class="mobile-links"><a href="index.html"><span>01</span>Eternal SMP</a><a href="#top"><span>02</span>Client</a><a href="#launcher"><span>03</span>Launcher</a><a href="#ingame"><span>04</span>In-game</a><a href="#download"><span>05</span>Download</a></nav><a class="btn btn-eternal btn-lg mt-auto" href="#download"><i class="bi bi-windows"></i> Download Eternal</a></div></div>
 
   <main id="client-main">
     <section class="client-hero-section" id="top">
@@ -46,22 +49,24 @@
       <div class="container-xxl px-3 px-lg-4 position-relative">
         <div class="client-hero-grid">
           <div class="client-hero-copy reveal">
-            <span class="section-kicker red"><i class="bi bi-lightning-charge-fill"></i> ETERNAL CLIENT</span>
-            <h1>Play Minecraft.<br><span>Your way.</span></h1>
-            <p>One launcher. One in-game client. Real instances, Modrinth, server tools, HUD Studio and Eternal Core — designed as a single premium experience.</p>
-            <div class="d-flex flex-wrap gap-2 mt-4"><a id="hero-download" class="btn btn-eternal btn-lg" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><i class="bi bi-windows"></i> Download for Windows <i class="bi bi-arrow-down"></i></a><a id="core-download" class="btn btn-ghost btn-lg" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><i class="bi bi-box"></i> Standalone Core</a></div>
+            <a class="release-pill" href="#loadouts"><span data-release-version>v1.1.1</span> THE COMBAT &amp; SKINS UPDATE <i class="bi bi-arrow-up-right"></i></a>
+            <h1>Your world.<br><span>Your edge.</span></h1>
+            <p>Make Minecraft feel like yours. A focused launcher, a personal HUD and five combat loadouts. Built together. Ready for your next session.</p>
+            <div class="d-flex flex-wrap gap-2 mt-4"><a id="hero-download" class="btn btn-eternal btn-lg" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal.Client.Setup.1.1.1.exe"><i class="bi bi-windows"></i> Download for Windows <i class="bi bi-arrow-down"></i></a><a id="core-download" class="btn btn-ghost btn-lg" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal-Core-Standalone-1.1.1.jar"><i class="bi bi-box"></i> Standalone Core</a></div>
             <div class="client-badges"><span><i class="bi bi-check-circle-fill"></i> Windows 10/11</span><span><i class="bi bi-cpu-fill"></i> Java 21</span><span><i class="bi bi-controller"></i> Minecraft 1.21.11</span><span><i class="bi bi-box-seam"></i> Fabric</span></div>
           </div>
 
-          <div class="client-hero-visual reveal delay-1" data-tilt-soft>
-            <div class="product-window premium-frame"><button class="art-open" type="button" data-lightbox="assets/client-showcase.webp" data-lightbox-title="Eternal Client — Launcher & In-game Client"><img src="assets/client-showcase.webp" alt="Eternal Client launcher and in-game client showcase"><span><i class="bi bi-arrows-fullscreen"></i> View product artwork</span></button><div class="product-window-bar"><span><i class="bi bi-circle-fill"></i> LIVE PRODUCT VIEW</span><span>ETERNAL CLIENT</span></div></div>
+          <div class="client-hero-visual reveal delay-1">
+            <div class="preview-heading"><span><i class="bi bi-grid-1x2"></i> YOUR PERSONAL WORKSPACE</span><span>01 / STUDIO</span></div>
+            <div class="product-window premium-frame"><button class="art-open" type="button" data-lightbox="assets/studio-preview.webp" data-lightbox-title="Eternal Studio — demo profile preview"><img src="assets/studio-preview.webp" width="1440" height="900" fetchpriority="high" alt="Eternal Studio with Sword, Mace, Spear, Crystal and Cart presets and configurable HUD modules"><span><i class="bi bi-arrows-fullscreen"></i> Explore Studio preview</span></button></div>
+            <div class="preview-caption"><span>Launcher interface · demo profile</span><span>MAKE IT YOURS <i class="bi bi-arrow-down-right"></i></span></div>
           </div>
         </div>
 
         <div class="client-commandbar reveal delay-2" aria-label="Client highlights">
           <a href="#launcher"><i class="bi bi-window-stack"></i><span><b>Launcher</b><small>Instances & Mod Hub</small></span></a>
           <a href="#ingame"><i class="bi bi-crosshair"></i><span><b>In-game Client</b><small>HUD & Utilities</small></span></a>
-          <a href="#download"><i class="bi bi-download"></i><span><b>Latest Release</b><small data-release-version>v1.1.0</small></span></a>
+          <a href="#download"><i class="bi bi-download"></i><span><b>Latest Release</b><small data-release-version>v1.1.1</small></span></a>
           <a href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><i class="bi bi-discord"></i><span><b>Community</b><small>Join Discord</small></span></a>
         </div>
       </div>
@@ -69,14 +74,36 @@
 
     <section class="section-space client-product" id="launcher">
       <div class="container-xxl px-3 px-lg-4">
-        <div class="section-head reveal"><div><span class="section-kicker"><i class="bi bi-window-stack"></i> YOUR LAUNCHER</span><h2>Clean outside.<br><span>Serious underneath.</span></h2></div><p>Real instance isolation, real Modrinth data, real account flows and actual launch telemetry — without fake dashboard numbers.</p></div>
-        <div class="client-shot premium-frame reveal"><button class="art-open" type="button" data-lightbox="assets/client-showcase.webp" data-lightbox-title="Eternal Client — Product View"><img src="assets/client-showcase.webp" alt="Eternal Client launcher interface"><span><i class="bi bi-arrows-fullscreen"></i> View product artwork</span></button><div class="shot-caption"><span><i class="bi bi-check2-circle"></i> Premium launcher shell</span><span>Profiles · Mods · Servers · Core · Studio</span></div></div>
+        <div class="section-head reveal"><div><span class="section-kicker"><i class="bi bi-window-stack"></i> 01 / YOUR LAUNCHER</span><h2>Less setup.<br><span>More Minecraft.</span></h2></div><p>Keep each world in its own space. Find your next mod, switch accounts and follow every launch from one workspace.</p></div>
         <div class="row g-3 g-xl-4 mt-3 product-feature-grid">
           <div class="col-md-6 col-xl-3 reveal"><div class="glass-feature tall"><span class="icon-orb"><i class="bi bi-grid-1x2-fill"></i></span><div><strong>Isolated Instances</strong><small>Separate versions, mods, worlds and configuration.</small></div></div></div>
           <div class="col-md-6 col-xl-3 reveal delay-1"><div class="glass-feature tall"><span class="icon-orb"><i class="bi bi-box-seam-fill"></i></span><div><strong>Mod Hub</strong><small>Real Modrinth project search and installs.</small></div></div></div>
-          <div class="col-md-6 col-xl-3 reveal delay-2"><div class="glass-feature tall"><span class="icon-orb"><i class="bi bi-person-badge-fill"></i></span><div><strong>Accounts</strong><small>Microsoft and deterministic offline support.</small></div></div></div>
+          <div class="col-md-6 col-xl-3 reveal delay-2"><div class="glass-feature tall"><span class="icon-orb"><i class="bi bi-person-badge-fill"></i></span><div><strong>Accounts</strong><small>Microsoft sign-in and local offline profiles.</small></div></div></div>
           <div class="col-md-6 col-xl-3 reveal delay-3"><div class="glass-feature tall"><span class="icon-orb"><i class="bi bi-terminal-fill"></i></span><div><strong>Real Console</strong><small>Launch, transfer and runtime diagnostics.</small></div></div></div>
         </div>
+      </div>
+    </section>
+
+    <section class="section-space loadout-section" id="loadouts">
+      <div class="container-xxl px-3 px-lg-4">
+        <div class="section-head reveal"><div><span class="section-kicker red">02 / FIND YOUR FOCUS</span><h2>Five styles.<br><span>One Studio.</span></h2></div><p>Choose a loadout to explore its HUD. Apply it inside Eternal Studio or Core to keep useful information in view while you play.</p></div>
+        <div class="loadout-workspace reveal">
+          <div class="preset-selector" role="group" aria-label="Preview a combat loadout">
+            <button type="button" class="preset-button" data-preset="sword" aria-pressed="true"><span>01</span>Sword<i class="bi bi-arrow-up-right"></i></button>
+            <button type="button" class="preset-button" data-preset="mace" aria-pressed="false"><span>02</span>Mace<i class="bi bi-arrow-up-right"></i></button>
+            <button type="button" class="preset-button" data-preset="spear" aria-pressed="false"><span>03</span>Spear<i class="bi bi-arrow-up-right"></i></button>
+            <button type="button" class="preset-button" data-preset="crystal" aria-pressed="false"><span>04</span>Crystal<i class="bi bi-arrow-up-right"></i></button>
+            <button type="button" class="preset-button" data-preset="cart" aria-pressed="false"><span>05</span>Cart<i class="bi bi-arrow-up-right"></i></button>
+          </div>
+          <div class="preset-preview" aria-live="polite" aria-atomic="true">
+            <span class="section-kicker">LOADOUT PREVIEW · <span id="preset-count">01 / 05</span></span>
+            <h3 id="preset-name">Sword</h3>
+            <p id="preset-description">Attack timing, armor wear and offhand status.</p>
+            <div class="module-chips" id="preset-modules"><span>FPS</span><span>Ping</span><span>Attack cooldown</span><span>Armor durability</span><span>Offhand</span><span>Held item</span><span>Crosshair</span></div>
+            <div class="preset-footnote"><i class="bi bi-crosshair"></i><span>HUD information + crosshair settings. Your inputs stay yours.</span></div>
+          </div>
+        </div>
+        <p class="section-note">Website preview only. Presets are applied in the client and preserve your existing modules and HUD positions.</p>
       </div>
     </section>
 
@@ -98,6 +125,16 @@
       </div>
     </section>
 
+    <section class="section-space identity-section" id="skins">
+      <div class="container-xxl px-3 px-lg-4">
+        <div class="section-head reveal"><div><span class="section-kicker red">04 / YOUR IDENTITY</span><h2>Show up<br><span>as yourself.</span></h2></div><p>Bring your PNG to Skin Studio. Pick classic or slim, preview both sides and choose the account you want to update.</p></div>
+        <div class="identity-grid">
+          <article class="identity-card reveal"><i class="bi bi-microsoft"></i><span class="section-kicker">MICROSOFT ACCOUNT</span><h3>A look that follows you.</h3><p>Apply your skin to your Minecraft Java profile. Rejoin a server to refresh a cached skin.</p><span class="scope-tag">Minecraft profile upload</span></article>
+          <article class="identity-card reveal delay-1"><i class="bi bi-person-bounding-box"></i><span class="section-kicker">OFFLINE ACCOUNT</span><h3>Your local identity.</h3><p>Save a skin for launcher previews and avatars on this device. Offline skins do not change in-game textures or appear to other players.</p><span class="scope-tag">Launcher appearance only</span></article>
+        </div>
+      </div>
+    </section>
+
     <section class="section-space client-system">
       <div class="container-xxl px-3 px-lg-4">
         <div class="system-shell reveal">
@@ -112,16 +149,27 @@
         <div class="download-shell reveal">
           <div><span class="section-kicker red"><i class="bi bi-download"></i> LATEST RELEASE</span><h2>Download Eternal.</h2><p>The full Windows launcher includes the desktop experience. Eternal Core can also run standalone in Fabric.</p><div class="download-trust"><span><i class="bi bi-github"></i> GitHub Releases</span><span><i class="bi bi-shield-check"></i> SHA256 checksums</span></div></div>
           <div class="download-options">
-            <a id="download-installer" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal.Client.Setup.1.1.0.exe"><span class="download-icon"><i class="bi bi-windows"></i></span><span><small>WINDOWS 10 / 11</small><strong>Eternal Client <em data-release-version>v1.1.0</em></strong></span><i class="bi bi-arrow-down-circle"></i></a>
-            <a id="download-core" href="https://github.com/1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.0/Eternal-Core-Standalone-1.1.0.jar"><span class="download-icon"><i class="bi bi-box"></i></span><span><small>FABRIC 1.21.11 · JAVA 21</small><strong>Standalone Core</strong></span><i class="bi bi-arrow-down-circle"></i></a>
+            <a id="download-installer" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal.Client.Setup.1.1.1.exe"><span class="download-icon"><i class="bi bi-windows"></i></span><span><small>WINDOWS 10 / 11</small><strong>Eternal Client <em data-release-version>v1.1.1</em></strong></span><i class="bi bi-arrow-down-circle"></i></a>
+            <a id="download-core" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.1.1/Eternal-Core-Standalone-1.1.1.jar"><span class="download-icon"><i class="bi bi-box"></i></span><span><small>FABRIC 1.21.11 · JAVA 21</small><strong>Standalone Core</strong></span><i class="bi bi-arrow-down-circle"></i></a>
             <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/latest" target="_blank" rel="noreferrer"><span class="download-icon"><i class="bi bi-github"></i></span><span><small>RELEASE NOTES & CHECKSUMS</small><strong>View on GitHub</strong></span><i class="bi bi-arrow-up-right-circle"></i></a>
           </div>
         </div>
       </div>
     </section>
+    <section class="section-space faq-section" id="faq">
+      <div class="container-xxl px-3 px-lg-4 faq-grid">
+        <div><span class="section-kicker">BEFORE YOU DROP IN</span><h2>A few things<br><span>to know.</span></h2><a class="text-link" href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/issues">Need a hand? Open an issue <i class="bi bi-arrow-up-right"></i></a></div>
+        <div class="faq-list">
+          <details open><summary>Launcher or standalone: which do I need?</summary><p>For the full desktop experience, install the Windows EXE and create a compatible Fabric instance. Already have a launcher? Put the standalone JAR in your Minecraft 1.21.11 mods folder with Fabric Loader 0.18.1 or newer and Java 21. Replace any older Eternal Core JAR.</p></details>
+          <details><summary>How do I open the in-game interface?</summary><p>Press Right Shift for Eternal Start, then open Modules or the HUD editor. Press H for the HUD editor shortcut. Modules start disabled on a clean install; enable the ones you want.</p></details>
+          <details><summary>Do the combat presets play for me?</summary><p>No. They configure informational HUD modules and your crosshair. Attack cooldown, durability, movement and supply readouts show your local game state. They do not automate attacks or movement.</p></details>
+          <details><summary>Can I create an Aternos server here?</summary><p>Eternal opens the official Aternos dashboard, where you create and manage your server. Save the address in Eternal to ping or join it. In-client creation, start/stop and console controls are not available. Eternal is not partnered with Aternos.</p></details>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="site-footer"><div class="container-xxl px-3 px-lg-4"><div class="footer-main"><a class="brand-lockup" href="index.html"><span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></a><div class="footer-links"><a href="index.html">SMP</a><a href="#launcher">Launcher</a><a href="#ingame">In-game</a><a href="#download">Download</a></div><div class="footer-social"><a href="https://discord.gg/HaN8HxzqCV" aria-label="Discord"><i class="bi bi-discord"></i></a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" aria-label="GitHub"><i class="bi bi-github"></i></a></div></div><div class="footer-bottom"><span>© 2026 Eternal Client</span><span>PLAY YOUR WAY · BEYOND SURVIVAL</span></div></div></footer>
+  <footer class="site-footer"><div class="container-xxl px-3 px-lg-4"><div class="footer-main"><a class="brand-lockup" href="index.html"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span><strong>ETERNAL</strong><small>CLIENT</small></span></a><div class="footer-links"><a href="index.html">SMP</a><a href="#launcher">Launcher</a><a href="#ingame">In-game</a><a href="#download">Download</a></div><div class="footer-social"><a href="https://discord.gg/HaN8HxzqCV" aria-label="Discord"><i class="bi bi-discord"></i></a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" aria-label="GitHub"><i class="bi bi-github"></i></a></div></div><div class="footer-bottom"><span>© 2026 Eternal Client</span><span>PLAY YOUR WAY · BEYOND SURVIVAL</span></div></div></footer>
 
 
   <div class="modal fade art-modal" id="artModal" tabindex="-1" aria-hidden="true">
@@ -131,12 +179,12 @@
           <div><small>ETERNAL VISUAL ARCHIVE</small><h2 class="modal-title" data-art-title>Artwork</h2></div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body"><img data-art-image src="" alt=""></div>
+        <div class="modal-body"><img data-art-image alt=""></div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="vendor/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

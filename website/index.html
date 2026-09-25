@@ -10,9 +10,12 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/hero.webp">
   <title>Eternal SMP — Beyond Survival</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Vendored bootstrap@5.3.3 and bootstrap-icons@1.11.3; see vendor/README.md. -->
+  <link href="vendor/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="refresh.css">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 </head>
 <body class="smp-page">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -23,7 +26,7 @@
       <div class="container-xxl px-3 px-lg-4">
         <div class="nav-shell w-100">
           <a class="navbar-brand brand-lockup" href="#home" aria-label="Eternal SMP home">
-            <span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span>
+            <span class="brand-mark"><img src="assets/logo.svg" alt=""></span>
             <span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span>
           </a>
 
@@ -53,17 +56,17 @@
 
   <div class="offcanvas offcanvas-end mobile-nav" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel">
     <div class="offcanvas-header">
-      <div class="brand-lockup" id="mobileNavLabel"><span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span><span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span></div>
+      <div class="brand-lockup" id="mobileNavLabel"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span></div>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
       <nav class="mobile-links">
-        <a href="#home" data-bs-dismiss="offcanvas"><span>01</span>Home</a>
-        <a href="#team" data-bs-dismiss="offcanvas"><span>02</span>Team</a>
-        <a href="#god-armour" data-bs-dismiss="offcanvas"><span>03</span>God Armour</a>
-        <a href="#features" data-bs-dismiss="offcanvas"><span>04</span>Features</a>
-        <a href="#gallery" data-bs-dismiss="offcanvas"><span>05</span>Gallery</a>
-        <a href="#ranks" data-bs-dismiss="offcanvas"><span>06</span>Ranks</a>
+        <a href="#home"><span>01</span>Home</a>
+        <a href="#team"><span>02</span>Team</a>
+        <a href="#god-armour"><span>03</span>God Armour</a>
+        <a href="#features"><span>04</span>Features</a>
+        <a href="#gallery"><span>05</span>Gallery</a>
+        <a href="#ranks"><span>06</span>Ranks</a>
         <a href="client.html"><span>07</span>Client</a>
       </nav>
       <a class="btn btn-eternal btn-lg mt-auto" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><i class="bi bi-discord"></i> Join Discord</a>
@@ -85,9 +88,9 @@
         </div>
 
         <div class="hero-copy reveal delay-1">
-          <span class="hero-overline"><i class="bi bi-fire"></i> DIVINE POWER · ETERNAL STRENGTH</span>
+          <span class="hero-overline"><i class="bi bi-fire"></i> THE GOD ARMOUR CHAPTER</span>
           <h1>Rise beyond<br><span>survival.</span></h1>
-          <p>God Armour has arrived. A cinematic Minecraft SMP built around custom combat, progression, community and a client made for the way you play.</p>
+          <p>Forge your name. Find your people. Enter a Minecraft world of custom combat, God Armour and a story you get to shape.</p>
           <div class="hero-cta-row">
             <a class="btn btn-eternal btn-lg" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><i class="bi bi-play-fill"></i> Join the Season <i class="bi bi-arrow-right"></i></a>
             <a class="btn btn-ghost btn-lg" href="#god-armour"><i class="bi bi-shield-shaded"></i> Discover God Armour</a>
@@ -100,14 +103,14 @@
         </div>
 
         <div class="hero-side-card reveal delay-2">
-          <span class="micro-label">LIVE SEASON</span>
+          <span class="micro-label">EXPLORE THE SEASON</span>
           <strong>GOD ARMOUR</strong>
           <p>Custom models. Divine effects. Endgame progression.</p>
           <a href="#god-armour">Explore update <i class="bi bi-arrow-down-right"></i></a>
         </div>
 
         <div class="hero-action-dock reveal delay-2">
-          <div class="dock-status"><span class="status-dot"></span><div><small>ETERNAL NETWORK</small><strong>Ready to enter</strong></div></div>
+          <div class="dock-status"><i class="bi bi-stars"></i><div><small>ETERNAL NETWORK</small><strong>Your next chapter</strong></div></div>
           <div class="dock-divider"></div>
           <a class="dock-action primary" href="https://discord.gg/HaN8HxzqCV" target="_blank" rel="noreferrer"><i class="bi bi-discord"></i><span><small>COMMUNITY</small><b>Join Discord</b></span><i class="bi bi-arrow-up-right"></i></a>
           <a class="dock-action" href="client.html"><i class="bi bi-grid-1x2-fill"></i><span><small>ETERNAL SOFTWARE</small><b>Open Client</b></span><i class="bi bi-arrow-right"></i></a>
@@ -128,11 +131,15 @@
       </div>
     </section>
 
+    <div class="container-xxl px-3 px-lg-4">
+      <a class="release-banner" href="client.html"><span class="release-pill"><span data-release-version>v1.1.1</span> ETERNAL CLIENT</span><strong>A new edge for your next session.</strong><span>Five combat loadouts. Skin Studio. Your HUD. <i class="bi bi-arrow-up-right"></i></span></a>
+    </div>
+
     <section class="section-space team-section" id="team">
       <div class="container-xxl px-3 px-lg-4">
         <div class="section-head reveal">
           <div><span class="section-kicker"><i class="bi bi-gem"></i> THE PEOPLE BEHIND ETERNAL</span><h2>Admins <span>&amp;</span> Builders</h2></div>
-          <p>Four identities. Four roles. One Eternal world. Every profile uses the generated emblem artwork, not CSS-made placeholders.</p>
+          <p>The people shaping the world, building its landmarks and keeping the community moving. Meet the team behind your next adventure.</p>
         </div>
 
         <figure class="showcase-frame premium-frame reveal delay-1">
@@ -174,8 +181,8 @@
     <section class="section-space gallery-section" id="gallery">
       <div class="container-xxl px-3 px-lg-4">
         <div class="section-head reveal">
-          <div><span class="section-kicker"><i class="bi bi-images"></i> CINEMATIC GALLERY</span><h2>Built with real <span>artwork.</span></h2></div>
-          <p>No CSS-drawn characters, armour or fake scene art. These panels use the generated Eternal artwork directly.</p>
+          <div><span class="section-kicker"><i class="bi bi-images"></i> THE ETERNAL ART COLLECTION</span><h2>A world worth<br><span>getting lost in.</span></h2></div>
+          <p>Champions, armour and the worlds that inspire Eternal. Open a piece to explore the artwork up close.</p>
         </div>
         <div class="gallery-grid">
           <button class="gallery-panel gallery-wide reveal" type="button" data-lightbox="assets/hero.webp" data-lightbox-title="Eternal SMP — Beyond Survival"><img src="assets/hero.webp" alt="Eternal SMP cinematic world and team emblems"><span class="gallery-overlay"><small>WORLD</small><strong>Beyond Survival</strong><i class="bi bi-arrow-up-right"></i></span></button>
@@ -194,7 +201,7 @@
           <article class="mosaic-card reveal delay-1"><span class="mosaic-index">02</span><div class="mosaic-icon"><i class="bi bi-stars"></i></div><span>CONTENT</span><h3>Season systems.</h3><p>Ranks, rewards, hidden abilities and new content that keeps progression moving.</p></article>
           <article class="mosaic-card reveal delay-2"><span class="mosaic-index">03</span><div class="mosaic-icon"><i class="bi bi-window-stack"></i></div><span>CLIENT</span><h3>Eternal Client.</h3><p>Launcher, instances, Mod Hub and in-game utilities built as one product.</p><a class="mini-link" href="client.html">Explore client <i class="bi bi-arrow-up-right"></i></a></article>
           <article class="mosaic-card reveal"><span class="mosaic-index">04</span><div class="mosaic-icon"><i class="bi bi-people-fill"></i></div><span>COMMUNITY</span><h3>Built together.</h3><p>Discord-first community, server staff, builders and players shaping the world.</p></article>
-          <article class="mosaic-card mosaic-wide reveal delay-1"><span class="mosaic-index">05</span><div class="mosaic-icon"><i class="bi bi-speedometer2"></i></div><span>PERFORMANCE</span><h3>Fast where it matters.</h3><p>Responsive layouts, restrained animation and client tooling designed to stay smooth instead of feeling like a heavy template.</p><div class="performance-line"><span><b>01</b> Smooth UI</span><span><b>02</b> Responsive</span><span><b>03</b> Low clutter</span></div></article>
+          <article class="mosaic-card mosaic-wide reveal delay-1"><span class="mosaic-index">05</span><div class="mosaic-icon"><i class="bi bi-speedometer2"></i></div><span>PERFORMANCE</span><h3>Fast where it matters.</h3><p>Responsive layouts, restrained animation and client tooling built to keep your settings close and your next session within reach.</p><div class="performance-line"><span><b>01</b> Smooth UI</span><span><b>02</b> Responsive</span><span><b>03</b> Low clutter</span></div></article>
         </div>
       </div>
     </section>
@@ -231,7 +238,7 @@
     </section>
   </main>
 
-  <footer class="site-footer"><div class="container-xxl px-3 px-lg-4"><div class="footer-main"><a class="brand-lockup" href="#home"><span class="brand-mark"><img src="assets/pycraft.webp" alt=""></span><span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span></a><div class="footer-links"><a href="#team">Team</a><a href="#god-armour">God Armour</a><a href="#features">Features</a><a href="#ranks">Ranks</a><a href="client.html">Client</a></div><div class="footer-social"><a href="https://discord.gg/HaN8HxzqCV" aria-label="Discord"><i class="bi bi-discord"></i></a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" aria-label="GitHub"><i class="bi bi-github"></i></a></div></div><div class="footer-bottom"><span>© 2026 Eternal SMP</span><span>MORE THAN A SERVER · BEYOND SURVIVAL</span></div></div></footer>
+  <footer class="site-footer"><div class="container-xxl px-3 px-lg-4"><div class="footer-main"><a class="brand-lockup" href="#home"><span class="brand-mark"><img src="assets/logo.svg" alt=""></span><span><strong>ETERNAL</strong><small>BEYOND SURVIVAL</small></span></a><div class="footer-links"><a href="#team">Team</a><a href="#god-armour">God Armour</a><a href="#features">Features</a><a href="#ranks">Ranks</a><a href="client.html">Client</a></div><div class="footer-social"><a href="https://discord.gg/HaN8HxzqCV" aria-label="Discord"><i class="bi bi-discord"></i></a><a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client" aria-label="GitHub"><i class="bi bi-github"></i></a></div></div><div class="footer-bottom"><span>© 2026 Eternal SMP</span><span>MORE THAN A SERVER · BEYOND SURVIVAL</span></div></div></footer>
 
   <div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="copyToast" class="toast eternal-toast" role="status" aria-live="polite" aria-atomic="true"><div class="toast-body"><i class="bi bi-check-circle-fill me-2"></i> Discord invite copied.</div></div></div>
 
@@ -242,12 +249,12 @@
           <div><small>ETERNAL VISUAL ARCHIVE</small><h2 class="modal-title" data-art-title>Artwork</h2></div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body"><img data-art-image src="" alt=""></div>
+        <div class="modal-body"><img data-art-image alt=""></div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="vendor/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
   <!-- Eternal SMP premium v5 deployed -->
 </body>

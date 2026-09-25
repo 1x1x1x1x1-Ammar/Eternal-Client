@@ -58,3 +58,7 @@ test('website Pages workflow deploys only the static website directory', () => {
   assert.match(workflow, /pages:\s*write/);
   assert.match(workflow, /id-token:\s*write/);
 });
+
+test('website loadout catalog matches the launcher and Core source', () => {
+  assert.deepEqual(JSON.parse(read('website/combat-presets.json')), JSON.parse(read('shared/combat-presets.json')));
+});
