@@ -21,10 +21,10 @@ test('premium visual layer is substantial and loaded after every Beta 8 layer', 
 
 test('home command deck remains backed by real launcher state', () => {
   const home = read('src/pages/Home.jsx');
-  assert.match(home, /premium-status-deck/);
-  assert.match(home, /premium-instance-select-wrap/);
+  assert.match(home, /et-launchbar/);
+  assert.match(home, /Selected instance/);
   assert.match(home, /api\.instances\.launch/);
-  assert.match(home, /runningProcesses/);
+  assert.match(home, /selectedRunning/);
   assert.match(home, /launchEvents/);
   assert.doesNotMatch(home, /Math\.random/);
 });
@@ -34,7 +34,7 @@ test('Mod Hub premium discovery keeps real Modrinth install behavior', () => {
   assert.match(mods, /premium-mod-hero/);
   assert.match(mods, /premium-quick-searches/);
   assert.match(mods, /api\.mods\.search/);
-  assert.match(mods, /api\.mods\.install/);
+  assert.match(mods, /api\.mods\.contentInstall/);
   assert.match(mods, /current\.minecraftVersion/);
   assert.match(mods, /current\.loader/);
 });

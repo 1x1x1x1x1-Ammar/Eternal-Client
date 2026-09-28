@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public final class EternalCore implements ClientModInitializer {
-    public static final String VERSION = "1.1.1";
+    public static final String VERSION = "1.2.0";
     private static long sessionStarted;
     private static boolean zoomed;
     private static boolean zoomHeld;
@@ -53,6 +53,9 @@ public final class EternalCore implements ClientModInitializer {
             Minecraft mc = Minecraft.getInstance();
             if (mc == null || mc.options == null) return;
 
+            if (mc.screen != null && mc.screen.getClass() == net.minecraft.client.gui.screens.TitleScreen.class && mc.getOverlay() == null)
+                mc.setScreen(new gg.eternal.core.ui.EternalTitleScreen());
+            PerformanceController.tick(mc, config);
             syncToggleOptions(mc, config);
             syncFullbright(mc, config);
             tickZoom(mc, config);
@@ -66,20 +69,22 @@ public final class EternalCore implements ClientModInitializer {
         boolean sneak = config.on("ToggleSneak");
         if (sprint && !sprintApplied) {
             previousSprint = mc.options.toggleSprint().get();
-            mc.options.toggleSprint().set(true);
+            mc.options.toggleSprint().set(config.flag("ToggleSprint", "toggle"));
             sprintApplied = true;
         } else if (!sprint && sprintApplied) {
             mc.options.toggleSprint().set(previousSprint);
             sprintApplied = false;
         }
+        if (sprintApplied && sprint) mc.options.toggleSprint().set(config.flag("ToggleSprint", "toggle"));
         if (sneak && !sneakApplied) {
             previousSneak = mc.options.toggleCrouch().get();
-            mc.options.toggleCrouch().set(true);
+            mc.options.toggleCrouch().set(config.flag("ToggleSneak", "toggle"));
             sneakApplied = true;
         } else if (!sneak && sneakApplied) {
             mc.options.toggleCrouch().set(previousSneak);
             sneakApplied = false;
         }
+        if (sneakApplied && sneak) mc.options.toggleCrouch().set(config.flag("ToggleSneak", "toggle"));
     }
 
     private static void syncFullbright(Minecraft mc, CoreConfig config) {
@@ -88,7 +93,7 @@ public final class EternalCore implements ClientModInitializer {
                 previousGamma = mc.options.gamma().get();
                 fullbrightApplied = true;
             }
-            if (mc.options.gamma().get() < 0.999D) mc.options.gamma().set(1.0D);
+            mc.options.gamma().set(config.number("Fullbright", "brightness") / 100.0D);
         } else if (fullbrightApplied) {
             mc.options.gamma().set(previousGamma);
             fullbrightApplied = false;
@@ -130,11 +135,11 @@ public final class EternalCore implements ClientModInitializer {
     }
 
     public static void openHome() {
-        queueScreen("Eternal Start", EternalHomeScreen::new);
+        queueScreen("Eternal Start", () -> new gg.eternal.core.ui.ModuleLibraryScreen(Minecraft.getInstance().screen));
     }
 
     public static void openClickGui() {
-        queueScreen("Modules", ClickGuiScreen::new);
+        queueScreen("Modules", () -> new gg.eternal.core.ui.ModuleLibraryScreen(Minecraft.getInstance().screen));
     }
 
     public static void openHudEditor() {
@@ -187,8 +192,14 @@ public final class EternalCore implements ClientModInitializer {
             } else if (key == config.hudEditorKey()) {
                 openHudEditor();
             } else if (key == config.perspectiveKey() && config.on("Perspective")) {
-                mc.options.setCameraType(mc.options.getCameraType().cycle());
+                mc.options.setCameraType(config.flag("Perspective", "reverse") ? mc.options.getCameraType().cycle().cycle() : mc.options.getCameraType().cycle());
                 NotificationCenter.push("PERSPECTIVE", mc.options.getCameraType().name());
+            } else {
+                for (String module : CoreConfig.MODULES) if (key > 0 && config.number(module, "keybind") == key) {
+                    config.toggle(module);
+                    NotificationCenter.push(module, config.on(module) ? "Enabled" : "Disabled");
+                    break;
+                }
             }
         } catch (Throwable error) {
             CoreLog.error("Keyboard handler failed for key " + key, error);

@@ -9,6 +9,7 @@ import { useEternalStore } from '../store/useEternalStore.js';
 import { api, call } from '../lib/api.js';
 import { combatPresets, combatPatch } from '../lib/combatPresets.js';
 import { createSerialQueue } from '../../shared/serialQueue.js';
+import ModuleSettingsPanel from '../components/ModuleSettingsPanel.jsx';
 
 const moduleCatalog = [
   ['Watermark', 'HUD', Sparkles, 'Eternal identity chip'],
@@ -32,6 +33,14 @@ const moduleCatalog = [
   ['Offhand', 'COMBAT', Shield, 'Offhand item, count and durability'],
   ['Movement', 'COMBAT', Gauge, 'Fall distance and vertical speed for mace play'],
   ['CombatSupplies', 'COMBAT', LayoutDashboard, 'Carried crystals, totems, wind charges or carts'],
+  ['PotionEffects', 'HUD', Sparkles, 'Active potion effects, amplifier and duration'],
+  ['TargetDistance', 'COMBAT', Crosshair, 'Distance to the entity under your crosshair'],
+  ['Biome', 'HUD', Eye, 'Current biome registry name'],
+  ['WorldTime', 'HUD', Sun, 'Minecraft world clock'],
+  ['InventoryCounter', 'HUD', LayoutDashboard, 'Used and free inventory slots'],
+  ['SprintStatus', 'MOVEMENT', Zap, 'Sprinting, sneaking or walking state'],
+  ['FPSOptimizer', 'PERFORMANCE', Gauge, 'Reversible graphics controls and unfocused FPS cap'],
+  ['ReducedMotion', 'PERFORMANCE', Eye, 'Static accents for a calmer Core interface'],
   ['Zoom', 'UTILITY', Eye, 'Smooth configurable FOV zoom'],
   ['Crosshair', 'VISUAL', Crosshair, 'Custom crosshair renderer'],
   ['Fullbright', 'VISUAL', Sun, 'Maximum Minecraft brightness'],
@@ -96,6 +105,8 @@ export default function Studio() {
   const [screenshots, setScreenshots] = useState([]);
   const [status, setStatus] = useState(null);
   const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [selectedModule, setSelectedModule] = useState('');
   const [profileName, setProfileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -150,6 +161,7 @@ export default function Studio() {
     setConfig(current => ({ ...current, ...patchValue,
       enabled: { ...current.enabled, ...patchValue.enabled },
       crosshair: { ...current.crosshair, ...patchValue.crosshair }
+      , moduleSettings: { ...current.moduleSettings, ...Object.fromEntries(Object.entries(patchValue.moduleSettings || {}).map(([name,values]) => [name,{...current.moduleSettings?.[name],...values}])) }
     }));
     setSaving(true);
     setError('');
@@ -219,7 +231,7 @@ export default function Studio() {
 
   const filteredModules = moduleCatalog.filter(([name, category, , description]) => {
     const needle = query.trim().toLowerCase();
-    return !needle || `${name} ${category} ${description}`.toLowerCase().includes(needle);
+    return (categoryFilter === 'ALL' || category === categoryFilter) && (!needle || `${name} ${category} ${description}`.toLowerCase().includes(needle));
   });
 
   const activeCount = config ? Object.values(config.enabled || {}).filter(Boolean).length : 0;
@@ -265,7 +277,9 @@ export default function Studio() {
     {!config && !loading ? <section className="v11-empty"><Sparkles/><h2>Select an instance</h2><p>Eternal Studio writes only to the selected instance's local Core config.</p></section> : null}
 
     {loading && <div className="v11-empty" role="status">Loading workspace...</div>}
-    {config && !loading && tab === 'MODULES' && <motion.section className="v11-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    {config && !loading && tab === 'MODULES' && selectedModule && <ModuleSettingsPanel error={error} key={selectedModule} name={selectedModule} config={config} patch={patch} saving={saving} onBack={() => setSelectedModule('')}/>}
+    {config && !loading && tab === 'MODULES' && !selectedModule && <motion.section className="v11-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="et-category-tabs" aria-label="Module categories">{['ALL','COMBAT','HUD','VISUAL','MOVEMENT','UTILITY','PERFORMANCE'].map(category => <button key={category} className={categoryFilter === category ? 'active' : ''} onClick={() => setCategoryFilter(category)}>{category}</button>)}</div>
       <div className="combat-workspace">
         <div className="combat-heading"><Crosshair/><h2>PvP loadout</h2><span>HUD + crosshair</span></div>
         <div className="combat-presets" aria-label="Combat presets">
@@ -285,6 +299,7 @@ export default function Studio() {
           return <motion.article className={enabled ? 'v11-module-card active' : 'v11-module-card'} key={name} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * .018, .2) }}>
             <div className="v11-module-icon"><Icon/></div>
             <div className="v11-module-copy"><span>{category}</span><b>{name}</b><p>{description}</p></div>
+            <button className="et-module-config" aria-label={`${name} settings`} onClick={() => setSelectedModule(name)}><Palette/>Settings</button>
             <Switch label={`${name} module`} value={enabled} onChange={value => patch({ enabled: { [name]: value } })}/>
           </motion.article>;
         })}

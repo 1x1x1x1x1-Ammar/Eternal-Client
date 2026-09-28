@@ -18,7 +18,7 @@ public final class HudRenderer {
             "Watermark", "FPS", "CPS", "Keystrokes", "Coordinates", "Ping",
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
             "Memory", "Session", "Clock", "AttackCooldown", "HeldItem", "ArmorDurability",
-            "Offhand", "Movement", "CombatSupplies"
+            "Offhand", "Movement", "CombatSupplies", "PotionEffects", "TargetDistance", "Biome", "WorldTime", "InventoryCounter", "SprintStatus"
     };
     private static final int TEXT = EternalUi.TEXT;
     private static final int MUTED = EternalUi.MUTED;
@@ -37,6 +37,7 @@ public final class HudRenderer {
         int fallbackY = 10;
         for (String name : MODULES) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
+            if (name.equals("AttackCooldown") && CoreConfig.INSTANCE.flag(name, "readyOnly") && mc.player.getAttackStrengthScale(0) < 1) continue;
             int[] pos = CoreConfig.INSTANCE.pos(name, 10, fallbackY);
             int x = Math.max(0, Math.min(graphics.guiWidth() - boxWidth(name), pos[0]));
             int y = Math.max(0, Math.min(graphics.guiHeight() - boxHeight(name), pos[1]));
@@ -79,48 +80,48 @@ public final class HudRenderer {
         graphics.fill(x, y, x + Math.max(1, width), y + Math.max(1, height), color);
     }
 
-    public static int boxWidth(String name) {
-        Minecraft mc = Minecraft.getInstance();
+    private static int baseWidth(String name) {
         if ("Keystrokes".equals(name)) return 126;
-        if ("Watermark".equals(name)) return 146;
-        return Math.min(mc.getWindow().getGuiScaledWidth(), Math.max(80, mc.font.width(value(name)) + 30));
+        if ("Watermark".equals(name)) return 156;
+        int longest = 0;
+        for (String line : value(name).split("\n")) longest = Math.max(longest, Minecraft.getInstance().font.width(line));
+        return Math.max(80, Math.min(380, longest + 30));
     }
-
-    public static int boxHeight(String name) {
+    private static int baseHeight(String name) {
         if ("Keystrokes".equals(name)) return 76;
-        return "Watermark".equals(name) ? 27 : 23;
+        return "Watermark".equals(name) ? 27 : 12 + value(name).split("\n").length * 11;
     }
+    private static float scale(String name) {
+        var window = Minecraft.getInstance().getWindow();
+        return Math.min(CoreConfig.INSTANCE.number(name, "scale") / 100.0F,
+                Math.min(window.getGuiScaledWidth() / (float) baseWidth(name), window.getGuiScaledHeight() / (float) baseHeight(name)));
+    }
+    public static int boxWidth(String name) { return (int) Math.ceil(baseWidth(name) * scale(name)); }
+    public static int boxHeight(String name) { return (int) Math.ceil(baseHeight(name) * scale(name)); }
 
     public static void drawModule(GuiGraphics graphics, String name, int x, int y, boolean hover, boolean selected) {
         Minecraft mc = Minecraft.getInstance();
         CoreConfig config = CoreConfig.INSTANCE;
-        int width = boxWidth(name);
-        int height = boxHeight(name);
-        int alpha = config.hudAlpha();
-        int accent = accentAt(config.accentColor(), y);
-        int panelRgb = selected ? 0x00120B0E : hover ? 0x0012161B : 0x00090C10;
-        int panel = (alpha << 24) | panelRgb;
-
-        drawPanel(graphics, x, y, width, height, panel, accent, hover, selected);
-
-        if ("Watermark".equals(name)) {
-            drawWatermark(graphics, mc, x, y, width, accent);
-            return;
-        }
-        if ("Keystrokes".equals(name)) {
-            drawKeystrokes(graphics, x, y, accent);
-            return;
-        }
-
-        int pulse = 145 + (int) (85 * (0.5D + 0.5D * Math.sin(System.currentTimeMillis() / 380.0D + y * 0.02D)));
-        int dot = EternalUi.alpha(accent, pulse);
-        graphics.fill(x + 9, y + 9, x + 13, y + 13, dot);
-        graphics.fill(x + 10, y + 8, x + 12, y + 14, EternalUi.alpha(accent, Math.max(50, pulse / 2)));
-        graphics.drawString(mc.font, mc.font.plainSubstrByWidth(value(name), Math.max(1, width - 26)), x + 19, y + 8, TEXT, config.textShadow());
-        if ("AttackCooldown".equals(name) && mc.player != null) {
-            int progress = Math.round((width - 4) * mc.player.getAttackStrengthScale(0.0F));
-            graphics.fill(x + 2, y + height - 2, x + 2 + progress, y + height - 1, accent);
-        }
+        int width = baseWidth(name), height = baseHeight(name);
+        int accent = accentAt(config.number(name, "color"), y);
+        int panel = (Math.round(config.number(name, "opacity") * 2.55F) << 24) | 0x000D1015;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) x, (float) y);
+        graphics.pose().scale(scale(name), scale(name));
+        try {
+            if (config.flag(name, "background")) drawPanel(graphics, 0, 0, width, height, panel, accent, hover, selected);
+            else if (selected || hover) graphics.renderOutline(0, 0, width, height, accent);
+            if ("Watermark".equals(name)) { drawWatermark(graphics, mc, 0, 0, width, accent); return; }
+            if ("Keystrokes".equals(name)) { drawKeystrokes(graphics, 0, 0, accent); return; }
+            graphics.fill(8, 9, 11, 12, accent);
+            int lineY = 7;
+            for (String line : value(name).split("\n")) {
+                graphics.drawString(mc.font, mc.font.plainSubstrByWidth(line, width - 26), 18, lineY, TEXT, config.flag(name, "textShadow"));
+                lineY += 11;
+            }
+            if ("AttackCooldown".equals(name) && mc.player != null)
+                graphics.fill(2, height - 2, 2 + Math.round((width - 4) * mc.player.getAttackStrengthScale(0)), height - 1, accent);
+        } finally { graphics.pose().popMatrix(); }
     }
 
     private static int accentAt(int base, int y) {
@@ -138,7 +139,7 @@ public final class HudRenderer {
 
         int travel = Math.max(1, width + 48);
         int sweep = (int) ((System.currentTimeMillis() / 15L + y * 3L) % travel) - 48;
-        if (sweep < width) {
+        if (!EternalUi.reducedMotion() && sweep < width) {
             int sx = x + Math.max(2, sweep);
             int ex = x + Math.min(width - 1, sweep + 36);
             if (ex > sx) graphics.fill(sx, y, ex, y + 1, EternalUi.alpha(accent, hover || selected ? 100 : 44));
@@ -147,8 +148,8 @@ public final class HudRenderer {
 
     private static void drawWatermark(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int accent) {
         long now = System.currentTimeMillis();
-        int pulse = 150 + (int) (90 * (0.5D + 0.5D * Math.sin(now / 420.0D)));
-        boolean shadow = CoreConfig.INSTANCE.textShadow();
+        int pulse = EternalUi.reducedMotion() ? 230 : 150 + (int) (90 * (0.5D + 0.5D * Math.sin(now / 420.0D)));
+        boolean shadow = CoreConfig.INSTANCE.flag("Watermark", "textShadow");
 
         int markX = x + 9;
         int markY = y + 7;
@@ -194,7 +195,7 @@ public final class HudRenderer {
         graphics.renderOutline(x, y, size, size, down ? 0xB0FFFFFF : 0x4A4A525D);
         if (down) graphics.fill(x, y, x + size, y + 1, 0x88FFFFFF);
         int textX = x + (size - mc.font.width(label)) / 2;
-        graphics.drawString(mc.font, label, textX, y + 6, down ? 0xFFFFFFFF : 0xFFC4C9D0, CoreConfig.INSTANCE.textShadow());
+        graphics.drawString(mc.font, label, textX, y + 6, down ? 0xFFFFFFFF : 0xFFC4C9D0, CoreConfig.INSTANCE.flag("Keystrokes", "textShadow"));
     }
 
     private static void drawMouseKey(GuiGraphics graphics, Minecraft mc, int x, int y, int width, int height, String label, int cps, boolean down, int accent) {
@@ -238,7 +239,7 @@ public final class HudRenderer {
                         + " / " + (runtime.maxMemory() / 1048576) + " MB";
             }
             case "Session" -> "SESSION  " + format(EternalCore.sessionMillis());
-            case "AttackCooldown", "HeldItem", "ArmorDurability", "Offhand", "Movement", "CombatSupplies" -> CombatHud.value(name);
+            case "AttackCooldown", "HeldItem", "ArmorDurability", "Offhand", "Movement", "CombatSupplies", "PotionEffects", "TargetDistance", "Biome", "WorldTime", "InventoryCounter", "SprintStatus" -> CombatHud.value(name);
             default -> name;
         };
     }

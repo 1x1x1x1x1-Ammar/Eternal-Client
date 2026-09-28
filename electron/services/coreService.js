@@ -6,6 +6,7 @@ import AdmZip from 'adm-zip';
 import { getInstance, instanceDir } from './instanceService.js';
 import { ensureDir } from './fsService.js';
 import { createSerialQueue } from '../../shared/serialQueue.js';
+import { normalizeModuleSettings } from '../../shared/moduleSettings.js';
 
 const configWrites = createSerialQueue();
 
@@ -17,7 +18,8 @@ export const CORE_MODULES = [
   'Speed', 'Direction', 'Health', 'Armor', 'Food', 'Server',
   'Memory', 'Session', 'Clock', 'Zoom', 'Crosshair', 'Fullbright',
   'ToggleSprint', 'ToggleSneak', 'Perspective', 'AttackCooldown', 'HeldItem',
-  'ArmorDurability', 'Offhand', 'Movement', 'CombatSupplies'
+  'ArmorDurability', 'Offhand', 'Movement', 'CombatSupplies', 'PotionEffects',
+  'TargetDistance', 'Biome', 'WorldTime', 'InventoryCounter', 'SprintStatus', 'FPSOptimizer', 'ReducedMotion'
 ];
 
 const DEFAULT_CROSSHAIR = Object.freeze({
@@ -42,6 +44,7 @@ function defaultCoreConfig() {
   return {
     enabled: Object.fromEntries(CORE_MODULES.map(name => [name, false])),
     positions: {},
+    moduleSettings: normalizeModuleSettings(),
     accentColor: -53192,
     hudAlpha: 196,
     zoomFov: 30,
@@ -84,6 +87,7 @@ function sanitizeCoreConfig(input = {}) {
   return {
     enabled,
     positions,
+    moduleSettings: normalizeModuleSettings(input.moduleSettings),
     accentColor: argb(input.accentColor, defaults.accentColor),
     hudAlpha: clamp(input.hudAlpha, 80, 245, defaults.hudAlpha),
     zoomFov: clamp(input.zoomFov, 10, 60, defaults.zoomFov),
@@ -190,7 +194,19 @@ async function patchCoreConfigNow(instanceId, patch = {}) {
     positions: patch?.positions ? { ...current.positions, ...patch.positions } : current.positions,
     crosshair: { ...current.crosshair, ...(patch?.crosshair || {}) }
   };
+  merged.moduleSettings = { ...current.moduleSettings };
+  for (const [name, values] of Object.entries(patch?.moduleSettings || {})) {
+    merged.moduleSettings[name] = { ...current.moduleSettings[name], ...values };
+  }
   const clean = sanitizeCoreConfig(merged);
+  const reserved = [clean.openKey, clean.hudEditorKey, clean.zoomKey, clean.perspectiveKey];
+  for (const [name, values] of Object.entries(patch?.moduleSettings || {})) {
+    if (!Object.hasOwn(values || {}, 'keybind') || !CORE_MODULES.includes(name)) continue;
+    const key = clean.moduleSettings[name].keybind;
+    if (key && reserved.includes(key)) throw new Error('That key is reserved for an Eternal control. Choose another key.');
+    if (key) for (const other of CORE_MODULES) if (other !== name && clean.moduleSettings[other].keybind === key) clean.moduleSettings[other].keybind = 0;
+  }
+  for (const name of CORE_MODULES) if (reserved.includes(clean.moduleSettings[name].keybind)) clean.moduleSettings[name].keybind = 0;
   await writeJsonAtomic(configFile(instanceId), clean);
   return clean;
 }

@@ -259,11 +259,11 @@ test('Eternal replaces vanilla title screen with real Minecraft navigation', () 
   const mixin = read('eternal-core/src/main/java/gg/eternal/core/mixin/MinecraftScreenMixin.java');
   assert.match(mixin, /TitleScreen/);
   assert.match(mixin, /new EternalTitleScreen\(\)/);
-  assert.match(title, /SelectWorldScreen/);
-  assert.match(title, /JoinMultiplayerScreen/);
+  assert.match(title, /EternalWorldScreen/);
+  assert.match(title, /EternalServerScreen/);
   assert.match(title, /OptionsScreen/);
-  assert.match(title, /EternalCore\.openClickGui/);
-  assert.match(title, /EternalCore\.openHudEditor/);
+  assert.match(title, /new ModuleLibraryScreen/);
+  assert.match(title, /new HudEditorScreen/);
 });
 
 test('HUD editor has real drag snap nudge presets inspector and disable paths', () => {

@@ -23,12 +23,74 @@ public final class CoreConfig {
             "Speed", "Direction", "Health", "Armor", "Food", "Server",
             "Memory", "Session", "Clock", "Zoom", "Crosshair", "Fullbright",
             "ToggleSprint", "ToggleSneak", "Perspective", "AttackCooldown", "HeldItem",
-            "ArmorDurability", "Offhand", "Movement", "CombatSupplies"
+            "ArmorDurability", "Offhand", "Movement", "CombatSupplies", "PotionEffects",
+            "TargetDistance", "Biome", "WorldTime", "InventoryCounter", "SprintStatus", "FPSOptimizer", "ReducedMotion"
     };
     public static final CoreConfig INSTANCE = new CoreConfig();
 
     public final Map<String, Boolean> enabled = new LinkedHashMap<>();
     public final Map<String, int[]> positions = new LinkedHashMap<>();
+    private JsonObject moduleSettings = ModuleSettings.normalize(new JsonObject());
+
+    public int number(String module, String key) {
+        if (module.equals("Zoom")) {
+            if (key.equals("zoomFov")) return zoomFov;
+            if (key.equals("zoomSpeed")) return zoomSpeed;
+        }
+        if (module.equals("Crosshair")) {
+            switch (key) {
+                case "gap": return crosshairGap;
+                case "length": return crosshairLength;
+                case "thickness": return crosshairThickness;
+                case "color": return crosshairColor;
+                case "hitColor": return crosshairHitColor;
+            }
+        }
+        return moduleSettings.getAsJsonObject(module).get(key).getAsInt();
+    }
+    public boolean flag(String module, String key) {
+        if (module.equals("Zoom") && key.equals("smoothZoom")) return smoothZoom;
+        if (module.equals("Crosshair")) {
+            if (key.equals("dot")) return crosshairDot;
+            if (key.equals("outline")) return crosshairOutline;
+        }
+        return moduleSettings.getAsJsonObject(module).get(key).getAsBoolean();
+    }
+    public void setSetting(String module, String key, com.google.gson.JsonElement value) {
+        if (!enabled.containsKey(module)) return;
+        if ("keybind".equals(key)) {
+            int binding = Math.max(0, Math.min(348, value.getAsInt()));
+            if (binding > 0 && (binding == openKey || binding == hudEditorKey || binding == zoomKey || binding == perspectiveKey)) return;
+            // One module per key. Assigning a key moves it from its previous owner.
+            if (binding > 0) for (String other : MODULES) if (number(other, "keybind") == binding) moduleSettings.getAsJsonObject(other).addProperty("keybind", 0);
+            moduleSettings.getAsJsonObject(module).addProperty(key, binding);
+        } else {
+            var rule = ModuleSettings.rules(module).get(key);
+            if (rule == null) return;
+            var clean = ModuleSettings.clean(rule, value);
+            moduleSettings.getAsJsonObject(module).add(key, clean);
+            if (module.equals("Zoom")) switch (key) {
+                case "zoomFov" -> zoomFov = clean.getAsInt();
+                case "zoomSpeed" -> zoomSpeed = clean.getAsInt();
+                case "smoothZoom" -> smoothZoom = clean.getAsBoolean();
+            }
+            if (module.equals("Crosshair")) switch (key) {
+                case "gap" -> crosshairGap = clean.getAsInt();
+                case "length" -> crosshairLength = clean.getAsInt();
+                case "thickness" -> crosshairThickness = clean.getAsInt();
+                case "color" -> crosshairColor = clean.getAsInt();
+                case "hitColor" -> crosshairHitColor = clean.getAsInt();
+                case "dot" -> crosshairDot = clean.getAsBoolean();
+                case "outline" -> crosshairOutline = clean.getAsBoolean();
+            }
+        }
+        save();
+        gg.eternal.core.hud.HudRenderer.tick();
+    }
+    public void resetModule(String module) {
+        ModuleSettings.rules(module).forEach((key, rule) -> setSetting(module, key, rule.get("default")));
+        setSetting(module, "keybind", new com.google.gson.JsonPrimitive(0));
+    }
 
     private int accentColor = 0xFFFF3038;
     private int hudAlpha = 196;
@@ -70,8 +132,7 @@ public final class CoreConfig {
     }
 
     private static boolean isHudModule(String name) {
-        return !"Zoom".equals(name) && !"Crosshair".equals(name) && !"Fullbright".equals(name)
-                && !"ToggleSprint".equals(name) && !"ToggleSneak".equals(name) && !"Perspective".equals(name);
+        return ModuleSettings.hud(name);
     }
 
     public int[] pos(String name, int defaultX, int defaultY) { return positions.computeIfAbsent(name, ignored -> new int[]{defaultX, defaultY}); }
@@ -227,6 +288,7 @@ public final class CoreConfig {
         }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+            if (root.has("moduleSettings") && root.get("moduleSettings").isJsonObject()) moduleSettings = ModuleSettings.normalize(root.getAsJsonObject("moduleSettings"));
             if (root.has("enabled")) for (var entry : root.getAsJsonObject("enabled").entrySet()) {
                 if (enabled.containsKey(entry.getKey())) enabled.put(entry.getKey(), entry.getValue().getAsBoolean());
             }
@@ -293,6 +355,7 @@ public final class CoreConfig {
             });
             root.add("enabled", enabledJson);
             root.add("positions", positionsJson);
+            root.add("moduleSettings", moduleSettings.deepCopy());
             root.addProperty("accentColor", accentColor);
             root.addProperty("hudAlpha", hudAlpha);
             root.addProperty("zoomFov", zoomFov);
