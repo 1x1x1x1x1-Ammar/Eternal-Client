@@ -18,6 +18,7 @@ import './v1-transfers.css';
 import './v101-client.css';
 import './v11-studio.css';
 import './v11-release.css';
+import './eternal-redesign.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode><HashRouter><App /></HashRouter></React.StrictMode>

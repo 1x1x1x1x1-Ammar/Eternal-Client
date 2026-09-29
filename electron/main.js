@@ -8,6 +8,7 @@ import * as accounts from './services/accountService.js';
 import * as instances from './services/instanceService.js';
 import * as java from './services/javaService.js';
 import * as mods from './services/modService.js';
+import * as content from './services/contentService.js';
 import * as servers from './services/serverService.js';
 import * as launcher from './services/launcherService.js';
 import * as versions from './services/versionService.js';
@@ -36,6 +37,7 @@ const tracedOperations = new Set([
   'accounts:addOffline', 'accounts:loginMicrosoft', 'accounts:remove', 'accounts:activate',
   'instances:create', 'instances:patch', 'instances:duplicate', 'instances:remove', 'instances:openFolder', 'instances:launch', 'instances:stop',
   'mods:add', 'mods:remove', 'mods:toggle', 'mods:install',
+  'content:add', 'content:toggle', 'content:remove', 'content:install',
   'servers:save', 'servers:remove', 'servers:ping', 'servers:join',
   'core:exportStandalone', 'core:patchConfig', 'core:saveProfile', 'core:applyProfile', 'core:deleteProfile', 'core:deleteScreenshot',
   'settings:patch', 'updater:check', 'updater:download', 'updater:install'
@@ -283,6 +285,18 @@ handle('instances:stop', id => launcher.stopInstance(id));
 handle('java:detect', () => java.detectJava());
 handle('java:validate', value => java.validateJava(value));
 handle('mods:list', id => mods.listMods(id));
+handle('content:worlds', id => content.listWorlds(id));
+handle('content:list', data => content.listContent(data));
+for (const [channel, action] of Object.entries({ add:content.addContent, toggle:content.toggleContent, remove:content.removeContent, install:content.installContent })) {
+  handle(`content:${channel}`, data => {
+    if (instanceRunning(data.instanceId)) throw new Error('Close this Minecraft instance before changing its content.');
+    return action({ ...data, emit:event => send('download:event',event) });
+  });
+}
+handle('dialog:content', async type => {
+  const result = await dialog.showOpenDialog(mainWindow, { properties:['openFile','multiSelections'], filters:[{name:type === 'mod' ? 'Minecraft mods' : 'Minecraft packs',extensions:[type === 'mod' ? 'jar' : 'zip']}] });
+  return result.canceled ? [] : result.filePaths;
+});
 handle('mods:add', data => mods.addMods(data.instanceId, data.files));
 handle('mods:remove', data => mods.removeMod(data.instanceId, data.filename));
 handle('mods:toggle', data => mods.toggleMod(data.instanceId, data.filename, data.enabled));

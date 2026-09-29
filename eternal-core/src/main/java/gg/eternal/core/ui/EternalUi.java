@@ -15,6 +15,15 @@ public final class EternalUi {
     public static final int LINE_STRONG = 0x675A626F;
 
     private EternalUi() {}
+    private static final net.minecraft.resources.Identifier LANDSCAPE = net.minecraft.resources.Identifier.fromNamespaceAndPath("eternal-core", "textures/eternal-landscape.png");
+    public static void landscape(GuiGraphics graphics, int width, int height) {
+        // Cover the viewport while preserving the original image aspect ratio.
+        float cover = Math.max(width / 1672.0F, height / 941.0F);
+        int drawWidth = Math.round(1672 * cover), drawHeight = Math.round(941 * cover);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, LANDSCAPE,
+                (width - drawWidth) / 2, (height - drawHeight) / 2, 0.0F, 0.0F,
+                drawWidth, drawHeight, 1672, 941, 1672, 941);
+    }
 
     public static float clamp01(float value) {
         return Math.max(0.0F, Math.min(1.0F, value));
@@ -43,7 +52,12 @@ public final class EternalUi {
         return alpha(accent, alpha);
     }
 
+    public static boolean reducedMotion() {
+        var config = gg.eternal.core.config.CoreConfig.INSTANCE;
+        return config.on("ReducedMotion") && config.flag("ReducedMotion", "staticHud");
+    }
     public static int livingAccent(int accent, int y) {
+        if (reducedMotion()) return accent;
         double wave = 0.08D + 0.18D * (0.5D + 0.5D * Math.sin(System.currentTimeMillis() / 720.0D + y * 0.023D));
         int r = (accent >> 16) & 0xFF;
         int g = (accent >> 8) & 0xFF;
@@ -74,7 +88,7 @@ public final class EternalUi {
         }
 
         int grid = 38;
-        int drift = (int) ((System.currentTimeMillis() / 46L) % grid);
+        int drift = reducedMotion() ? 0 : (int) ((System.currentTimeMillis() / 46L) % grid);
         for (int x = -grid + drift; x < width; x += grid) {
             graphics.fill(x, 0, x + 1, height, 0x08000000 | (accent & 0x00FFFFFF));
         }
@@ -82,7 +96,7 @@ public final class EternalUi {
             graphics.fill(0, y, width, y + 1, 0x06000000 | (accent & 0x00FFFFFF));
         }
 
-        int sweep = (int) ((System.currentTimeMillis() / 9L) % Math.max(1, width + 220)) - 220;
+        int sweep = reducedMotion() ? -220 : (int) ((System.currentTimeMillis() / 9L) % Math.max(1, width + 220)) - 220;
         graphics.fill(sweep, 0, Math.min(width, sweep + 140), 1, 0x54FFFFFF);
         graphics.fill(0, height - 2, width, height, 0x22000000 | (accent & 0x00FFFFFF));
     }
@@ -122,7 +136,7 @@ public final class EternalUi {
 
     public static void divider(GuiGraphics graphics, int x, int y, int width, int accent) {
         graphics.fill(x, y, x + width, y + 1, 0x263E454F);
-        int sweep = (int) ((System.currentTimeMillis() / 14L) % Math.max(1, width + 70)) - 70;
+        int sweep = reducedMotion() ? -220 : (int) ((System.currentTimeMillis() / 14L) % Math.max(1, width + 70)) - 70;
         int sx = x + sweep;
         graphics.fill(Math.max(x, sx), y, Math.min(x + width, sx + 54), y + 1, alpha(accent, 118));
     }

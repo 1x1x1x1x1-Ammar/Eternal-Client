@@ -8,7 +8,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('every routed page participates in the Beta 8 UI system', () => {
   const expectations = {
-    'src/pages/Home.jsx': /beta8-home/,
+    'src/pages/Home.jsx': /et-home/,
     'src/pages/Library.jsx': /beta8-library-page/,
     'src/pages/Mods.jsx': /beta8-mods-page/,
     'src/pages/Servers.jsx': /beta8-servers-page/,

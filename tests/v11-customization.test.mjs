@@ -75,11 +75,11 @@ test('premium in-game shell is shared across title, Start, ClickGUI, HUD, HUD St
   const notices = read('eternal-core/src/main/java/gg/eternal/core/ui/NotificationCenter.java');
 
   for (const helper of ['backdrop', 'veil', 'glass', 'accentRail', 'livingAccent', 'progress']) assert.match(ui, new RegExp(` ${helper}\\(`));
-  for (const phrase of ['Your Minecraft. Sharpened.', 'CORE SNAPSHOT', 'SINGLEPLAYER', 'MULTIPLAYER']) assert.ok(title.includes(phrase));
+  for (const phrase of ['ETERNAL', 'Installed mods', 'Singleplayer', 'Multiplayer']) assert.ok(title.includes(phrase));
   for (const phrase of ['WELCOME BACK', 'QUICK MODULES', 'HUD WORKSPACE', 'ClickGUI 2.0']) assert.ok(home.includes(phrase));
   for (const phrase of ['PLAY YOUR WAY', 'VISUAL LAB', 'STYLE + LAYOUT', 'BUILT AS A REAL CLIENT']) assert.ok(click.includes(phrase));
   for (const phrase of ['HUD STUDIO', 'HUD CANVAS', 'INSPECTOR', 'AUTO-SAVE']) assert.ok(editor.includes(phrase));
-  assert.match(title, /ORIGINAL CLIENT UI/);
+  assert.match(title, /EternalUi\.landscape/);
   assert.match(editor, /EternalUi\.veil/);
   assert.match(hud, /EternalUi\.livingAccent/);
   assert.match(hud, /ETERNAL/);

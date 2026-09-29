@@ -5,13 +5,13 @@ import MinecraftHead from './MinecraftHead.jsx';
 import eternalLogo from '../../assets/logo.svg';
 
 const primaryLinks = [
-  ['/', Home, 'Home'],
+  ['/', Home, 'Play'],
   ['/library', Boxes, 'Instances'],
-  ['/mods', Puzzle, 'Mods'],
+  ['/mods', Puzzle, 'Mod Hub'],
   ['/servers', Server, 'Servers'],
   ['/core', ShieldCheck, 'Eternal Core'],
   ['/studio', Palette, 'Studio'],
-  ['/accounts', UserRound, 'Accounts'],
+  ['/accounts', UserRound, 'Accounts & Skins'],
   ['/settings', Settings, 'Settings']
 ];
 const secondaryLinks = [

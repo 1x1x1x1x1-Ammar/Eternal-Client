@@ -79,7 +79,9 @@ test('combat telemetry is cached per tick and HUD drags commit on release', () =
   assert.doesNotMatch(combat, /sendPacket|\.attack\(|setSelectedSlot/);
   assert.match(editor, /previewPos/);
   assert.match(editor, /mouseReleased[\s\S]*savePositions/);
-  for (const screen of ['ClickGuiScreen', 'EternalHomeScreen', 'EternalTitleScreen']) {
+  const title = read(`${java}ui/EternalTitleScreen.java`);
+  assert.match(title, /addRenderableWidget\(new EternalButton/);
+  for (const screen of ['ClickGuiScreen', 'EternalHomeScreen']) {
     const source = read(`${java}ui/${screen}.java`);
     assert.match(source, /viewport\(\).pointer\(event.x\(\)\)/);
     assert.match(source, /finally[\s\S]*popMatrix/);

@@ -65,8 +65,8 @@ test('Core V1.1 opens premium real-function screens through the crash-safe Minec
   const core = read('eternal-core/src/main/java/gg/eternal/core/EternalCore.java');
   const home = read('eternal-core/src/main/java/gg/eternal/core/ui/EternalHomeScreen.java');
   const editor = read('eternal-core/src/main/java/gg/eternal/core/ui/HudEditorScreen.java');
-  assert.match(core, /EternalHomeScreen::new/);
-  assert.match(core, /ClickGuiScreen::new/);
+  assert.match(core, /new gg\.eternal\.core\.ui\.ModuleLibraryScreen/);
+  assert.match(core, /queueScreen\("Modules"/);
   assert.match(core, /HudEditorScreen::new/);
   assert.match(core, /mc\.execute/);
   assert.match(core, /screenOpenQueued/);

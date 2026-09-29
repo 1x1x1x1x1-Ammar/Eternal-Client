@@ -10,3 +10,4 @@ Thumbs.db
 eternal-core/.gradle/
 eternal-core/build/
 assets/eternal-core.jar
+.tools/

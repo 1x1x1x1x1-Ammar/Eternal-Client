@@ -1,0 +1,347 @@
+{
+  "hud": {
+    "scale": {
+      "label": "HUD scale",
+      "type": "number",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "default": 100
+    },
+    "opacity": {
+      "label": "Background opacity",
+      "type": "number",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 80
+    },
+    "background": {
+      "label": "Background",
+      "type": "boolean",
+      "default": true
+    },
+    "textShadow": {
+      "label": "Text shadow",
+      "type": "boolean",
+      "default": true
+    },
+    "color": {
+      "label": "Accent color",
+      "type": "color",
+      "default": -53192
+    }
+  },
+  "modules": {
+    "Watermark": {},
+    "FPS": {},
+    "CPS": {},
+    "Keystrokes": {},
+    "Coordinates": {},
+    "Ping": {},
+    "Speed": {},
+    "Direction": {},
+    "Health": {},
+    "Armor": {},
+    "Food": {},
+    "Server": {},
+    "Memory": {},
+    "Session": {},
+    "Clock": {},
+    "AttackCooldown": {
+      "readyOnly": {
+        "label": "Only show when ready",
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "HeldItem": {
+      "durability": {
+        "label": "Show durability",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "ArmorDurability": {
+      "warning": {
+        "label": "Low durability warning %",
+        "type": "number",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "default": 20
+      },
+      "allPieces": {
+        "label": "Show each armor piece",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "Offhand": {
+      "durability": {
+        "label": "Show durability",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "Movement": {
+      "vertical": {
+        "label": "Show vertical speed",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "CombatSupplies": {
+      "crystals": {
+        "label": "End crystals",
+        "type": "boolean",
+        "default": true
+      },
+      "obsidian": {
+        "label": "Obsidian",
+        "type": "boolean",
+        "default": true
+      },
+      "totems": {
+        "label": "Totems",
+        "type": "boolean",
+        "default": true
+      },
+      "wind": {
+        "label": "Wind charges",
+        "type": "boolean",
+        "default": true
+      },
+      "carts": {
+        "label": "TNT minecarts",
+        "type": "boolean",
+        "default": true
+      },
+      "rails": {
+        "label": "Rails",
+        "type": "boolean",
+        "default": true
+      },
+      "pearls": {
+        "label": "Ender pearls",
+        "type": "boolean",
+        "default": true
+      },
+      "apples": {
+        "label": "Golden apples",
+        "type": "boolean",
+        "default": true
+      },
+      "warning": {
+        "label": "Low supply threshold",
+        "type": "number",
+        "min": 0,
+        "max": 64,
+        "step": 1,
+        "default": 4
+      },
+      "vertical": {
+        "label": "Vertical layout",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "PotionEffects": {
+      "limit": {
+        "label": "Maximum effects",
+        "type": "number",
+        "min": 1,
+        "max": 12,
+        "step": 1,
+        "default": 6
+      },
+      "duration": {
+        "label": "Show remaining time",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "TargetDistance": {
+      "decimals": {
+        "label": "Decimal places",
+        "type": "number",
+        "min": 0,
+        "max": 2,
+        "step": 1,
+        "default": 1
+      }
+    },
+    "Biome": {},
+    "WorldTime": {
+      "clock24": {
+        "label": "24 hour clock",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "InventoryCounter": {
+      "free": {
+        "label": "Show free slots",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "SprintStatus": {},
+    "Zoom": {
+      "zoomFov": {
+        "label": "Zoom FOV",
+        "type": "number",
+        "min": 10,
+        "max": 60,
+        "step": 5,
+        "default": 30
+      },
+      "smoothZoom": {
+        "label": "Smooth zoom",
+        "type": "boolean",
+        "default": true
+      },
+      "zoomSpeed": {
+        "label": "Zoom speed",
+        "type": "number",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "default": 5
+      }
+    },
+    "Crosshair": {
+      "gap": {
+        "label": "Gap",
+        "type": "number",
+        "min": 0,
+        "max": 12,
+        "step": 1,
+        "default": 3
+      },
+      "length": {
+        "label": "Arm length",
+        "type": "number",
+        "min": 2,
+        "max": 14,
+        "step": 1,
+        "default": 5
+      },
+      "thickness": {
+        "label": "Thickness",
+        "type": "number",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 1
+      },
+      "dot": {
+        "label": "Center dot",
+        "type": "boolean",
+        "default": false
+      },
+      "outline": {
+        "label": "Outline",
+        "type": "boolean",
+        "default": true
+      },
+      "color": {
+        "label": "Crosshair color",
+        "type": "color",
+        "default": -1
+      },
+      "hitColor": {
+        "label": "Target color",
+        "type": "color",
+        "default": -53192
+      }
+    },
+    "Fullbright": {
+      "brightness": {
+        "label": "Brightness %",
+        "type": "number",
+        "min": 50,
+        "max": 100,
+        "step": 5,
+        "default": 100
+      }
+    },
+    "ToggleSprint": {
+      "toggle": {
+        "label": "Native toggle preference",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "ToggleSneak": {
+      "toggle": {
+        "label": "Native toggle preference",
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "Perspective": {
+      "reverse": {
+        "label": "Reverse camera cycle",
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "FPSOptimizer": {
+      "renderDistance": {
+        "label": "Render distance (chunks)",
+        "type": "number",
+        "min": 2,
+        "max": 32,
+        "step": 1,
+        "default": 8
+      },
+      "entityDistance": {
+        "label": "Entity distance %",
+        "type": "number",
+        "min": 50,
+        "max": 100,
+        "step": 10,
+        "default": 75
+      },
+      "particles": {
+        "label": "Particle detail (0 full / 2 minimal)",
+        "type": "number",
+        "min": 0,
+        "max": 2,
+        "step": 1,
+        "default": 1
+      },
+      "entityShadows": {
+        "label": "Entity shadows",
+        "type": "boolean",
+        "default": false
+      },
+      "backgroundFps": {
+        "label": "Unfocused FPS cap",
+        "type": "number",
+        "min": 10,
+        "max": 120,
+        "step": 10,
+        "default": 30
+      }
+    },
+    "ReducedMotion": {
+      "staticHud": {
+        "label": "Static HUD accents",
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "utilities": [
+    "Zoom",
+    "Crosshair",
+    "Fullbright",
+    "ToggleSprint",
+    "ToggleSneak",
+    "Perspective",
+    "FPSOptimizer",
+    "ReducedMotion"
+  ]
+}

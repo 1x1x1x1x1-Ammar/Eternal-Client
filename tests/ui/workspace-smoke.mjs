@@ -25,11 +25,15 @@ try {
         return ok(true);
       } },
       app: { state: () => ok({ version: '1.1.0', running: [] }), openExternal: url => { window.uiCalls.push({ type: 'external', url }); return ok(true); } },
-      settings: { get: () => ok({ reducedMotion: true }) },
-      instances: { list: () => ok([{ id: 'one', name: 'PvP', loader: 'fabric', minecraftVersion: '1.21.11' }]) },
+      settings: { get: () => ok({ reducedMotion: true,ramMb:6144 }), patch: patch => {window.uiCalls.push({type:'settings',patch});return ok({...patch,reducedMotion:true});} },
+      mods: {worlds: () => ok([{id:'Survival',name:'Survival'}]), contentList: () => ok([]), search: data => {window.uiCalls.push({type:'search',data}); return ok({hits:[],total_hits:0});}},
+      instances: { launch: data => {window.uiCalls.push({type:'launch',...data});return ok(true);}, list: () => ok([{ id: 'one', name: 'PvP', loader: 'fabric', minecraftVersion: '1.21.11' }]) },
       servers: { list: () => ok([]) },
       core: { config: () => ok(config), profiles: () => ok([]), screenshots: () => ok([]), status: () => ok({ supported: true }), patchConfig: async ({ patch }) => {
-        config = { ...config, ...patch, enabled: { ...config.enabled, ...patch.enabled }, crosshair: { ...config.crosshair, ...patch.crosshair } };
+        window.uiCalls.push({type:'corePatch',patch});
+        const moduleSettings = {...config.moduleSettings};
+        for (const [name,values] of Object.entries(patch.moduleSettings || {})) moduleSettings[name] = {...moduleSettings[name],...values};
+        config = { ...config, ...patch, moduleSettings, enabled: { ...config.enabled, ...patch.enabled }, crosshair: { ...config.crosshair, ...patch.crosshair } };
         return ok(config);
       } }
     };
@@ -64,6 +68,38 @@ try {
     await page.screenshot({ path: path.join(output, `studio-${width}.png`) });
     const size = await page.locator('.content').evaluate(el => [el.scrollWidth, el.clientWidth]);
     assert.ok(size[0] <= size[1] + 2, `Horizontal overflow at ${width}: ${size}`);
+  }
+  await page.setViewportSize({width:1440,height:900});
+  await page.getByRole('button',{name:'ArmorDurability settings',exact:true}).click();
+  await page.getByLabel('Show each armor piece').uncheck();
+  await page.getByLabel('HUD scale').fill('150');
+  await page.waitForFunction(() => window.uiCalls.some(x => x.type === 'corePatch' && x.patch.moduleSettings?.ArmorDurability?.scale === 150));
+  assert.ok(await page.getByText('Changes apply without closing the menu.').isVisible());
+  await page.screenshot({path:path.join(output,'module-settings-1440.png')});
+  for (const [width,height] of [[390,844],[640,480],[960,640]]) {
+    await page.setViewportSize({width,height});
+    const size = await page.locator('.content').evaluate(el => [el.scrollWidth,el.clientWidth]);
+    assert.ok(size[0] <= size[1]+2, `Settings overflow ${width}: ${size}`);
+  }
+  await page.setViewportSize({width:1440,height:900});
+  await page.evaluate(() => location.hash = '#/mods');
+  await page.getByRole('button',{name:'Resource Packs',exact:true}).click();
+  await page.getByRole('button',{name:'Search',exact:true}).click();
+  await page.waitForFunction(() => window.uiCalls.some(x => x.type === 'search' && x.data.projectType === 'resourcepack'));
+  await page.getByRole('button',{name:'Datapacks',exact:true}).click();
+  await page.getByLabel('Datapack world').selectOption('Survival');
+  await page.getByRole('button',{name:'Shader Packs',exact:true}).click();
+  await page.getByRole('button',{name:'Search',exact:true}).click();
+  await page.waitForFunction(() => window.uiCalls.some(x => x.type === 'search' && x.data.projectType === 'shader'));
+  await page.screenshot({path:path.join(output,'modhub-1440.png')});
+  await page.evaluate(() => location.hash = '#/');
+  await page.getByRole('button',{name:'Play',exact:true}).click();
+  assert.equal(await page.evaluate(() => window.uiCalls.find(x => x.type === 'launch').instanceId),'one');
+  for (const [width,height] of [[1440,900],[960,640],[640,480],[390,844]]) {
+    await page.setViewportSize({width,height});
+    await page.screenshot({path:path.join(output,`home-${width}.png`)});
+    const size = await page.locator('.content').evaluate(el => [el.scrollWidth,el.clientWidth]);
+    assert.ok(size[0] <= size[1]+2, `Home overflow ${width}: ${size}`);
   }
   assert.deepEqual(errors, []);
   console.log('PASS: skin account routing, skin preview, Aternos link, five presets, four viewport layouts.');

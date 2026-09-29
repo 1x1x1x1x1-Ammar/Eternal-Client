@@ -72,7 +72,7 @@ public final class HudEditorScreen extends Screen {
 
         graphics.drawString(font, "ETERNAL", 16, 15, EternalUi.TEXT, true);
         graphics.drawString(font, "HUD STUDIO", 16 + font.width("ETERNAL") + 7, 15, accent, true);
-        graphics.drawString(font, "DRAG · SNAP · NUDGE · PRESET · DISABLE · AUTO-SAVE", 16, 32, EternalUi.DIM, false);
+        graphics.drawString(font, "DRAG · ARROWS: NUDGE · ENTER: SETTINGS · AUTO-SAVE", 16, 32, EternalUi.DIM, false);
 
         int x = controlsX();
         int y = controlsY();
@@ -105,7 +105,7 @@ public final class HudEditorScreen extends Screen {
     private void drawGrid(GuiGraphics graphics, int snap, int accent) {
         int top = canvasTop();
         int spacing = Math.max(12, snap * 5);
-        int drift = (int) ((System.currentTimeMillis() / 55L) % spacing);
+        int drift = EternalUi.reducedMotion() ? 0 : (int) ((System.currentTimeMillis() / 55L) % spacing);
         for (int x = -spacing + drift; x < width; x += spacing) graphics.fill(x, top, x + 1, height, 0x0DFFFFFF);
         for (int y = top - spacing + drift / 2; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x0CFFFFFF);
         graphics.fill(width / 2, top, width / 2 + 1, height, EternalUi.alpha(accent, 38));
@@ -260,6 +260,10 @@ public final class HudEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 257 && selectedModule != null) {
+            minecraft.setScreen(new ModuleSettingsScreen(this, selectedModule));
+            return true;
+        }
         if (event.key() == 82) { apply("DEFAULT"); return true; }
         if (event.key() == 261 && selectedModule != null) {
             String module = selectedModule;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Activity, Boxes, CheckCircle2, ChevronRight, Cloud, Cpu, DownloadCloud, Gauge, Keyboard, MapPin, PackageOpen,
+  Crosshair as CrosshairIcon, Activity, Boxes, CheckCircle2, ChevronRight, Cloud, Cpu, DownloadCloud, Gauge, Keyboard, MapPin, PackageOpen,
   Play, Radio, Server, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Square,
   Terminal, UserRound, Users, WandSparkles, Wrench, Zap
 } from 'lucide-react';
@@ -98,53 +98,40 @@ export default function Home() {
     finally { setLaunching(false); }
   }
 
-  return <motion.div className="release-home beta6-home beta8-home premium-home v1-home" variants={stagger} initial="hidden" animate="show">
-    <motion.section className="release-hero beta6-hero beta8-hero premium-hero" variants={rise}>
-      <div className="release-hero-grid"/><div className="release-hero-atmosphere"/><div className="beta6-scanline"/><div className="premium-hero-noise"/><div className="premium-hero-beam"/>
-      <motion.div className="release-hero-copy premium-hero-copy" initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .34 }}>
-        <div className="premium-kicker-row"><span className="release-kicker">ETERNAL CLIENT · v{appVersion || '1.0.0'}</span><span className="premium-live-pill"><i/>STABLE V1</span></div>
-        <h1>Play Minecraft<br/><strong>without compromise.</strong></h1>
-        <p>A fast, isolated, mod-ready launcher with a real in-game client. Every profile stays clean. Every action maps to actual runtime state.</p>
-        <div className="premium-hero-pills">
-          <span><Zap/>Fast launch</span><span><ShieldCheck/>Verified Core</span><span><PackageOpen/>Modrinth</span><span><Sparkles/>Premium UX</span>
-        </div>
-        <div className="release-launch-row premium-launch-row">
-          <button className="release-play premium-play" disabled={launching || selectedBusy} onClick={playSelected}><Play fill="currentColor"/>{launching || selectedBusy ? selectedEvent?.message || 'Starting…' : selected ? selectedRunning ? 'Launch another' : 'Play now' : 'Create profile'}</button>
-          <div className="premium-instance-select-wrap"><small>READY PROFILE</small><select value={selectedId} onChange={e => setSelectedId(e.target.value)} disabled={!instances.length || launching}>{!instances.length && <option>No profiles yet</option>}{instances.map(instance => <option key={instance.id} value={instance.id}>{instance.name} · {instance.minecraftVersion} · {instance.loader}</option>)}</select></div>
-          <button className="release-gear" onClick={() => navigate('/library')} title="Instance settings"><Settings2/></button>
-        </div>
-        {launchError && <div className="release-inline-error">{launchError}</div>}
-        <div className="premium-selected-meta">
-          <span className={selected ? 'good' : ''}><CheckCircle2/>{selected ? `${selected.minecraftVersion} ${selected.loader}` : 'No profile selected'}</span>
-          <span className={account ? 'good' : ''}><UserRound/>{account?.username || 'No account'}</span>
-          <span className={supportedCore ? 'good' : ''}><ShieldCheck/>{supportedCore ? 'Core compatible' : 'Core requires Fabric 1.21.11'}</span>
-        </div>
-      </motion.div>
-      <motion.div className="release-hero-emblem premium-hero-emblem" initial={{ opacity: 0, scale: .88, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: .48, ease: [0.2, 0.8, 0.2, 1] }}><div className="premium-orbit orbit-one"/><div className="premium-orbit orbit-two"/><div className="release-emblem-glow"/><img src={eternalLogo} alt="Eternal"/><span>BEYOND SURVIVAL</span></motion.div>
-      <div className="release-hero-account premium-hero-account"><MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={28}/><span className={account ? 'online' : ''}/><div><b>{account?.username || 'No account'}</b><small>{account ? account.type === 'microsoft' ? 'Microsoft authenticated' : 'Offline profile' : 'Open Accounts to begin'}</small></div></div>
-      <div className="release-feature-row premium-feature-row">{featureTiles.map(([to, Icon, title, copy], index) => <motion.button variants={rise} key={to} onClick={() => navigate(to)}><span className="premium-feature-number">0{index + 1}</span><Icon/><span><b>{title}</b><small>{copy}</small></span><ChevronRight className="premium-feature-arrow"/></motion.button>)}</div>
-    </motion.section>
-
-    <motion.section className="premium-status-deck" variants={rise} aria-label="Eternal live overview">
-      <div><span><Radio/><small>CLIENT STATE</small></span><b className={runningProcesses ? 'green' : ''}>{runningProcesses ? `${runningProcesses} running` : 'Ready'}</b><i className={runningProcesses ? 'live' : ''}/></div>
-      <div><span><Boxes/><small>PROFILES</small></span><b>{instances.length}</b><em>{instances.length === 1 ? 'isolated instance' : 'isolated instances'}</em></div>
-      <div><span><Cpu/><small>SELECTED</small></span><b>{selected?.minecraftVersion || '—'}</b><em>{selected?.loader || 'No loader'}</em></div>
-      <div><span><DownloadCloud/><small>ACTIVITY</small></span><b>{downloads.length}</b><em>transfer events</em></div>
-      <button onClick={() => navigate('/developer')}><WandSparkles/><span><small>SYSTEM</small><b>Diagnostics</b></span><ChevronRight/></button>
-    </motion.section>
-
-    <motion.section className="beta6-console-grid beta8-console-grid premium-console-grid" variants={rise}>
-      <article className="beta6-console beta6-command-card premium-console"><header><div><b>COMMAND CENTER</b><span>CTRL + K</span></div><Terminal/></header><div className="beta6-command-input"><i>/</i><span>Run real launcher actions</span><kbd>⌘K</kbd></div><div className="beta6-command-list"><button onClick={playSelected} disabled={!selected || launching}><Play/>Launch selected instance <kbd>{selected?.name || 'none'}</kbd></button><button onClick={() => navigate('/library')}><Boxes/>Switch / manage instance <kbd>instances</kbd></button><button onClick={() => navigate('/mods')}><PackageOpen/>Open Mod Hub <kbd>mods</kbd></button><button onClick={() => navigate('/servers')}><Server/>Open servers <kbd>servers</kbd></button><button onClick={() => navigate('/settings')}><Settings2/>Open settings <kbd>settings</kbd></button><button onClick={() => navigate('/developer')}><Wrench/>Diagnostics <kbd>developer</kbd></button></div></article>
-
-      <article className="beta6-console beta6-hud-card premium-console"><header><div><b>ETERNAL CORE V1</b><span>IN-GAME CLIENT</span></div><Keyboard/></header><div className="beta6-hud-stage premium-hud-stage"><span className="hud-node node-fps"><Gauge/> FPS</span><span className="hud-node node-coords"><MapPin/> Coordinates</span><span className="hud-node node-keys">W A S D</span><span className="hud-node node-ping"><Activity/> Ping</span><div className="hud-crosshair">+</div><div className="premium-hud-vignette"/></div><div className="beta6-card-actions"><button onClick={() => navigate('/core')}>Explore Core</button><button className="accent" onClick={playSelected} disabled={!supportedCore || launching}>Launch Core profile</button></div><small className="beta6-hint">Real drag/edit happens in Minecraft. Press <b>H</b> for the HUD editor and <b>Right Shift</b> for ClickGUI.</small></article>
-
-      <article className="beta6-console beta6-account-card premium-console"><header><div><b>ACCOUNTS</b><span>PLAY YOUR WAY</span></div><Users/></header><div className="beta6-mini-list">{accounts.slice(0, 3).map(item => <button key={item.id} onClick={() => navigate('/accounts')} className={item.id === activeId ? 'selected' : ''}><MinecraftHead skinUrl={item.skinUrl || ''} username={item.username} size={32}/><span><b>{item.username}</b><small>{item.type === 'microsoft' ? 'Microsoft' : 'Offline'}</small></span>{item.id === activeId && <i/>}</button>)}{!accounts.length && <div className="beta6-empty">No account added yet.</div>}</div><button className="beta6-wide-action" onClick={() => navigate('/accounts')}><UserRound/>Manage accounts</button></article>
-
-      <article className="beta6-console beta6-instance-card premium-console"><header><div><b>INSTANCES</b><span>ISOLATED & CLEAN</span></div><Boxes/></header><button className="beta6-wide-action" onClick={() => navigate('/library')}>+ New instance</button><div className="beta6-mini-list instance-list">{instances.slice(0, 4).map(item => { const isRunning = running.some(row => row.instanceId === item.id); return <button key={item.id} onClick={() => { setSelectedId(item.id); navigate('/library'); }} className={item.id === selectedId ? 'selected' : ''}><span className={`instance-light ${isRunning ? 'live' : ''}`}/><span><b>{item.minecraftVersion} · {item.loader}</b><small>{item.name}</small></span><Settings2/></button>; })}{!instances.length && <div className="beta6-empty">Create your first Minecraft profile.</div>}</div></article>
-    </motion.section>
-
-    <motion.section className="beta6-feature-strip premium-capability-strip" variants={rise}>{capabilityTiles.map(([to, Icon, title, copy]) => <button key={`${to}-${title}`} onClick={() => navigate(to)}><Icon/><span><b>{title}</b><small>{copy}</small></span><ChevronRight/></button>)}</motion.section>
-
-    <motion.div className="home-columns release-home-columns beta6-recent-row premium-recent-row" variants={rise}><section className="profiles-panel premium-recent-panel"><div className="section-head"><div><small>CONTINUE PLAYING</small><h2>Recent instances</h2></div><button onClick={() => navigate('/library')}>Manage everything <ChevronRight/></button></div><div className="profile-list">{recent.length ? recent.map(instance => <ProfileCard key={instance.id} instance={instance} running={running.some(row => row.instanceId === instance.id)} event={events[instance.id]}/>) : <div className="empty-card">No profiles yet. Create a real Minecraft instance to begin.</div>}</div></section></motion.div>
-  </motion.div>;
+  const settings = useEternalStore(s => s.settings) || {};
+  const patchSettings = useEternalStore(s => s.patchSettings);
+  const [ram, setRam] = useState(settings.ramMb || 6144);
+  const [saved, setSaved] = useState('');
+  useEffect(() => setRam(settings.ramMb || 6144), [settings.ramMb]);
+  async function saveMemory() {
+    try { await patchSettings({ ramMb: ram }); setSaved('Launch memory saved'); }
+    catch (error) { setLaunchError(error.message); }
+  }
+  return <div className="et-home">
+    <section className="et-launchbar" aria-label="Launch setup">
+      <button className="et-account-choice" onClick={() => navigate('/accounts')}><MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={40}/><span><small>ACCOUNT</small><b>{account?.username || 'Add an account'}</b><em>{account?.type === 'microsoft' ? 'Microsoft account' : 'Offline profile'}</em></span></button>
+      <label><small>INSTANCE</small><select aria-label="Selected instance" value={selectedId} onChange={e => setSelectedId(e.target.value)}>{!instances.length && <option value="">Create an instance</option>}{instances.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <div><small>MINECRAFT</small><b>{selected?.minecraftVersion || '—'}</b></div>
+      <div><small>LOADER</small><b>{selected?.loader || '—'}</b></div>
+      <button className="et-play" onClick={playSelected} disabled={launching || selectedBusy}><Play fill="currentColor"/>{launching || selectedBusy ? 'Starting…' : selected ? selectedRunning ? 'Launch another' : 'Play' : 'Create instance'}</button>
+    </section>
+    {launchError && <div className="release-error" role="alert">{launchError}</div>}
+    <section className="et-landscape">
+      <div><img src={eternalLogo} alt=""/><h1>ETERNAL <strong>CLIENT</strong></h1><span>PLAY · CREATE · CUSTOMIZE · EXPLORE</span><p>Your worlds. Your loadouts.<br/>Everything in one place.</p></div>
+      <button onClick={() => navigate('/studio')} className="et-hero-link">OPEN STUDIO <ChevronRight/></button>
+    </section>
+    <section className="et-home-grid">
+      <article className="et-panel"><header>SELECTED INSTANCE <button aria-label="Manage instance" onClick={() => navigate('/library')}><Settings2/></button></header>
+        <div className="et-instance-name"><Boxes/><div><h2>{selected?.name || 'Your first adventure'}</h2><p>{selected ? selected.minecraftVersion + ' · ' + selected.loader : 'Create an isolated Minecraft instance to get started.'}</p></div></div>
+        <div className="et-facts"><span><ShieldCheck/>{supportedCore ? 'Eternal Core compatible' : 'Core requires Fabric 1.21.11'}</span><span><Activity/>{selectedRunning ? 'Minecraft is running' : 'Ready when you are'}</span><span><Keyboard/>Right Shift · Modules / H · HUD editor</span></div>
+        <button className="secondary" onClick={() => navigate('/library')}>Manage instances <ChevronRight/></button>
+      </article>
+      <article className="et-panel"><header>LAUNCH OPTIONS <SlidersHorizontal/></header><label className="et-memory"><span>Default memory <b>{(ram / 1024).toFixed(1)} GB</b></span><input aria-label="Default memory allocation" type="range" min="1024" max="16384" step="512" value={ram} onChange={e => { setRam(Number(e.target.value)); setSaved(''); }} onPointerUp={saveMemory} onKeyUp={saveMemory} onBlur={saveMemory}/><small>1 GB <span>16 GB</span></small></label><p>Per-instance memory overrides this default. Leave room for Windows and other apps.</p>
+        <label className="et-checkbox"><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={e => patchSettings({ reducedMotion:e.target.checked }).catch(error => setLaunchError(error.message))}/>Reduced motion</label>
+        <button className="secondary" onClick={() => navigate('/settings')}>Java, display &amp; launcher settings <ChevronRight/></button><small role="status">{saved}</small>
+      </article>
+      <article className="et-panel"><header>RECENT ACTIVITY <button onClick={() => navigate('/downloads')}>View all</button></header><div className="et-activity">{downloads.slice(0,4).map((event,index) => <div key={event.id || index}><DownloadCloud/><span><b>{event.name || 'Download'}</b><small>{event.message || event.state}</small></span></div>)}{!downloads.length && <p>No downloads this session. Explore Mod Hub to find your next mod or pack.</p>}</div><button className="secondary" onClick={() => navigate('/mods')}><PackageOpen/>Explore Mod Hub</button></article>
+    </section>
+    <section className="et-shortcuts">{[['/studio',CrosshairIcon,'Modules & settings','Build your PvP workspace'],['/mods',PackageOpen,'Mod Hub','Mods, resource packs, datapacks, shaders'],['/servers',Server,'Multiplayer','Your saved servers and live pings']].map(([to,Icon,title,description]) => <button key={to} onClick={() => navigate(to)}><Icon/><span><b>{title}</b><small>{description}</small></span><ChevronRight/></button>)}</section>
+  </div>;
 }

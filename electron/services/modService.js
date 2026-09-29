@@ -71,7 +71,7 @@ async function existingMatches(file, hashes = {}) {
   }
 }
 
-async function downloadFile(file, destination, emit, projectName) {
+export async function downloadFile(file, destination, emit, projectName, announceInstalled = true) {
   const temp = `${destination}.part`;
   await fs.rm(temp, { force: true });
   try {
@@ -97,7 +97,7 @@ async function downloadFile(file, destination, emit, projectName) {
     await fs.writeFile(temp, data);
     await fs.rm(destination, { force: true });
     await fs.rename(temp, destination);
-    emit?.({
+    if (announceInstalled) emit?.({
       type: 'download',
       id: file.hashes?.sha1 || file.filename,
       name: projectName || file.filename,
@@ -157,12 +157,14 @@ export async function toggleMod(id, filename, enabled) {
   return true;
 }
 
-export async function searchModrinth({ query = '', mcVersion = '', loader = 'fabric', category = '', index = 'relevance', limit = 24, offset = 0 }) {
+export async function searchModrinth({ query = '', mcVersion = '', loader = 'fabric', projectType = 'mod', category = '', index = 'relevance', limit = 24, offset = 0 }) {
+  if (!['mod', 'resourcepack', 'datapack', 'shader'].includes(projectType)) throw new Error('Unsupported content type.');
   const facets = [];
   if (mcVersion) facets.push([`versions:${mcVersion}`]);
-  if (loader && loader !== 'vanilla') facets.push([`categories:${loader}`]);
+  if (projectType === 'mod' && loader && loader !== 'vanilla') facets.push([`categories:${loader}`]);
+  if (projectType === 'datapack') facets.push(['categories:datapack']);
   if (category) facets.push([`categories:${String(category).trim()}`]);
-  facets.push(['project_type:mod']);
+  facets.push([`project_type:${projectType === 'datapack' ? 'mod' : projectType}`]);
   const allowedIndex = new Set(['relevance', 'downloads', 'follows', 'newest', 'updated']);
   const url = new URL('https://api.modrinth.com/v2/search');
   url.searchParams.set('query', String(query || '').trim());

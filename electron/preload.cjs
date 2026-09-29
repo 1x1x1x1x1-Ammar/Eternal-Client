@@ -52,6 +52,13 @@ contextBridge.exposeInMainWorld('eternal', {
     validate: (path) => invoke('java:validate', path)
   },
   mods: {
+    worlds: id => invoke('content:worlds', id),
+    contentList: data => invoke('content:list', data),
+    contentAdd: data => invoke('content:add', data),
+    contentToggle: data => invoke('content:toggle', data),
+    contentRemove: data => invoke('content:remove', data),
+    contentInstall: data => invoke('content:install', data),
+    contentFiles: type => invoke('dialog:content', type),
     list: (id) => invoke('mods:list', id),
     add: (data) => invoke('mods:add', data),
     remove: (data) => invoke('mods:remove', data),
