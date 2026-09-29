@@ -13,7 +13,7 @@ public final class EternalButton extends Button {
         this.primary = primary;
     }
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         var font = Minecraft.getInstance().font;
         boolean focus = isHoveredOrFocused();
         int accent = gg.eternal.core.config.CoreConfig.INSTANCE.accentColor();
