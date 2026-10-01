@@ -179,6 +179,40 @@ input[type=range],input[type=checkbox] { accent-color:#f43c49; }
 .et-home .et-panel>.et-instance-actions { margin-top:auto; }
 .app-shell .command-backdrop,.app-shell .modal-backdrop { inset:var(--shell-title) 0 0 var(--shell-sidebar); padding:20px; overflow:auto; }
 .app-shell .command-center,.app-shell .modal { max-width:100%; }
+.app-shell>.activity-dock {
+  position:fixed; left:auto; right:16px; bottom:60px; z-index:30;
+  width:min(420px,calc(100vw - var(--shell-sidebar) - 32px));
+  max-height:calc(100vh - var(--shell-title) - 80px); overflow:auto;
+  background:transparent!important; border:0; pointer-events:none;
+}
+.app-shell .activity-row { grid-template-columns:20px minmax(0,1fr) auto 28px; pointer-events:auto; }
+.app-shell .activity-copy { display:flex; flex-direction:column; gap:3px; }
+.app-shell .activity-copy small { font-size:10px; letter-spacing:0; }
+.app-shell .activity-copy b,.app-shell .activity-copy span { font-size:12px; white-space:normal; overflow-wrap:anywhere; }
+.app-shell .activity-row>strong { font-size:10px; }
+.app-shell .activity-dismiss { display:grid; place-items:center; width:28px; height:28px; padding:4px; border:0; background:transparent; color:#aeb5c1; }
+.app-shell .activity-dismiss svg { width:16px; height:16px; }
+.app-shell .activity-dismiss:hover { background:#ffffff12; color:#fff; }
+.app-shell .v1-operation-console {
+  left:calc(var(--shell-sidebar) + 14px); right:14px; bottom:14px;
+  height:min(480px,calc(100vh - var(--shell-title) - 28px));
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+.app-shell .v1-operation-console>header { display:flex; flex-wrap:wrap; gap:10px; padding:10px; }
+.app-shell .v1-console-brand { flex:1 1 180px; }
+.app-shell .v1-console-brand b { font-size:12px; letter-spacing:0; }
+.app-shell .v1-console-brand small { font-size:10px; white-space:normal; letter-spacing:0; }
+.app-shell .v1-operation-console nav { flex:1 1 260px; height:36px; min-width:0; }
+.app-shell .v1-operation-console nav button { min-width:0; flex:1; padding:0 6px; font-size:11px; letter-spacing:0; }
+.app-shell .v1-operation-console nav button em { font-size:10px; }
+.app-shell .v1-console-actions { margin-left:auto; }
+.app-shell .v1-console-actions button { font-size:11px; }
+.app-shell .v1-console-line { grid-template-columns:64px 18px 130px minmax(0,1fr) 70px; font-size:11px; }
+.app-shell .v1-console-line code { font-size:11px!important; }
+.app-shell .v1-console-line>span { white-space:pre-wrap; overflow-wrap:anywhere; }
+.app-shell .v1-console-line>strong { font-size:10px; letter-spacing:0; }
+.app-shell .v1-console-progress { left:8px; right:8px; }
+.app-shell .v1-operation-console>footer { min-height:30px; flex-wrap:wrap; gap:8px; padding:6px 10px; font-size:10px; letter-spacing:0; }
 @media(min-width:801px) {
   .app-shell .sidebar .nav-icon { justify-content:flex-start!important; }
   .app-shell .sidebar .nav-icon span { display:inline!important; }
@@ -203,6 +237,9 @@ input[type=range],input[type=checkbox] { accent-color:#f43c49; }
   .app-shell>.content { padding:14px!important; }
   .et-home-grid { grid-template-columns:minmax(0,1fr); }
   .et-landscape { min-height:230px; padding:20px; }
+  .app-shell .v1-console-line { grid-template-columns:64px 18px minmax(0,1fr); }
+  .app-shell .v1-console-line>span { grid-column:1/-1; }
+  .app-shell .v1-console-line>strong { display:none; }
 }
 @media(max-width:520px) {
   .et-launchbar { grid-template-columns:repeat(2,minmax(0,1fr)); }

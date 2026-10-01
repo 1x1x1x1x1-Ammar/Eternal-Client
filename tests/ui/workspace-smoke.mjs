@@ -128,6 +128,23 @@ try {
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await page.getByRole('alert').filter({hasText:'Java 21 was not found'}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Play',exact:true}).isEnabled(), true);
+  for (const [width,height] of [[1440,900],[390,844]]) {
+    await page.setViewportSize({width,height});
+    const dock = await page.locator('.activity-dock').boundingBox();
+    const sidebar = await page.locator('.sidebar').boundingBox();
+    assert.ok(dock.x >= sidebar.x + sidebar.width && dock.x + dock.width <= width, `Activity overlaps navigation at ${width}`);
+  }
+  await page.getByRole('button',{name:'Dismiss PvP activity',exact:true}).click();
+  assert.equal(await page.locator('.activity-dock').count(), 0);
+  await page.getByTitle('Open Eternal operation console (Ctrl+J)').click();
+  const consolePanel = page.locator('.v1-operation-console');
+  await consolePanel.getByRole('button', {name:/Minecraft/}).click();
+  await consolePanel.getByText('Java 21 was not found', {exact:true}).waitFor();
+  const consoleBounds = await consolePanel.boundingBox();
+  const sidebarBounds = await page.locator('.sidebar').boundingBox();
+  assert.ok(consoleBounds.x >= sidebarBounds.x + sidebarBounds.width && consoleBounds.x + consoleBounds.width <= 390);
+  await page.getByTitle('Close console', {exact:true}).click();
+  await page.setViewportSize({width:1440,height:900});
   await page.getByLabel('Selected instance').selectOption('two');
   await page.getByText('L: Modules / O: HUD editor', {exact:true}).waitFor();
   assert.equal(await page.getByLabel('Memory allocation').inputValue(), '8192');
@@ -159,7 +176,7 @@ try {
     });
     assert.ok(Math.abs(bounds.titleBottom-bounds.sidebarTop) <= 1, `Sidebar displaced at ${width}: ${JSON.stringify(bounds)}`);
     assert.ok(bounds.sidebarRight <= bounds.contentLeft+1, `Sidebar overlaps content at ${width}`);
-    assert.ok(bounds.sidebarBottom <= height+1, `Sidebar clipped at ${width}`);
+    assert.ok(Math.abs(bounds.sidebarBottom-height) <= 1, `Sidebar height incorrect at ${width}`);
     await page.getByRole('link', {name:'Settings',exact:true}).scrollIntoViewIfNeeded();
     assert.ok(await page.getByRole('link', {name:'Settings',exact:true}).isVisible());
   }

@@ -73,6 +73,11 @@ try {
   await page.reload({ waitUntil:'networkidle' });
   assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v9.0.0');
   assert.equal(await page.locator('#download-core').getAttribute('href'), jar.browser_download_url);
+  assert.ok((await page.locator('[data-linux-download]').getAttribute('href')).endsWith('/tag/v9.0.0'));
+  const deb = {name:'Eternal.Client.9.0.0.linux-amd64.deb',browser_download_url:releaseRoot+'Eternal.Client.9.0.0.linux-amd64.deb',size:100};
+  assets = [exe, jar, deb];
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-linux-download]').getAttribute('href'), deb.browser_download_url);
   await page.close();
   const noJs = await browser.newPage({ javaScriptEnabled:false });
   await noJs.goto(`${base}/client.html`);

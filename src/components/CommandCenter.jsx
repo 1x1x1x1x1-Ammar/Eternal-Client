@@ -38,7 +38,10 @@ export default function CommandCenter({ open, onClose, navigate }) {
         label: `Launch ${instance.name}`,
         sub: `${instance.minecraftVersion} · ${instance.loader}`,
         icon: Play,
-        run: () => call(api.instances.launch({ instanceId: instance.id }))
+        run: () => {
+          useEternalStore.getState().selectInstance(instance.id);
+          return call(api.instances.launch({ instanceId: instance.id }));
+        }
       })),
       { label: 'Refresh instances from disk', sub: 'Reload managed profile metadata', icon: RefreshCw, run: refresh }
     ];
