@@ -29,12 +29,15 @@ try {
       assert.deepEqual(await page.locator('img[src]').evaluateAll(images => images.filter(image => !image.complete || !image.naturalWidth).map(image => image.src)), []);
       if (width === 1440 || width === 390) await page.screenshot({ path:`${output}/${name}-${width}.png` });
       if (name === 'client') {
+        await page.locator('#whats-new').scrollIntoViewIfNeeded();
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2), false, `New release section overflow at ${width}`);
+        await page.screenshot({ path:`${output}/release-${width}.png` });
         for (const preset of ['sword','mace','spear','crystal','cart']) {
           await page.locator(`[data-preset="${preset}"]`).click();
           assert.equal((await page.locator('#preset-name').textContent()).toLowerCase(), preset);
           assert.equal(await page.locator('[data-preset][aria-pressed="true"]').count(), 1);
         }
-        assert.match(await page.locator('#download-core').getAttribute('href'), /v1\.1\.1\/Eternal-Core-Standalone-1\.1\.1\.jar$/);
+        assert.match(await page.locator('#download-core').getAttribute('href'), /v1\.2\.0\/Eternal-Core-Standalone-1\.2\.0\.jar$/);
         const faq = page.locator('details').last();
         await faq.locator('summary').click();
         assert.equal(await faq.getAttribute('open'), '');
@@ -47,7 +50,7 @@ try {
         }
         await page.locator('[data-lightbox]').first().click();
         await page.waitForFunction(() => document.getElementById('artModal').classList.contains('show'));
-        assert.match(await page.locator('[data-art-image]').getAttribute('src'), /studio-preview.webp$/);
+        assert.match(await page.locator('[data-art-image]').getAttribute('src'), /launcher-v120.webp$/);
         await page.locator('#artModal .btn-close').click();
         if (width === 1440) {
           await page.locator('#loadouts').scrollIntoViewIfNeeded();
@@ -65,7 +68,7 @@ try {
   let assets = [exe];
   await page.route('https://api.github.com/**', route => route.fulfill({ json:{ tag_name:'v9.0.0', assets } }));
   await page.goto(`${base}/client.html`, { waitUntil:'networkidle' });
-  assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v1.1.1');
+  assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v1.2.0');
   assets = [exe, jar];
   await page.reload({ waitUntil:'networkidle' });
   assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v9.0.0');
@@ -74,7 +77,7 @@ try {
   const noJs = await browser.newPage({ javaScriptEnabled:false });
   await noJs.goto(`${base}/client.html`);
   assert.equal(await noJs.locator('h1').evaluate(el => getComputedStyle(el.parentElement).opacity), '1');
-  assert.match(await noJs.locator('#download-installer').getAttribute('href'), /1\.1\.1\.exe$/);
+  assert.match(await noJs.locator('#download-installer').getAttribute('href'), /1\.2\.0\.exe$/);
   assert.deepEqual(errors, []);
   console.log('Website checks passed: 4 viewports, 2 pages, presets, navigation, lightbox, FAQ, release fallback/update and no-JS content.');
 } finally {

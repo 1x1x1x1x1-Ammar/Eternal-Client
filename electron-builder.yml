@@ -24,6 +24,33 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Eternal Client
+linux:
+  target:
+    - target: deb
+      arch: [x64]
+  artifactName: Eternal.Client.${version}.linux-amd64.${ext}
+  executableName: eternal-client
+  icon: assets/icon.png
+  category: Game
+  synopsis: Minecraft launcher with Eternal Core and Mod Hub
+  maintainer: Eternal Client <207261247+1x1x1x1x1-Ammar@users.noreply.github.com>
+  syncDesktopName: true
+deb:
+  packageCategory: games
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+    - libasound2 | libasound2t64
+    - libgbm1
+  recommends:
+    - gnome-keyring
 publish:
   provider: github
   owner: 1x1x1x1x1-Ammar

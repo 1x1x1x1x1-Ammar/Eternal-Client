@@ -111,7 +111,7 @@ export default function Settings() {
     <div className="settings-grid beta8-settings-grid">
       <section className="settings-card beta8-settings-card v1-update-card">
         <div className="beta8-card-title"><Rocket/><div><h3>Eternal updates</h3><small>Stable GitHub release channel</small></div></div>
-        <div className={`v1-update-status ${update.type}`}><span><b>{updateLabel}</b><small>{update.reason || update.message || 'Checks the signed release metadata generated with the Windows build.'}</small></span>{(update.type === 'downloading' || update.type === 'progress') && <strong>{Math.round(update.percent || 0)}%</strong>}</div>
+        <div className={`v1-update-status ${update.type}`}><span><b>{updateLabel}</b><small>{update.reason || update.message || 'Checks GitHub release metadata for your installed package.'}</small></span>{(update.type === 'downloading' || update.type === 'progress') && <strong>{Math.round(update.percent || 0)}%</strong>}</div>
         {(update.type === 'downloading' || update.type === 'progress') && <div className="v1-update-progress"><i style={{ width: `${Math.max(2, Math.min(100, update.percent || 0))}%` }}/></div>}
         <div className="beta8-button-row">
           <button className="secondary" disabled={updateBusy || update.type === 'downloading' || update.type === 'progress'} onClick={checkUpdate}><RefreshCw className={updateBusy ? 'spin' : ''}/>{updateBusy ? 'Checking…' : 'Check for updates'}</button>

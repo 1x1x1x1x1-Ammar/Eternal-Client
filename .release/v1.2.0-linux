@@ -1,0 +1,1 @@
+Publish the Linux amd64 DEB only after packaging and both Xfce desktop launch checks pass.

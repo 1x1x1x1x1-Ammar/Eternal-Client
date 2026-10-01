@@ -67,13 +67,23 @@ export async function detectJava() {
       } catch {}
     }
   }
+  if (process.platform === 'linux') {
+    // Discover installed JDKs even when update-alternatives selects older Java.
+    for (const base of ['/usr/lib/jvm', '/usr/java', '/opt/java']) {
+      try {
+        for (const dir of await fs.readdir(base, { withFileTypes: true })) {
+          if (dir.isDirectory() || dir.isSymbolicLink()) candidates.add(path.join(base, dir.name));
+        }
+      } catch {}
+    }
+  }
 
   const out = [];
   for (const candidate of candidates) {
     const value = await validateJava(candidate);
     if (value) out.push(value);
   }
-  return [...new Map(out.map(x => [x.path.toLowerCase(), x])).values()].sort((a, b) => b.major - a.major);
+  return [...new Map(out.map(x => [isWin ? x.path.toLowerCase() : x.path, x])).values()].sort((a, b) => b.major - a.major);
 }
 
 export function requiredJavaMajor(mcVersion) {
