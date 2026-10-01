@@ -25,7 +25,7 @@ export default function TitleBar({ onSearch }) {
   return <header className="titlebar">
     <div className="brand-mini"><img src={eternalLogo} alt="Eternal"/><strong>ETERNAL</strong><span>{appVersion ? `v${appVersion}` : 'CLIENT'}</span></div>
     <div className="titlebar-context" aria-label={`Current page: ${pageName}`}><i/><span>{pageName}</span></div>
-    <button className="command-pill" onClick={onSearch}><Search size={14}/><span>Search pages, profiles and real actions</span><kbd>Ctrl K</kbd></button>
+    <button className="command-pill" aria-label="Search launcher" title="Search launcher (Ctrl K)" onClick={onSearch}><Search size={14}/><span>Search pages and instances</span><kbd>Ctrl K</kbd></button>
     <div className="window-actions">
       <button aria-label="Minimize" title="Minimize" onClick={() => api.window.minimize()}><Minus/></button>
       <button aria-label="Maximize" title="Maximize / restore" onClick={() => api.window.maximize()}><Square/></button>

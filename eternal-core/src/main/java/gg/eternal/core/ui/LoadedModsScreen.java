@@ -17,7 +17,7 @@ public final class LoadedModsScreen extends EternalScreen {
     public LoadedModsScreen(Screen parent) { super("Installed mods", parent); }
     @Override protected void init() {
         clearWidgets();
-        rows = Math.max(1, (height - 120) / 34);
+        rows = MenuLayout.list(width, height, 76, 34).rows();
         var search = new EditBox(font, 12, 44, width - 24, 20, Component.literal("Search installed mods"));
         search.setHint(Component.literal("Search loaded Fabric mods...")); search.setValue(query);
         search.setResponder(value -> { query = value; page = 0; updateList(); }); addRenderableWidget(search);

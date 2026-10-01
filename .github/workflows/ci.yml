@@ -51,6 +51,10 @@ jobs:
           gradle-version: '9.5.1'
       - working-directory: eternal-core
         run: gradle build --stacktrace
+      - name: Check menu bounds and background crops at GUI scales 1 through 8
+        run: |
+          javac -d build/layout-tests eternal-core/src/main/java/gg/eternal/core/ui/MenuLayout.java eternal-core/src/main/java/gg/eternal/core/ui/BackgroundCover.java tests/java/MenuLayoutTest.java
+          java -cp build/layout-tests MenuLayoutTest
 
   packaged-smoke:
     name: Packaged Windows startup smoke test

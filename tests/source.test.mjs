@@ -231,9 +231,9 @@ test('Core config, modules, layouts and keybinds persist safely', () => {
   for (const token of ['zoomFov', 'hudAlpha', 'accentColor', 'applyPreset', 'openKey', 'hudEditorKey', 'zoomKey', 'setAllModules', 'ATOMIC_MOVE']) assert.match(config, new RegExp(token));
   for (const module of ['Health', 'Armor', 'Food', 'Server']) assert.match(config, new RegExp(`"${module}"`));
   assert.match(config, /eternal-core\.corrupt-/);
-  assert.match(gui, /ENABLE ALL/);
-  assert.match(gui, /DISABLE ALL/);
-  assert.match(gui, /PRESS A KEY/);
+  assert.match(gui, /Enable all/);
+  assert.match(gui, /Disable all/);
+  assert.match(gui, /Press a key/);
   assert.match(gui, /keyInUseByOther/);
 });
 

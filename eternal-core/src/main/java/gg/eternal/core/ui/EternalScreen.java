@@ -13,11 +13,11 @@ public abstract class EternalScreen extends Screen {
     }
     @Override public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         if (minecraft.level == null) EternalUi.landscape(graphics, width, height);
-        graphics.fill(0, 0, width, height, minecraft.level == null ? 0xC50B0D12 : 0x990B0D12);
+        graphics.fill(0, 0, width, height, minecraft.level == null ? 0xA00B0D12 : 0x990B0D12);
     }
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         graphics.fill(0, 0, width, 36, 0xEE11151B);
-        graphics.fill(0, 35, width, 36, 0xFF88313C);
+        graphics.fill(0, 35, width, 36, gg.eternal.core.config.CoreConfig.INSTANCE.accentColor());
         graphics.drawString(font, font.plainSubstrByWidth("ETERNAL / " + title.getString(), width - 24), 12, 14, EternalUi.TEXT, false);
         graphics.fill(0, height - 34, width, height, 0xEE11151B);
         super.render(graphics, mouseX, mouseY, delta);

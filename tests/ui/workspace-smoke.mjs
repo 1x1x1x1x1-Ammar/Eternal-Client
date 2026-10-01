@@ -15,7 +15,7 @@ try {
   await page.addInitScript(() => {
     const ok = data => Promise.resolve({ ok: true, data: structuredClone(data) });
     const accounts = [{ id: 'local', type: 'offline', username: 'LocalPlayer', uuid: 'test-local' }, { id: 'online', type: 'microsoft', username: 'OnlinePlayer', uuid: 'test-online' }];
-    let config = { enabled: {}, combatPreset: 'sword', positions: {}, hudAlpha: 196, accentColor: -53192, zoomFov: 30, zoomSpeed: 5, snap: 4, crosshair: { color: -1, gap: 3, length: 5, thickness: 1 }, smoothZoom: true };
+    let config = { enabled: {}, openKey: 74, hudEditorKey: 75, combatPreset: 'sword', positions: {}, hudAlpha: 196, accentColor: -53192, zoomFov: 30, zoomSpeed: 5, snap: 4, crosshair: { color: -1, gap: 3, length: 5, thickness: 1 }, smoothZoom: true };
     window.uiCalls = [];
     window.eternal = {
       on: Object.fromEntries(['account', 'launch', 'download', 'operation', 'update', 'app'].map(key => [key, () => () => {}])),
@@ -29,7 +29,7 @@ try {
       mods: {worlds: () => ok([{id:'Survival',name:'Survival'}]), contentList: () => ok([]), search: data => {window.uiCalls.push({type:'search',data}); return ok({hits:[],total_hits:0});}},
       instances: { launch: data => {window.uiCalls.push({type:'launch',...data});return ok(true);}, list: () => ok([{ id: 'one', name: 'PvP', loader: 'fabric', minecraftVersion: '1.21.11' }]) },
       servers: { list: () => ok([]) },
-      core: { config: () => ok(config), profiles: () => ok([]), screenshots: () => ok([]), status: () => ok({ supported: true }), patchConfig: async ({ patch }) => {
+      core: { config: () => ok(config), profiles: () => ok([]), screenshots: () => ok([]), status: () => ok({ supported: true, stagedExists: true, installedValid: true, installedVersion: '1.2.0' }), patchConfig: async ({ patch }) => {
         window.uiCalls.push({type:'corePatch',patch});
         const moduleSettings = {...config.moduleSettings};
         for (const [name,values] of Object.entries(patch.moduleSettings || {})) moduleSettings[name] = {...moduleSettings[name],...values};
@@ -95,12 +95,34 @@ try {
   await page.evaluate(() => location.hash = '#/');
   await page.getByRole('button',{name:'Play',exact:true}).click();
   assert.equal(await page.evaluate(() => window.uiCalls.find(x => x.type === 'launch').instanceId),'one');
+  await page.getByText('J: Modules / K: HUD editor', {exact:true}).waitFor();
+  await page.getByLabel('Default memory allocation').fill('4096');
+  await page.getByRole('button', {name:'Save memory', exact:true}).click();
+  await page.getByText('Memory saved', {exact:true}).waitFor();
+  assert.equal(await page.evaluate(() => window.uiCalls.filter(x => x.type === 'settings' && x.patch.ramMb === 4096).length), 1);
   for (const [width,height] of [[1440,900],[960,640],[640,480],[390,844]]) {
     await page.setViewportSize({width,height});
     await page.screenshot({path:path.join(output,`home-${width}.png`)});
     const size = await page.locator('.content').evaluate(el => [el.scrollWidth,el.clientWidth]);
     assert.ok(size[0] <= size[1]+2, `Home overflow ${width}: ${size}`);
+    const bounds = await page.evaluate(() => {
+      const title = document.querySelector('.titlebar').getBoundingClientRect();
+      const sidebar = document.querySelector('.sidebar').getBoundingClientRect();
+      const content = document.querySelector('.content').getBoundingClientRect();
+      return {titleBottom:title.bottom,sidebarTop:sidebar.top,sidebarRight:sidebar.right,contentLeft:content.left,sidebarBottom:sidebar.bottom};
+    });
+    assert.ok(Math.abs(bounds.titleBottom-bounds.sidebarTop) <= 1, `Sidebar displaced at ${width}: ${JSON.stringify(bounds)}`);
+    assert.ok(bounds.sidebarRight <= bounds.contentLeft+1, `Sidebar overlaps content at ${width}`);
+    assert.ok(bounds.sidebarBottom <= height+1, `Sidebar clipped at ${width}`);
+    await page.getByRole('link', {name:'Settings',exact:true}).scrollIntoViewIfNeeded();
+    assert.ok(await page.getByRole('link', {name:'Settings',exact:true}).isVisible());
   }
+  await page.setViewportSize({width:1440,height:900});
+  assert.ok(parseFloat(await page.locator('.sidebar .nav-icon span').first().evaluate(el => getComputedStyle(el).fontSize)) >= 12);
+  await page.evaluate(() => location.hash = '#/core');
+  await page.getByRole('heading', {name:'Eternal Core',exact:true}).waitFor();
+  await page.screenshot({path:path.join(output,'core-1440.png')});
+  assert.equal(await page.getByText('240', {exact:true}).count(), 0);
   assert.deepEqual(errors, []);
   console.log('PASS: skin account routing, skin preview, Aternos link, five presets, four viewport layouts.');
 } finally { await browser?.close(); await server.close(); }

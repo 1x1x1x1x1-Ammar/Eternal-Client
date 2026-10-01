@@ -15,14 +15,36 @@ public final class EternalUi {
     public static final int LINE_STRONG = 0x675A626F;
 
     private EternalUi() {}
-    private static final net.minecraft.resources.Identifier LANDSCAPE = net.minecraft.resources.Identifier.fromNamespaceAndPath("eternal-core", "textures/eternal-landscape.png");
+    private static final net.minecraft.resources.Identifier LANDSCAPE = net.minecraft.resources.Identifier.fromNamespaceAndPath("eternal-core", "menu-background");
+    private static boolean landscapeAttempted, landscapeReady;
+    private static int landscapeWidth, landscapeHeight;
+
+    private static void loadLandscape() {
+        if (landscapeAttempted) return;
+        landscapeAttempted = true;
+        com.mojang.blaze3d.platform.NativeImage image = null;
+        try (var stream = EternalUi.class.getResourceAsStream("/assets/eternal-core/textures/eternal-landscape.png")) {
+            if (stream == null) throw new java.io.IOException("Bundled menu background is missing");
+            image = com.mojang.blaze3d.platform.NativeImage.read(com.mojang.blaze3d.platform.NativeImage.Format.RGBA, stream);
+            landscapeWidth = image.getWidth(); landscapeHeight = image.getHeight();
+            var texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "Eternal menu background", image);
+            image = null; // DynamicTexture owns the decoded image from here.
+            net.minecraft.client.Minecraft.getInstance().getTextureManager().register(LANDSCAPE, texture);
+            landscapeReady = true;
+        } catch (Exception error) {
+            gg.eternal.core.util.CoreLog.error("Cannot load Eternal menu background", error);
+        } finally {
+            if (image != null) image.close();
+        }
+    }
+
     public static void landscape(GuiGraphics graphics, int width, int height) {
-        // Cover the viewport while preserving the original image aspect ratio.
-        float cover = Math.max(width / 1672.0F, height / 941.0F);
-        int drawWidth = Math.round(1672 * cover), drawHeight = Math.round(941 * cover);
+        loadLandscape();
+        graphics.fill(0, 0, width, height, 0xFF101216);
+        if (!landscapeReady) return;
+        var crop = BackgroundCover.fit(width, height, landscapeWidth, landscapeHeight);
         graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, LANDSCAPE,
-                (width - drawWidth) / 2, (height - drawHeight) / 2, 0.0F, 0.0F,
-                drawWidth, drawHeight, 1672, 941, 1672, 941);
+                0, 0, crop.u(), crop.v(), width, height, crop.width(), crop.height(), landscapeWidth, landscapeHeight);
     }
 
     public static float clamp01(float value) {
@@ -102,14 +124,8 @@ public final class EternalUi {
     }
 
     public static void veil(GuiGraphics graphics, int width, int height, int accent) {
-        graphics.fill(0, 0, width, height, 0xB806070A);
-        int cx = width / 2;
-        int cy = height / 2;
-        for (int i = 5; i >= 1; i--) {
-            int w = Math.max(160, width / 4) + i * 46;
-            int h = Math.max(100, height / 5) + i * 30;
-            graphics.fill(Math.max(0, cx - w), Math.max(0, cy - h), Math.min(width, cx + w), Math.min(height, cy + h), accentGlow(accent, 4 + i * 3));
-        }
+        if (net.minecraft.client.Minecraft.getInstance().level == null) landscape(graphics, width, height);
+        graphics.fill(0, 0, width, height, 0xA006070A);
     }
 
     public static void glass(GuiGraphics graphics, int x, int y, int width, int height, int accent, boolean active) {

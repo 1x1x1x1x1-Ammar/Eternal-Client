@@ -55,15 +55,16 @@ test('different profile queues can progress independently', async () => {
 });
 
 test('menu transforms fit GUI scales and invert pointer coordinates', context => {
-  try { execFileSync('javac', ['-version']); }
+  try { execFileSync('java', ['-m', 'jdk.compiler/com.sun.tools.javac.Main', '-version']); }
   catch (error) {
     if (error.code === 'ENOENT') { context.skip('JDK required for Java geometry test'); return; }
     throw error;
   }
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eternal-viewport-'));
   try {
-    execFileSync('javac', ['-d', directory, `${java}ui/MenuViewport.java`, 'tests/java/MenuViewportTest.java']);
+    execFileSync('java', ['-m', 'jdk.compiler/com.sun.tools.javac.Main', '-d', directory, `${java}ui/MenuViewport.java`, `${java}ui/MenuLayout.java`, `${java}ui/BackgroundCover.java`, 'tests/java/MenuViewportTest.java', 'tests/java/MenuLayoutTest.java']);
     execFileSync('java', ['-cp', directory, 'MenuViewportTest']);
+    execFileSync('java', ['-cp', directory, 'MenuLayoutTest']);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -83,7 +84,8 @@ test('combat telemetry is cached per tick and HUD drags commit on release', () =
   assert.match(title, /addRenderableWidget\(new EternalButton/);
   for (const screen of ['ClickGuiScreen', 'EternalHomeScreen']) {
     const source = read(`${java}ui/${screen}.java`);
-    assert.match(source, /viewport\(\).pointer\(event.x\(\)\)/);
-    assert.match(source, /finally[\s\S]*popMatrix/);
+    assert.match(source, /extends EternalScreen/);
+    assert.match(source, /MenuLayout/);
+    assert.doesNotMatch(source, /pose\(\).scale|viewport\(\).pointer/);
   }
 });

@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 public final class EternalTitleScreen extends Screen {
     public EternalTitleScreen() { super(Component.literal("Eternal Client")); }
     @Override protected void init() {
+        clearWidgets();
         int w = Math.min(244, width - 40), x = (width - w) / 2;
         int h = height < 300 ? 20 : 26, gap = height < 300 ? 4 : 6;
         int top = Math.max(55, (height - (h + gap) * 6) / 2);
@@ -26,7 +27,6 @@ public final class EternalTitleScreen extends Screen {
     @Override public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         EternalUi.landscape(graphics, width, height);
         graphics.fill(0, 0, width, height, 0x65070A10);
-        graphics.fill(width / 2 - Math.min(148, width / 2), 0, width / 2 + Math.min(148, width / 2), height, 0x680D1118);
     }
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         graphics.pose().pushMatrix();
