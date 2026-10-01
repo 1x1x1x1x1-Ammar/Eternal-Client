@@ -164,8 +164,8 @@ input[type=range],input[type=checkbox] { accent-color:#f43c49; }
 .app-shell .sidebar .nav-icon.active { background:#60222b70!important; color:#ffbdc4!important; }
 .app-shell .sidebar-account { margin:12px 0 0; height:auto!important; min-height:52px; flex-shrink:0; padding:8px!important; min-width:0; }
 .app-shell .sidebar-account>div { min-width:0; }
-.app-shell .sidebar-account b { font-size:12px!important; overflow-wrap:anywhere; }
-.app-shell .sidebar-account span { font-size:11px!important; color:#a2a6af!important; }
+.app-shell .sidebar-account b { display:block; font-size:12px!important; overflow-wrap:anywhere; }
+.app-shell .sidebar-account span { display:block; margin-top:3px; font-size:11px!important; color:#a2a6af!important; }
 .app-shell>.content { min-height:0; padding:20px!important; }
 .et-home :is(h1,h2,p,b,small,em),.et-module-settings :is(h2,p,span) { overflow-wrap:anywhere; }
 .et-home :is(button,.et-instance-name>div,.et-activity>div>span,.et-shortcuts button>span) { min-width:0; }

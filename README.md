@@ -3,15 +3,15 @@
 <p align="center"><strong>Your world. Your edge.</strong><br>A Minecraft launcher, a personal HUD, and a workspace that feels like yours.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/release-v1.2.0-ef3049?style=for-the-badge" alt="Release v1.2.0">
-  <img src="https://img.shields.io/badge/launcher-Windows_10%2F11-17191f?style=for-the-badge" alt="Windows 10 and 11 launcher">
+  <img src="https://img.shields.io/badge/release-v1.2.1-ef3049?style=for-the-badge" alt="Release v1.2.1">
+  <img src="https://img.shields.io/badge/launcher-Windows_%2B_Linux-17191f?style=for-the-badge" alt="Windows and Linux launcher">
   <img src="https://img.shields.io/badge/core-Fabric_1.21.11-17191f?style=for-the-badge" alt="Core for Fabric Minecraft 1.21.11">
   <img src="https://img.shields.io/badge/runtime-Java_21-17191f?style=for-the-badge" alt="Java 21">
 </p>
 
 <p align="center">
   <a href="https://1x1x1x1x1-ammar.github.io/Eternal-Client/client.html"><strong>Explore the client</strong></a> ·
-  <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.0"><strong>Download v1.2.0</strong></a> ·
+  <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.1"><strong>Download v1.2.1</strong></a> ·
   <a href="https://discord.gg/HaN8HxzqCV">Join Discord</a> ·
   <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/issues">Report an issue</a>
 </p>
@@ -31,7 +31,14 @@ Eternal pairs a Windows/Linux launcher with **Eternal Core**, a Fabric mod that 
 | Saved servers, ping and join actions | Crosshair, zoom and visual utilities |
 | Download progress and diagnostic console | Shared Sword, Mace, Spear, Crystal and Cart presets |
 
-## v1.2.0 / Make it yours
+## v1.2.1 / Controls that follow your session
+
+- **One selected instance:** Home, Studio, Core, Mod Hub and Servers keep the same target as you move between pages.
+- **Settings that save where you play:** Home adjusts the selected instance’s memory, and Studio reloads saved in-game changes when you return to the launcher.
+- **Clear launch feedback:** failed launches can be retried, duplicate startup requests are blocked, and last played and playtime are saved.
+- **Menus that fit:** native Minecraft controls and paginated lists adapt to GUI scale. The background loader decodes the bundled landscape and crops it to the window.
+
+### Studio and Mod Hub
 
 - **A new home:** charcoal and crimson controls, a castle landscape, and your account, instance and Play button in one place.
 - **Every module has settings:** change its behavior, toggle key and supported HUD appearance in Studio or the in-game module library. Settings save and apply immediately.
@@ -58,14 +65,14 @@ The combat HUD displays local game information; it **does not automate combat**.
 
 **Skin Studio:** select a PNG, choose classic or slim, preview front/back, then apply. Microsoft accounts upload to the Minecraft Java profile. Offline accounts store skins locally for launcher previews and avatars; they do not change in-game textures or share skins with other players.
 
-Read the [release notes](RELEASE_NOTES_v1.2.0.md) and [combat and skins guide](COMBAT-AND-SKINS.md).
+Read the [release notes](RELEASE_NOTES_v1.2.1.md) and [combat and skins guide](COMBAT-AND-SKINS.md).
 
 ## Linux Mint XFCE
 
-The Linux amd64 DEB adds an Xfce menu entry and includes the same launcher interface and Core. Download it from the [v1.2.0 release files](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.0), then install it from your download folder:
+The Linux amd64 DEB adds an Xfce menu entry and includes the same launcher interface and Core. Download it from the [v1.2.1 release files](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.1), then install it from your download folder:
 
 ```bash
-sudo apt install ./Eternal.Client.1.2.0.linux-amd64.deb
+sudo apt install ./Eternal.Client.1.2.1.linux-amd64.deb
 ```
 
 Use Java 21 for Fabric 1.21.11. See the [Linux installation guide](LINUX.md) for Java discovery, file locations, updates and troubleshooting. The Linux release is gated on installed-package launch checks under Xfce on Ubuntu 22.04 and 24.04; live Minecraft and a physical Mint desktop are not verified here.
@@ -74,9 +81,9 @@ Use Java 21 for Fabric 1.21.11. See the [Linux installation guide](LINUX.md) for
 
 | Download | Use it for |
 | :--- | :--- |
-| [**Windows installer · EXE**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal.Client.Setup.1.2.0.exe) | Full launcher, accounts, instances and Studio |
-| [**Standalone Core · JAR**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal-Core-Standalone-1.2.0.jar) | Eternal Core in your existing Fabric installation |
-| [**SHA-256 checksums**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/SHA256SUMS.txt) | Verify the release downloads |
+| [**Windows installer · EXE**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal.Client.Setup.1.2.1.exe) | Full launcher, accounts, instances and Studio |
+| [**Standalone Core · JAR**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal-Core-Standalone-1.2.1.jar) | Eternal Core in your existing Fabric installation |
+| [**SHA-256 checksums**](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/SHA256SUMS.txt) | Verify the release downloads |
 
 **Launcher:** install the EXE on Windows 10/11 x64, add your account and create an instance. Use **Minecraft 1.21.11 + Fabric** for Eternal Core.
 
@@ -111,7 +118,7 @@ Pack downloads verify supplied hashes and ZIP structure before installation. Ins
 
 **Offline profiles:** local launcher profiles do not replace a licensed Microsoft account for authenticated online play. Microsoft skin uploads require a valid Minecraft Java session.
 
-**Validation:** the v1.2.0 release passed Core compilation, launcher tests/build, JAR checks and packaged Windows startup checks. Browser checks used a simulated Electron bridge. Live Minecraft rendering and Microsoft skin uploads still need testing with a real game/account. See [release verification](RELEASE_NOTES_v1.2.0.md#validation-and-limits).
+**Validation:** publication requires Core compilation, launcher tests/build, JAR checks, packaged Windows startup checks, and installed Xfce checks on Ubuntu 22.04 and 24.04. Browser checks used a simulated Electron bridge. Live Minecraft rendering and Microsoft skin uploads still need testing with a real game/account. See [release verification](RELEASE_NOTES_v1.2.1.md#validation-and-limits).
 
 ## Build your own
 

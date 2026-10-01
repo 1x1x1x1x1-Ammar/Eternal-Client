@@ -6,10 +6,10 @@ import { createServer } from 'vite';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const server = await createServer({ server: { host: '127.0.0.1', port: 5187, strictPort: true } });
 await server.listen();
-let browser;
+let browser, page;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
@@ -29,7 +29,7 @@ try {
         accounts.find(item => item.id === data.accountId).skinUrl = data.reset ? '' : data.dataUrl;
         return ok(true);
       } },
-      app: { state: () => ok({ version: '1.2.0', running }), openExternal: url => { window.uiCalls.push({ type: 'external', url }); return ok(true); } },
+      app: { state: () => ok({ version: '1.2.1', running }), openExternal: url => { window.uiCalls.push({ type: 'external', url }); return ok(true); } },
       settings: { get: () => ok(settings), patch: patch => {window.uiCalls.push({type:'settings',patch});settings={...settings,...patch};return ok(settings);} },
       mods: {worlds: () => ok([{id:'Survival',name:'Survival'}]), contentList: () => ok([]), search: data => {window.uiCalls.push({type:'search',data}); return ok({hits:[],total_hits:0});}},
       instances: {
@@ -50,7 +50,7 @@ try {
         patch: ({instanceId,patch}) => {window.uiCalls.push({type:'instancePatch',instanceId,patch});Object.assign(instances.find(row=>row.id===instanceId),patch);return ok(instances.find(row=>row.id===instanceId));}
       },
       servers: { list: () => ok([]) },
-      core: { config: id => ok(configs[id]), profiles: () => ok([]), screenshots: () => ok([]), status: () => ok({ supported: true, stagedExists: true, installedValid: true, installedVersion: '1.2.0' }), patchConfig: async ({ instanceId, patch }) => {
+      core: { config: id => ok(configs[id]), profiles: () => ok([]), screenshots: () => ok([]), status: () => ok({ supported: true, stagedExists: true, installedValid: true, installedVersion: '1.2.1' }), patchConfig: async ({ instanceId, patch }) => {
         let config = configs[instanceId];
         window.uiCalls.push({type:'corePatch',instanceId,patch});
         const moduleSettings = {...config.moduleSettings};
@@ -143,7 +143,7 @@ try {
   await page.getByRole('button',{name:'FPS module',exact:true}).waitFor();
   await page.evaluate(() => {window.uiUpdateCore('two',{enabled:{FPS:true}});window.dispatchEvent(new Event('focus'));});
   await page.waitForFunction(() => document.querySelector('button[aria-label="FPS module"]')?.getAttribute('aria-pressed') === 'true');
-  await page.getByRole('link',{name:'Home',exact:true}).click();
+  await page.getByRole('link',{name:'Play',exact:true}).click();
   assert.equal(await page.getByLabel('Selected instance').inputValue(), 'two');
   assert.equal(await page.getByLabel('Memory allocation').inputValue(), '4096');
   for (const [width,height] of [[1440,900],[960,640],[640,480],[390,844]]) {
@@ -171,4 +171,10 @@ try {
   assert.equal(await page.getByText('240', {exact:true}).count(), 0);
   assert.deepEqual(errors, []);
   console.log('PASS: launch/stop/error recovery, per-instance memory, shared profile selection, live config refresh, skins, presets, and four viewport layouts.');
+} catch (error) {
+  if (page) {
+    await fs.mkdir('build/ui-checks', {recursive:true});
+    await page.screenshot({path:'build/ui-checks/failure.png'}).catch(() => {});
+  }
+  throw error;
 } finally { await browser?.close(); await server.close(); }

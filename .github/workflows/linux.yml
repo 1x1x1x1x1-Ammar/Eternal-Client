@@ -1,19 +1,15 @@
-name: Eternal Linux Mint v1.2.0
+name: Eternal Linux and Xfce
 
 on:
   pull_request:
-  push:
-    branches: [main]
-    paths:
-      - '.release/v1.2.0-linux'
-      - '.github/workflows/linux-v1.2.0.yml'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: eternal-linux-${{ github.ref }}
+  group: eternal-linux-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -35,14 +31,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Read package version
+        run: |
+          release_version=$(node -p "require('./package.json').version")
+          echo "LAUNCHER_VERSION=$release_version" >> "$GITHUB_ENV"
       - run: npm install
       - run: node scripts/stage-core.mjs
       - run: npm run dist:linux -- --publish never
       - name: Validate package and updater metadata
         run: |
           set -euo pipefail
-          deb=release/Eternal.Client.1.2.0.linux-amd64.deb
-          test "$(dpkg-deb -f "$deb" Version)" = '1.2.0'
+          deb=release/Eternal.Client.${{ env.LAUNCHER_VERSION }}.linux-amd64.deb
+          test "$(dpkg-deb -f "$deb" Version)" = '${{ env.LAUNCHER_VERSION }}'
           test "$(dpkg-deb -f "$deb" Architecture)" = 'amd64'
           dpkg-deb -x "$deb" build/deb-inspect
           test -f 'build/deb-inspect/opt/Eternal Client/resources/app.asar'
@@ -53,21 +53,21 @@ jobs:
           import crypto from 'node:crypto';
           import yaml from 'js-yaml';
           const data = yaml.load(fs.readFileSync('release/latest-linux.yml', 'utf8'));
-          const name = 'Eternal.Client.1.2.0.linux-amd64.deb';
+          const name = 'Eternal.Client.${{ env.LAUNCHER_VERSION }}.linux-amd64.deb';
           const entry = data.files.find(file => file.url === name);
           const bytes = fs.readFileSync(`release/${name}`);
-          if (data.version !== '1.2.0' || !entry || entry.size !== bytes.length || entry.sha512 !== crypto.createHash('sha512').update(bytes).digest('base64')) throw new Error('Invalid Linux update metadata');
+          if (data.version !== '${{ env.LAUNCHER_VERSION }}' || !entry || entry.size !== bytes.length || entry.sha512 !== crypto.createHash('sha512').update(bytes).digest('base64')) throw new Error('Invalid Linux update metadata');
           NODE
-          printf 'Eternal Client 1.2.0 Linux amd64\nCommit: %s\nBuild: https://github.com/%s/actions/runs/%s\nBuilt on Ubuntu 22.04; CI launch checks use Xfce on Ubuntu 22.04 and 24.04.\nLive Minecraft and a physical Linux Mint desktop have not been tested.\n' "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > release/LINUX-BUILD-INFO.txt
+          printf 'Eternal Client ${{ env.LAUNCHER_VERSION }} Linux amd64\nCommit: %s\nBuild: https://github.com/%s/actions/runs/%s\nBuilt on Ubuntu 22.04; CI launch checks use Xfce on Ubuntu 22.04 and 24.04.\nLive Minecraft and a physical Linux Mint desktop have not been tested.\n' "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > release/LINUX-BUILD-INFO.txt
           cp LINUX.md release/LINUX-INSTALL.md
           cd release
-          sha256sum Eternal.Client.1.2.0.linux-amd64.deb latest-linux.yml LINUX-BUILD-INFO.txt LINUX-INSTALL.md > SHA256SUMS-linux.txt
+          sha256sum Eternal.Client.${{ env.LAUNCHER_VERSION }}.linux-amd64.deb latest-linux.yml LINUX-BUILD-INFO.txt LINUX-INSTALL.md > SHA256SUMS-linux.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: eternal-linux-v1.2.0
+          name: eternal-linux
           if-no-files-found: error
           path: |
-            release/Eternal.Client.1.2.0.linux-amd64.deb
+            release/Eternal.Client.${{ env.LAUNCHER_VERSION }}.linux-amd64.deb
             release/latest-linux.yml
             release/SHA256SUMS-linux.txt
             release/LINUX-BUILD-INFO.txt
@@ -85,12 +85,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: eternal-linux-v1.2.0
+          name: eternal-linux
           path: release
       - name: Install package and Xfce test session
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb dbus-x11 xfce4-session xfwm4 desktop-file-utils ./release/Eternal.Client.1.2.0.linux-amd64.deb
+          sudo apt-get install -y xvfb dbus-x11 xfce4-session xfwm4 desktop-file-utils ./release/*.deb
           desktop-file-validate /usr/share/applications/gg.eternal.client.desktop
       - name: Launch installed package with Chromium sandbox enabled
         env:
@@ -104,33 +104,3 @@ jobs:
             trap "kill $wm_pid 2>/dev/null || true" EXIT
             timeout 60 /usr/bin/eternal-client --smoke-test
           '
-
-  publish:
-    name: Add verified Linux installer to v1.2.0
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [build, desktop-check]
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: eternal-linux-v1.2.0
-          path: release
-      - name: Upload Linux assets without replacing existing files
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          gh release view v1.2.0 --json isDraft,isPrerelease --jq 'if .isDraft or .isPrerelease then error("v1.2.0 must be published") else . end'
-          cd release
-          sha256sum --check SHA256SUMS-linux.txt
-          gh release upload v1.2.0 Eternal.Client.1.2.0.linux-amd64.deb latest-linux.yml SHA256SUMS-linux.txt LINUX-BUILD-INFO.txt LINUX-INSTALL.md
-          gh release view v1.2.0 --json assets > assets.json
-          python - <<'PY'
-          import json, pathlib
-          assets = {a['name']: a for a in json.loads(pathlib.Path('assets.json').read_text())['assets']}
-          for name in ['Eternal.Client.1.2.0.linux-amd64.deb', 'latest-linux.yml', 'SHA256SUMS-linux.txt', 'LINUX-BUILD-INFO.txt', 'LINUX-INSTALL.md']:
-              assert assets[name]['size'] == pathlib.Path(name).stat().st_size, name
-          PY

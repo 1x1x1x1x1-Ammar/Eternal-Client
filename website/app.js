@@ -145,9 +145,9 @@
   }
 
   const fallback = {
-    version: 'v1.2.0',
-    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal.Client.Setup.1.2.0.exe',
-    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal-Core-Standalone-1.2.0.jar'
+    version: 'v1.2.1',
+    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal.Client.Setup.1.2.1.exe',
+    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal-Core-Standalone-1.2.1.jar'
   };
 
   const applyRelease = (version, installer, core) => {
@@ -174,16 +174,16 @@
   // Linux can ship after Windows. Enable its direct download only after the
   // matching asset is present on the published release.
   if (document.querySelector('[data-linux-download]')) {
-    fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/tags/v1.2.0', { headers: { Accept: 'application/vnd.github+json' } })
+    fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/tags/v1.2.1', { headers: { Accept: 'application/vnd.github+json' } })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (!data || data.draft || data.prerelease || data.tag_name !== 'v1.2.0') return;
-        const expected = 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal.Client.1.2.0.linux-amd64.deb';
-        const deb = data.assets?.find(asset => asset.name === 'Eternal.Client.1.2.0.linux-amd64.deb' && asset.browser_download_url === expected && asset.size > 0);
+        if (!data || data.draft || data.prerelease || data.tag_name !== 'v1.2.1') return;
+        const expected = 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal.Client.1.2.1.linux-amd64.deb';
+        const deb = data.assets?.find(asset => asset.name === 'Eternal.Client.1.2.1.linux-amd64.deb' && asset.browser_download_url === expected && asset.size > 0);
         if (!deb) return;
         document.querySelectorAll('[data-linux-download]').forEach(link => {
           link.href = expected;
-          link.querySelector('strong').textContent = 'Download Linux v1.2.0';
+          link.querySelector('strong').textContent = 'Download Linux v1.2.1';
         });
       }).catch(() => {});
   }
