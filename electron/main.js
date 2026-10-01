@@ -81,7 +81,7 @@ async function openFolder(folder) {
   return true;
 }
 function instanceRunning(id) {
-  return launcher.runningState().some(row => row.instanceId === id && Number(row.count || row.pids?.length || 0) > 0);
+  return launcher.isLaunching(id) || launcher.runningState().some(row => row.instanceId === id && Number(row.count || row.pids?.length || 0) > 0);
 }
 function operationCopy(channel, payload, result, success = false) {
   switch (channel) {
@@ -91,7 +91,7 @@ function operationCopy(channel, payload, result, success = false) {
     case 'instances:remove': return success ? 'Instance removed.' : 'Removing instance and managed files';
     case 'instances:openFolder': return success ? 'Instance folder opened.' : 'Opening instance folder';
     case 'instances:launch': return success ? 'Launch request accepted; Minecraft pipeline is running.' : 'Starting Minecraft launch pipeline';
-    case 'instances:stop': return success ? 'Minecraft processes stopped.' : 'Stopping Minecraft processes';
+    case 'instances:stop': return success ? (result ? 'Stop requested; waiting for Minecraft to exit.' : 'This instance has no running Minecraft process.') : 'Requesting Minecraft to stop';
     case 'mods:add': return success ? 'Local mod files added.' : 'Adding local mod files';
     case 'mods:remove': return success ? 'Mod removed.' : 'Removing mod';
     case 'mods:toggle': return success ? `Mod ${payload?.enabled ? 'enabled' : 'disabled'}.` : 'Changing mod state';
@@ -279,7 +279,7 @@ handle('instances:remove', async id => {
   return instances.removeInstance(id);
 });
 handle('instances:openFolder', async id => openFolder(instances.instanceDir(id)));
-handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event) }));
+handle('instances:launch', data => launcher.launchInstance({ ...data, emit: event => send('launch:event', event), emitDownload: event => send('download:event', event) }));
 handle('instances:stop', id => launcher.stopInstance(id));
 
 handle('java:detect', () => java.detectJava());
@@ -307,7 +307,7 @@ handle('servers:list', () => servers.listServers());
 handle('servers:save', server => servers.saveServer(server));
 handle('servers:remove', id => servers.removeServer(id));
 handle('servers:ping', server => servers.pingServer(server));
-handle('servers:join', data => launcher.launchInstance({ instanceId: data.instanceId, server: data.server, emit: event => send('launch:event', event) }));
+handle('servers:join', data => launcher.launchInstance({ instanceId: data.instanceId, server: data.server, emit: event => send('launch:event', event), emitDownload: event => send('download:event', event) }));
 
 handle('core:status', id => coreStatus(id));
 handle('core:config', id => readCoreConfig(id));

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity, Aperture, Boxes, ChevronRight, CheckCircle2, Clock3, Crosshair, Download, Eye, Gauge, Gem, Heart, Keyboard, MapPin,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEternalStore } from '../store/useEternalStore.js';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 import { call, api } from '../lib/api.js';
 import { keyName } from '../lib/launcherView.js';
 import eternalLogo from '../../assets/logo.svg';
@@ -47,8 +48,7 @@ export default function Core() {
   const instances = useEternalStore(s => s.instances);
   const running = useEternalStore(s => s.running);
   const appVersion = useEternalStore(s => s.appVersion);
-  const supported = useMemo(() => instances.filter(i => i.loader === 'fabric' && i.minecraftVersion === '1.21.11'), [instances]);
-  const [id, setId] = useState(supported[0]?.id || instances[0]?.id || '');
+  const [id, setId] = useSelectedInstance();
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [exportMessage, setExportMessage] = useState('');
@@ -68,10 +68,6 @@ export default function Core() {
   }
 
   useEffect(() => { setError(''); refreshStatus(id); }, [id]);
-  useEffect(() => {
-    if (!instances.length) return setId('');
-    if (!instances.some(i => i.id === id)) setId(supported[0]?.id || instances[0].id);
-  }, [instances, supported, id]);
 
   const selected = instances.find(i => i.id === id);
   const isRunning = selected ? running.some(row => row.instanceId === selected.id) : false;

@@ -10,7 +10,7 @@ const AUTO_CONSOLE_CHANNELS = new Set([
 function transferFromLaunch(event, receivedAt) {
   if (event?.state !== 'DOWNLOADING') return null;
   return {
-    id: `minecraft-${event.instanceId || 'unknown'}-${event.progress?.type || 'download'}-${receivedAt}`,
+    id: `minecraft-${event.instanceId || 'unknown'}-${event.progress?.type || 'download'}`,
     instanceId: event.instanceId,
     type: 'download',
     source: event.source || 'minecraft',
@@ -26,6 +26,10 @@ export const useEternalStore = create((set, get) => ({
   accounts: [],
   activeAccountId: null,
   instances: [],
+  selectedInstanceId: '',
+  selectInstance: id => {
+    if (get().instances.some(instance => instance.id === id)) set({ selectedInstanceId: id });
+  },
   servers: [],
   settings: null,
   appVersion: null,
@@ -52,6 +56,7 @@ export const useEternalStore = create((set, get) => ({
         accounts: accounts.accounts,
         activeAccountId: accounts.activeId,
         instances,
+        selectedInstanceId: instances.some(instance => instance.id === get().selectedInstanceId) ? get().selectedInstanceId : instances[0]?.id || '',
         servers,
         settings,
         appVersion: state.version,
@@ -65,7 +70,10 @@ export const useEternalStore = create((set, get) => ({
     }
   },
 
-  refreshInstances: async () => set({ instances: await call(api.instances.list()) }),
+  refreshInstances: async () => {
+    const instances = await call(api.instances.list());
+    set(state => ({ instances, selectedInstanceId: instances.some(instance => instance.id === state.selectedInstanceId) ? state.selectedInstanceId : instances[0]?.id || '' }));
+  },
   refreshAccounts: async () => {
     const value = await call(api.accounts.list());
     set({ accounts: value.accounts, activeAccountId: value.activeId });
@@ -108,6 +116,11 @@ export const useEternalStore = create((set, get) => ({
     return {
       launchEvents: { ...state.launchEvents, [event.instanceId]: { ...event, receivedAt } },
       running,
+      instances: state.instances.map(instance => instance.id !== event.instanceId ? instance : {
+        ...instance,
+        ...(event.state === 'RUNNING' && event.startedAt ? { lastPlayedAt: event.startedAt } : {}),
+        ...(event.state === 'STOPPED' && Number.isFinite(event.playtimeSeconds) ? { playtimeSeconds: event.playtimeSeconds } : {})
+      }),
       downloadEvents: transfer ? [...state.downloadEvents, transfer].slice(-240) : state.downloadEvents,
       operationConsoleOpen: runtimeProblem ? true : state.operationConsoleOpen
     };

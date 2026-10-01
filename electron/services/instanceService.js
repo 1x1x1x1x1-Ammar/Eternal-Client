@@ -4,6 +4,18 @@ import crypto from 'node:crypto';
 import { dataRoot } from './store.js';
 import { ensureDir, readJson, writeJson, safeName, assertInside } from './fsService.js';
 import { assertMinecraftVersion } from './versionService.js';
+import { createSerialQueue } from '../../shared/serialQueue.js';
+
+const writeInstance = createSerialQueue();
+
+function updateInstance(id, change) {
+  return writeInstance(id, async () => {
+    const value = await getInstance(id);
+    change(value);
+    await writeJson(path.join(instanceDir(id), 'instance.json'), value);
+    return value;
+  });
+}
 
 export function instancesRoot() { return path.join(dataRoot(), 'instances'); }
 export function instanceDir(id) { return assertInside(instancesRoot(), path.join(instancesRoot(), id)); }
@@ -77,12 +89,21 @@ export async function removeInstance(id) {
 }
 
 export async function patchInstance(id, patch = {}) {
-  const value = await getInstance(id);
-  if ('name' in patch) value.name = safeName(String(patch.name || value.name));
-  if ('ramMb' in patch) value.ramMb = Math.max(1024, Math.min(32768, Number(patch.ramMb) || value.ramMb || 6144));
-  if ('icon' in patch) value.icon = safeName(String(patch.icon || value.icon || 'grass'));
-  await writeJson(path.join(instanceDir(id), 'instance.json'), value);
-  return value;
+  return updateInstance(id, value => {
+    if ('name' in patch) value.name = safeName(String(patch.name || value.name));
+    if ('ramMb' in patch) value.ramMb = Math.max(1024, Math.min(32768, Number(patch.ramMb) || value.ramMb || 6144));
+    if ('icon' in patch) value.icon = safeName(String(patch.icon || value.icon || 'grass'));
+  });
+}
+
+export function recordLaunch(id, startedAt) {
+  return updateInstance(id, value => { value.lastPlayedAt = startedAt; });
+}
+
+export function recordPlaytime(id, seconds) {
+  return updateInstance(id, value => {
+    value.playtimeSeconds = (Number(value.playtimeSeconds) || 0) + Math.max(0, Math.round(seconds));
+  });
 }
 
 export async function duplicateInstance(id, requestedName = '') {

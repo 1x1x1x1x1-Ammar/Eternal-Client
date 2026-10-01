@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useSearchParams } from 'react-router-dom';
 import {
   Aperture, Check, ChevronRight, Crosshair, Eye, FolderOpen, Gauge, Image, Keyboard,
   LayoutDashboard, MousePointer2, Palette, RefreshCw, Save, Search, Shield, Sparkles,
@@ -11,6 +10,7 @@ import { api, call } from '../lib/api.js';
 import { combatPresets, combatPatch } from '../lib/combatPresets.js';
 import { createSerialQueue } from '../../shared/serialQueue.js';
 import ModuleSettingsPanel from '../components/ModuleSettingsPanel.jsx';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 
 const moduleCatalog = [
   ['Watermark', 'HUD', Sparkles, 'Eternal identity chip'],
@@ -98,10 +98,7 @@ function RangeSetting({ title, description, min, max, step = 1, value, suffix = 
 export default function Studio() {
   const instances = useEternalStore(state => state.instances);
   const running = useEternalStore(state => state.running);
-  const compatible = useMemo(() => instances.filter(item => item.loader === 'fabric' && item.minecraftVersion === '1.21.11'), [instances]);
-  const [searchParams] = useSearchParams();
-  const requestedInstance = searchParams.get('instance');
-  const [instanceId, setInstanceId] = useState(instances.find(item => item.id === requestedInstance)?.id || compatible[0]?.id || instances[0]?.id || '');
+  const [instanceId, setInstanceId] = useSelectedInstance();
   const [tab, setTab] = useState('MODULES');
   const [config, setConfig] = useState(null);
   const [profiles, setProfiles] = useState([]);
@@ -124,11 +121,6 @@ export default function Studio() {
 
   const selected = instances.find(item => item.id === instanceId);
   const isRunning = Boolean(selected && running.some(row => row.instanceId === selected.id));
-
-  useEffect(() => {
-    if (!instances.length) return setInstanceId('');
-    if (!instances.some(item => item.id === instanceId)) setInstanceId(compatible[0]?.id || instances[0].id);
-  }, [instances, compatible, instanceId]);
 
   async function loadStudio(id = instanceId) {
     const revision = ++loadRevision.current;
@@ -155,6 +147,12 @@ export default function Studio() {
   }
 
   useEffect(() => { setConfig(null); setNotice(''); loadStudio(instanceId); return () => { loadRevision.current++; }; }, [instanceId]);
+
+  useEffect(() => {
+    const refresh = () => { if (!saving && pendingWrites.current === 0) loadStudio(instanceId); };
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [instanceId, saving]);
 
   async function patch(patchValue, successMessage = '') {
     if (!instanceId || !config) return;

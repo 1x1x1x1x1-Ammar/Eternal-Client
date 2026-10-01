@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { getInstance, instanceDir, patchInstance } from './instanceService.js';
+import { getInstance, instanceDir, recordLaunch, recordPlaytime } from './instanceService.js';
 import { installFabricProfile } from './fabricService.js';
 import { prepareCore } from './coreService.js';
 import { activeAccount, launcherAuthorization } from './accountService.js';
@@ -9,6 +9,7 @@ import { requiredJavaMajor, detectJava, validateJava } from './javaService.js';
 
 const requireCjs = createRequire(import.meta.url);
 const processes = new Map();
+const pendingLaunches = new Set();
 let ClientClass = null;
 
 async function clientClass() {
@@ -94,7 +95,23 @@ export function runningState() {
   return [...processes.entries()].map(([instanceId, children]) => ({ instanceId, pids: [...children].map(child => child.pid), count: children.size }));
 }
 
-export async function launchInstance({ instanceId, server = null, requireCore = false, emit = () => {}, emitDownload = () => {} }) {
+export function isLaunching(id) { return pendingLaunches.has(id); }
+
+export async function launchInstance(options) {
+  const { instanceId, emit = () => {} } = options;
+  if (pendingLaunches.has(instanceId)) throw new Error('This instance is already starting. Wait for the current launch to finish.');
+  pendingLaunches.add(instanceId);
+  try {
+    return await startInstance(options);
+  } catch (error) {
+    emit({ instanceId, state: 'ERROR', level: 'error', message: error?.message || String(error) });
+    throw error;
+  } finally {
+    pendingLaunches.delete(instanceId);
+  }
+}
+
+async function startInstance({ instanceId, server = null, requireCore = false, emit = () => {}, emitDownload = () => {} }) {
   const instance = await getInstance(instanceId);
   if (!['vanilla', 'fabric'].includes(instance.loader)) throw new Error(`Loader ${instance.loader} is not implemented by this Eternal build.`);
   if (requireCore && !(instance.loader === 'fabric' && instance.minecraftVersion === '1.21.11')) {
@@ -201,7 +218,8 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
   processes.get(instanceId).add(child);
 
   const started = Date.now();
-  emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, remaining: processes.get(instanceId).size });
+  const startedAt = new Date(started).toISOString();
+  emit({ instanceId, state: 'RUNNING', message: `Minecraft running (PID ${child.pid})`, pid: child.pid, startedAt, remaining: processes.get(instanceId).size });
   emitDownload({
     id: `minecraft-${instanceId}-launch`,
     instanceId,
@@ -211,8 +229,6 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     state: 'SUCCESS',
     message: `Minecraft process started (PID ${child.pid}).`
   });
-  await patchInstance(instanceId, { lastPlayedAt: new Date().toISOString() });
-
   child.once('error', error => {
     emit({ instanceId, state: 'PROCESS_ERROR', level: 'error', warning: true, message: `Minecraft process error: ${error?.message || error}`, pid: child.pid });
   });
@@ -221,8 +237,13 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     set?.delete(child);
     const remaining = set?.size || 0;
     if (set && remaining === 0) processes.delete(instanceId);
-    const latest = await getInstance(instanceId).catch(() => null);
-    if (latest) await patchInstance(instanceId, { playtimeSeconds: (latest.playtimeSeconds || 0) + Math.round((Date.now() - started) / 1000) });
+    let playtimeSeconds;
+    try {
+      const latest = await recordPlaytime(instanceId, (Date.now() - started) / 1000);
+      playtimeSeconds = latest.playtimeSeconds;
+    } catch (error) {
+      emit({ instanceId, state: 'LOG', level: 'warning', message: `Could not save playtime: ${error.message}` });
+    }
     const failed = Number.isInteger(code) && code !== 0;
     emit({
       instanceId,
@@ -232,6 +253,7 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
       message: failed ? `Minecraft exited with code ${code}. Open Console → Minecraft for the preceding error/warning lines.` : `Minecraft exited (${code ?? 'unknown'}).`,
       code,
       pid: child.pid,
+      playtimeSeconds,
       remaining
     });
     emitDownload({
@@ -246,14 +268,19 @@ export async function launchInstance({ instanceId, server = null, requireCore = 
     });
   });
 
+  try { await recordLaunch(instanceId, startedAt); }
+  catch (error) { emit({ instanceId, state: 'LOG', level: 'warning', message: `Could not save last played: ${error.message}` }); }
+
   return { pid: child.pid, javaMajor: java.major, javaPath: java.path };
 }
 
 export function stopInstance(id) {
   const set = processes.get(id);
   if (!set?.size) return false;
+  let failed = 0;
   for (const process of set) {
-    try { process.kill(); } catch {}
+    try { if (!process.kill()) failed++; } catch { failed++; }
   }
+  if (failed) throw new Error(`Could not stop ${failed} Minecraft process${failed === 1 ? '' : 'es'}. Close the game window and try again.`);
   return true;
 }

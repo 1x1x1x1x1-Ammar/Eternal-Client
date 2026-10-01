@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Boxes, Download, Gem, Home, Play, Puzzle, RefreshCw, Search, Server,
-  Settings, TerminalSquare, UserRound
+  Settings, SlidersHorizontal, TerminalSquare, UserRound
 } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
@@ -12,6 +12,7 @@ const pageActions = [
   ['/mods', 'Mod Hub', Puzzle],
   ['/servers', 'Servers', Server],
   ['/core', 'Eternal Core', Gem],
+  ['/studio', 'Studio modules and settings', SlidersHorizontal],
   ['/accounts', 'Accounts', UserRound],
   ['/settings', 'Settings', Settings],
   ['/downloads', 'Downloads', Download],
@@ -22,6 +23,7 @@ export default function CommandCenter({ open, onClose, navigate }) {
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const instances = useEternalStore(s => s.instances);
   const refresh = useEternalStore(s => s.refreshInstances);
 
@@ -49,14 +51,14 @@ export default function CommandCenter({ open, onClose, navigate }) {
   if (!open) return null;
 
   async function run(item) {
-    if (!item) return;
-    setError('');
+    if (!item || busy) return;
+    setError(''); setBusy(true);
     try {
       await item.run();
       onClose();
     } catch (e) {
       setError(e.message);
-    }
+    } finally { setBusy(false); }
   }
 
   return <div className="command-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
@@ -76,7 +78,7 @@ export default function CommandCenter({ open, onClose, navigate }) {
       <div className="command-results">
         {items.map((item, index) => {
           const Icon = item.icon;
-          return <button key={`${item.label}-${index}`} className={index === selected ? 'selected' : ''} onMouseEnter={() => setSelected(index)} onClick={() => run(item)}>
+          return <button disabled={busy} key={`${item.label}-${index}`} className={index === selected ? 'selected' : ''} onMouseEnter={() => setSelected(index)} onClick={() => run(item)}>
             <Icon/><span><b>{item.label}</b>{item.sub && <small>{item.sub}</small>}</span><kbd>{index === selected ? 'ENTER' : '↵'}</kbd>
           </button>;
         })}

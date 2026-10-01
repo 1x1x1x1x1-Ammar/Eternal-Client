@@ -17,6 +17,8 @@ export default function Library() {
   const instances = useEternalStore(s => s.instances);
   const running = useEternalStore(s => s.running);
   const refresh = useEternalStore(s => s.refreshInstances);
+  const defaultMemory = useEternalStore(s => s.settings?.ramMb || 6144);
+  const selectInstance = useEternalStore(s => s.selectInstance);
   const [show, setShow] = useState(false);
   const [edit, setEdit] = useState(null);
   const [versions, setVersions] = useState([]);
@@ -30,7 +32,7 @@ export default function Library() {
   const [mutatingId, setMutatingId] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [form, setForm] = useState({ name: '', minecraftVersion: '1.21.11', loader: 'fabric', ramMb: 6144 });
+  const [form, setForm] = useState({ name: '', minecraftVersion: '1.21.11', loader: 'fabric', ramMb: defaultMemory });
   const [editForm, setEditForm] = useState({ name: '', ramMb: 6144 });
 
   async function loadVersions() {
@@ -75,6 +77,7 @@ export default function Library() {
     try {
       const created = await call(api.instances.create({ ...form, minecraftVersion: mcVersion, name }));
       await refresh();
+      selectInstance(created.id);
       setMessage(`Created ${created.name} with an isolated .minecraft directory.`);
       setShow(false);
       setForm(value => ({ ...value, name: '', minecraftVersion: latest || value.minecraftVersion }));

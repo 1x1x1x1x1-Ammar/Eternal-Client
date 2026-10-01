@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, ExternalLink, Plus, Radio, Play, RefreshCw, Server as ServerIcon, Trash2 } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 import { call, api } from '../lib/api.js';
 
 export default function Servers() {
@@ -9,16 +10,11 @@ export default function Servers() {
   const refresh = useEternalStore(s => s.refreshServers);
   const [states, setStates] = useState({});
   const [form, setForm] = useState({ name: '', host: '', port: 25565, provider: 'custom' });
-  const [instanceId, setInstanceId] = useState(instances[0]?.id || '');
+  const [instanceId, setInstanceId] = useSelectedInstance();
   const [pinging, setPinging] = useState({});
   const [joining, setJoining] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!instances.length) return setInstanceId('');
-    if (!instances.some(instance => instance.id === instanceId)) setInstanceId(instances[0].id);
-  }, [instances, instanceId]);
 
   async function ping(server) {
     setPinging(value => ({ ...value, [server.id]: true }));
