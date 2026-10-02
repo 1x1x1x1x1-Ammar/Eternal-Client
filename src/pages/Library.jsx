@@ -17,6 +17,8 @@ export default function Library() {
   const instances = useEternalStore(s => s.instances);
   const running = useEternalStore(s => s.running);
   const refresh = useEternalStore(s => s.refreshInstances);
+  const defaultMemory = useEternalStore(s => s.settings?.ramMb || 6144);
+  const selectInstance = useEternalStore(s => s.selectInstance);
   const [show, setShow] = useState(false);
   const [edit, setEdit] = useState(null);
   const [versions, setVersions] = useState([]);
@@ -30,7 +32,7 @@ export default function Library() {
   const [mutatingId, setMutatingId] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [form, setForm] = useState({ name: '', minecraftVersion: '1.21.11', loader: 'fabric', ramMb: 6144 });
+  const [form, setForm] = useState({ name: '', minecraftVersion: '1.21.11', loader: 'fabric', ramMb: defaultMemory });
   const [editForm, setEditForm] = useState({ name: '', ramMb: 6144 });
 
   async function loadVersions() {
@@ -75,6 +77,7 @@ export default function Library() {
     try {
       const created = await call(api.instances.create({ ...form, minecraftVersion: mcVersion, name }));
       await refresh();
+      selectInstance(created.id);
       setMessage(`Created ${created.name} with an isolated .minecraft directory.`);
       setShow(false);
       setForm(value => ({ ...value, name: '', minecraftVersion: latest || value.minecraftVersion }));
@@ -156,7 +159,7 @@ export default function Library() {
         <label>Minecraft version<input list="eternal-minecraft-versions" value={form.minecraftVersion} onChange={e => setForm({ ...form, minecraftVersion: e.target.value })} placeholder={latest}/><datalist id="eternal-minecraft-versions">{visibleVersions.map(version => <option key={version.id} value={version.id}>{version.type}{version.id === latest ? ' · latest' : ''}</option>)}</datalist></label>
         <div className="v1-version-meta"><span>{visibleVersions.length} shown</span><span>{catalogTotal || versions.length} official entries loaded</span><span>{versionIds.has(form.minecraftVersion) ? 'Official metadata match' : 'Type an official version'}</span></div>
       </div>
-      <div className="form-row"><label>Loader<select value={form.loader} onChange={e => setForm({ ...form, loader: e.target.value })}><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option></select></label><label>RAM<div className="range-line"><input type="range" min="2048" max="16384" step="512" value={form.ramMb} onChange={e => setForm({ ...form, ramMb: Number(e.target.value) })}/><b>{(form.ramMb / 1024).toFixed(1)} GB</b></div></label></div>
+      <div className="form-row"><label>Loader<select value={form.loader} onChange={e => setForm({ ...form, loader: e.target.value })}><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option></select></label><label>RAM<div className="range-line"><input type="range" min="1024" max="32768" step="512" value={form.ramMb} onChange={e => setForm({ ...form, ramMb: Number(e.target.value) })}/><b>{(form.ramMb / 1024).toFixed(1)} GB</b></div></label></div>
       {versionError && <div className="notice"><AlertTriangle/>Could not refresh Mojang metadata: {versionError} <button className="text-button" onClick={loadVersions}>Retry</button></div>}
       <div className="notice">Vanilla can target any official version the launch stack can resolve. Fabric must also have a compatible loader build. Eternal Core is separately certified for Fabric 1.21.11.</div>
       <button className="primary wide" disabled={creating || !form.name.trim() || (versions.length > 0 && !versionIds.has(form.minecraftVersion))} onClick={create}>{creating ? <><RefreshCw className="spin"/>Creating… watch Console</> : <><Plus/>Create instance</>}</button>

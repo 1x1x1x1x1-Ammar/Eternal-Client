@@ -33,6 +33,13 @@ const entry = zip.getEntry('fabric.mod.json');
 if (!entry) throw new Error('Built Eternal Core JAR is missing fabric.mod.json.');
 
 const metadata = JSON.parse(entry.getData().toString('utf8'));
+for (const name of ['MenuLayout', 'BackgroundCover', 'EternalButton', 'EternalTitleScreen', 'ClickGuiScreen', 'HudEditorScreen']) {
+  if (!zip.getEntry(`gg/eternal/core/ui/${name}.class`)) throw new Error(`Built Core is missing UI class ${name}.`);
+}
+const background = zip.getEntry('assets/eternal-core/textures/eternal-landscape.png');
+if (!background || !background.getData().equals(await fs.readFile(path.join(root, 'assets/eternal-landscape.png')))) {
+  throw new Error('Built Core menu background is missing, corrupted or stale.');
+}
 if (metadata.id !== 'eternal-core') throw new Error(`Unexpected Fabric mod id: ${metadata.id || '<missing>'}`);
 if (metadata.version !== expectedVersion) {
   throw new Error(`Unexpected Eternal Core version: ${metadata.version || '<missing>'}; expected ${expectedVersion}`);

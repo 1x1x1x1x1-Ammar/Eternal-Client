@@ -30,7 +30,7 @@ function validDiscordInvite(value) {
 }
 
 function LinkRow({ to, Icon, label }) {
-  return <NavLink to={to} end={to === '/'} data-tip={label} className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
+  return <NavLink to={to} end={to === '/'} aria-label={label} title={label} data-tip={label} className={({ isActive }) => isActive ? 'nav-icon active' : 'nav-icon'}>
     <Icon size={17} /><span>{label}</span>
   </NavLink>;
 }

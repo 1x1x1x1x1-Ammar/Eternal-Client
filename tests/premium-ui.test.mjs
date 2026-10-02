@@ -50,12 +50,12 @@ test('instance cards preserve real actions while using premium states', () => {
 
 test('in-game ClickGUI premium pass keeps all functional controls', () => {
   const gui = read('eternal-core/src/main/java/gg/eternal/core/ui/ClickGuiScreen.java');
-  for (const token of ['CUSTOMIZATION STUDIO', 'LIVE CONFIG', 'ENABLE ALL', 'DISABLE ALL', 'PRESS A KEY', 'OPEN HUD EDITOR']) {
+  for (const token of ['Customization studio', 'Enable all', 'Disable all', 'Press a key', 'HUD editor']) {
     assert.match(gui, new RegExp(token));
   }
   assert.match(gui, /CoreConfig\.INSTANCE\.toggle/);
-  assert.match(gui, /CoreConfig\.INSTANCE\.setAccentColor/);
-  assert.match(gui, /CoreConfig\.INSTANCE\.applyPreset/);
+  assert.match(gui, /c\.setAccentColor/);
+  assert.match(gui, /c\.applyPreset/);
   assert.match(gui, /new HudEditorScreen\(\)/);
 });
 

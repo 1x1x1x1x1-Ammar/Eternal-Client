@@ -1,13 +1,13 @@
-# Eternal Client 1.2.0 on Linux Mint XFCE
+# Eternal Client 1.2.1 on Linux Mint XFCE
 
 The Linux launcher is distributed as an **amd64 `.deb`** for Linux Mint 21.3/22.x and compatible Ubuntu systems. It uses the same interface, instances, Mod Hub and bundled Fabric Core as the Windows launcher.
 
 ## Install
 
-Download `Eternal.Client.1.2.0.linux-amd64.deb` from the [v1.2.0 release](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.0). Open a terminal in the download folder:
+Download `Eternal.Client.1.2.1.linux-amd64.deb` from the [v1.2.1 release](https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/v1.2.1). Open a terminal in the download folder:
 
 ```bash
-sudo apt install ./Eternal.Client.1.2.0.linux-amd64.deb
+sudo apt install ./Eternal.Client.1.2.1.linux-amd64.deb
 ```
 
 Open **Eternal Client** from the Xfce applications menu under Games, or run `eternal-client`. Run the launcher as your regular user. The package installs desktop integration, icons and the Electron sandbox support supplied by electron-builder.

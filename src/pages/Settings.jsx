@@ -153,7 +153,7 @@ export default function Settings() {
 
       <section className="settings-card beta8-settings-card">
         <div className="beta8-card-title"><WandSparkles/><div><h3>Game & interface</h3><small>Real launch parameters</small></div></div>
-        <label>Default memory<div className="range-line"><input type="range" min="2048" max="16384" step="512" value={settings.ramMb || 6144} onChange={e => patch({ ramMb: Number(e.target.value) })}/><b>{((settings.ramMb || 6144) / 1024).toFixed(1)} GB</b></div></label>
+        <label>Default memory<div className="range-line"><input type="range" min="1024" max="32768" step="512" value={settings.ramMb || 6144} onChange={e => patch({ ramMb: Number(e.target.value) })}/><b>{((settings.ramMb || 6144) / 1024).toFixed(1)} GB</b></div></label>
         <div className="form-row"><label>Width<input type="number" min="640" max="7680" value={settings.resolution?.width || 1280} onChange={e => patch({ resolution: { ...settings.resolution, width: Number(e.target.value) } })}/></label><label>Height<input type="number" min="360" max="4320" value={settings.resolution?.height || 720} onChange={e => patch({ resolution: { ...settings.resolution, height: Number(e.target.value) } })}/></label></div>
         <label className="beta8-toggle-row"><span><b>Reduced motion</b><small>Disables page transition motion and nonessential V1 effects</small></span><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={e => patch({ reducedMotion: e.target.checked })}/></label>
       </section>

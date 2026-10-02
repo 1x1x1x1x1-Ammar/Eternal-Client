@@ -37,7 +37,7 @@ try {
           assert.equal((await page.locator('#preset-name').textContent()).toLowerCase(), preset);
           assert.equal(await page.locator('[data-preset][aria-pressed="true"]').count(), 1);
         }
-        assert.match(await page.locator('#download-core').getAttribute('href'), /v1\.2\.0\/Eternal-Core-Standalone-1\.2\.0\.jar$/);
+        assert.match(await page.locator('#download-core').getAttribute('href'), /v1\.2\.1\/Eternal-Core-Standalone-1\.2\.1\.jar$/);
         const faq = page.locator('details').last();
         await faq.locator('summary').click();
         assert.equal(await faq.getAttribute('open'), '');
@@ -68,16 +68,21 @@ try {
   let assets = [exe];
   await page.route('https://api.github.com/**', route => route.fulfill({ json:{ tag_name:'v9.0.0', assets } }));
   await page.goto(`${base}/client.html`, { waitUntil:'networkidle' });
-  assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v1.2.0');
+  assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v1.2.1');
   assets = [exe, jar];
   await page.reload({ waitUntil:'networkidle' });
   assert.equal(await page.locator('[data-release-version]').first().textContent(), 'v9.0.0');
   assert.equal(await page.locator('#download-core').getAttribute('href'), jar.browser_download_url);
+  assert.ok((await page.locator('[data-linux-download]').getAttribute('href')).endsWith('/tag/v9.0.0'));
+  const deb = {name:'Eternal.Client.9.0.0.linux-amd64.deb',browser_download_url:releaseRoot+'Eternal.Client.9.0.0.linux-amd64.deb',size:100};
+  assets = [exe, jar, deb];
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await page.locator('[data-linux-download]').getAttribute('href'), deb.browser_download_url);
   await page.close();
   const noJs = await browser.newPage({ javaScriptEnabled:false });
   await noJs.goto(`${base}/client.html`);
   assert.equal(await noJs.locator('h1').evaluate(el => getComputedStyle(el.parentElement).opacity), '1');
-  assert.match(await noJs.locator('#download-installer').getAttribute('href'), /1\.2\.0\.exe$/);
+  assert.match(await noJs.locator('#download-installer').getAttribute('href'), /1\.2\.1\.exe$/);
   assert.deepEqual(errors, []);
   console.log('Website checks passed: 4 viewports, 2 pages, presets, navigation, lightbox, FAQ, release fallback/update and no-JS content.');
 } finally {

@@ -14,29 +14,43 @@ public final class HudEditorScreen extends Screen {
     private String selectedModule;
     private int dragOffsetX;
     private int dragOffsetY;
-    private final long openedAt = System.currentTimeMillis();
+    private final Screen parent = net.minecraft.client.Minecraft.getInstance().screen;
+    private boolean controlsVisible = true;
 
     public HudEditorScreen() {
         super(Component.literal("Eternal HUD Editor"));
     }
 
-    private float toolbarScale() { return Math.min(1.0F, Math.max(1, width - 24) / 406.0F); }
-    private int canvasTop() { return width < 700 ? 56 + Math.round(36 * toolbarScale()) : 66; }
-    private int controlsY() { return width < 700 ? 53 : 18; }
-    private int controlsX() { return width < 700 ? 12 : Math.max(218, width - 430); }
+    private int toolbarColumns() { return Math.max(3, Math.min(6, (width - 24) / 92)); }
+    private int canvasTop() { return controlsVisible ? 34 + ((6 + toolbarColumns() - 1) / toolbarColumns()) * 26 : 0; }
+
+    @Override protected void init() {
+        clearWidgets();
+        if (!controlsVisible) return;
+        String[] labels = {"Modules", "Default", "Compact", "Corners", "Snap " + CoreConfig.INSTANCE.snap(), "Done"};
+        Runnable[] actions = {
+            () -> minecraft.setScreen(new ModuleLibraryScreen(this)),
+            () -> apply("DEFAULT"), () -> apply("COMPACT"), () -> apply("CORNERS"),
+            () -> { int snap = CoreConfig.INSTANCE.snap(); CoreConfig.INSTANCE.setSnap(snap == 2 ? 4 : snap == 4 ? 8 : 2); init(); },
+            this::onClose
+        };
+        int columns = toolbarColumns(), w = (width - 24 - (columns - 1) * 6) / columns;
+        for (int i = 0; i < labels.length; i++)
+            addRenderableWidget(new EternalButton(12 + i % columns * (w + 6), 30 + i / columns * 26, w, 22, labels[i], i == 0, actions[i]));
+    }
+
+    @Override public void onClose() { minecraft.setScreen(parent); }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         int accent = CoreConfig.INSTANCE.accentColor();
         int snap = CoreConfig.INSTANCE.snap();
-        float intro = EternalUi.easeOutCubic((System.currentTimeMillis() - openedAt) / 260.0F);
 
         EternalUi.veil(graphics, width, height, accent);
-        drawTopbar(graphics, mouseX, mouseY, accent, snap, intro);
         drawGrid(graphics, snap, accent);
         drawCanvasGuides(graphics, accent);
 
-        int fallbackY = canvasTop() + 12;
+        int fallbackY = 10;
         for (String name : HudRenderer.modules()) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] position = visiblePosition(name, fallbackY);
@@ -58,54 +72,26 @@ public final class HudEditorScreen extends Screen {
             fallbackY += boxHeight + 5;
         }
 
-        drawInspector(graphics, accent);
-        drawFooterHint(graphics, accent);
+        if (controlsVisible) {
+            drawInspector(graphics, accent);
+            drawFooterHint(graphics, accent);
+            drawTopbar(graphics, accent);
+        }
         super.render(graphics, mouseX, mouseY, delta);
     }
 
-    private void drawTopbar(GuiGraphics graphics, int mouseX, int mouseY, int accent, int snap, float intro) {
-        int top = canvasTop();
-        graphics.fill(0, 0, width, top, 0xF407090D);
-        graphics.fill(0, top - 1, width, top, 0x42464E59);
-        graphics.fill(0, 0, 3, top, accent);
-        graphics.fill(3, 0, width, 1, 0x28FFFFFF);
-
-        graphics.drawString(font, "ETERNAL", 16, 15, EternalUi.TEXT, true);
-        graphics.drawString(font, "HUD STUDIO", 16 + font.width("ETERNAL") + 7, 15, accent, true);
-        graphics.drawString(font, "DRAG · ARROWS: NUDGE · ENTER: SETTINGS · AUTO-SAVE", 16, 32, EternalUi.DIM, false);
-
-        int x = controlsX();
-        int y = controlsY();
-        graphics.pose().pushMatrix();
-        graphics.pose().translate((float) x, (float) y);
-        graphics.pose().scale(toolbarScale(), toolbarScale());
-        mouseX = (int) ((mouseX - x) / toolbarScale());
-        mouseY = (int) ((mouseY - y) / toolbarScale());
-        x = 0;
-        y = 0;
-        drawButton(graphics, mouseX, mouseY, x, y, 78, 29, "MODULES", true, accent);
-        drawButton(graphics, mouseX, mouseY, x + 86, y, 66, 29, "DEFAULT", false, accent);
-        drawButton(graphics, mouseX, mouseY, x + 160, y, 72, 29, "COMPACT", false, accent);
-        drawButton(graphics, mouseX, mouseY, x + 240, y, 70, 29, "CORNERS", false, accent);
-        drawButton(graphics, mouseX, mouseY, x + 318, y, 88, 29, "SNAP " + snap + "PX", false, accent);
-        graphics.pose().popMatrix();
-
-        String live = selectedModule == null ? "NO SELECTION" : selectedModule.toUpperCase();
-        int liveW = font.width(live) + 24;
-        int liveX = Math.max(16, width - liveW - 14);
-        if (width < 700) liveX = 16;
-        if (width >= 700) {
-            EternalUi.chip(graphics, liveX, top - 27, liveW, 19, accent, selectedModule != null);
-            graphics.drawCenteredString(font, live, liveX + liveW / 2, top - 21, selectedModule != null ? EternalUi.TEXT : EternalUi.DIM);
-        }
-
-        EternalUi.progress(graphics, 3, top - 3, width - 6, accent, intro);
+    private void drawTopbar(GuiGraphics graphics, int accent) {
+        graphics.fill(0, 0, width, canvasTop(), 0xF4111419);
+        graphics.fill(0, canvasTop() - 1, width, canvasTop(), accent);
+        graphics.drawString(font, "ETERNAL / HUD STUDIO", 12, 12, EternalUi.TEXT, false);
+        String hint = "F1: hide controls";
+        if (width > 370) graphics.drawString(font, hint, width - 12 - font.width(hint), 12, EternalUi.MUTED, false);
     }
 
     private void drawGrid(GuiGraphics graphics, int snap, int accent) {
         int top = canvasTop();
         int spacing = Math.max(12, snap * 5);
-        int drift = EternalUi.reducedMotion() ? 0 : (int) ((System.currentTimeMillis() / 55L) % spacing);
+        int drift = 0;
         for (int x = -spacing + drift; x < width; x += spacing) graphics.fill(x, top, x + 1, height, 0x0DFFFFFF);
         for (int y = top - spacing + drift / 2; y < height; y += spacing) graphics.fill(0, y, width, y + 1, 0x0CFFFFFF);
         graphics.fill(width / 2, top, width / 2 + 1, height, EternalUi.alpha(accent, 38));
@@ -138,7 +124,7 @@ public final class HudEditorScreen extends Screen {
         int panelW = Math.min(260, Math.max(190, width / 4));
         int x = width - panelW - 12;
         int y = height - 140;
-        if (width < 620) return;
+        if (width < 760 || height < 360) return;
 
         EternalUi.glass(graphics, x, y, panelW, 126, accent, selectedModule != null);
         EternalUi.accentRail(graphics, x, y, 126, accent, selectedModule != null);
@@ -153,7 +139,7 @@ public final class HudEditorScreen extends Screen {
             return;
         }
 
-        int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, canvasTop() + 12);
+        int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 10, 10);
         graphics.drawString(font, selectedModule.toUpperCase(), x + 14, y + 31, EternalUi.TEXT, true);
         inspectorFact(graphics, x + 14, y + 51, "POSITION", pos[0] + " / " + pos[1]);
         inspectorFact(graphics, x + 14, y + 69, "SNAP", CoreConfig.INSTANCE.snap() + " PX");
@@ -167,7 +153,7 @@ public final class HudEditorScreen extends Screen {
     }
 
     private void drawFooterHint(GuiGraphics graphics, int accent) {
-        if (width < 540) return;
+        if (width < 1100 || height < 360) return;
         int boxW = Math.min(510, width - 24);
         int x = 12;
         int y = height - 46;
@@ -184,25 +170,12 @@ public final class HudEditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        int mouseX = (int) ((event.x() - controlsX()) / toolbarScale());
-        int mouseY = (int) ((event.y() - controlsY()) / toolbarScale());
-        int buttonX = 0;
-        int buttonY = 0;
-
-        if (inside(mouseX, mouseY, buttonX, buttonY, 78, 29)) { EternalCore.openClickGui(); return true; }
-        if (inside(mouseX, mouseY, buttonX + 86, buttonY, 66, 29)) { apply("DEFAULT"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 160, buttonY, 72, 29)) { apply("COMPACT"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 240, buttonY, 70, 29)) { apply("CORNERS"); return true; }
-        if (inside(mouseX, mouseY, buttonX + 318, buttonY, 88, 29)) {
-            int snap = CoreConfig.INSTANCE.snap();
-            CoreConfig.INSTANCE.setSnap(snap == 2 ? 4 : snap == 4 ? 8 : 2);
-            NotificationCenter.push("HUD SNAP", CoreConfig.INSTANCE.snap() + "px grid");
-            return true;
-        }
-
-        mouseX = (int) event.x();
-        mouseY = (int) event.y();
-        int fallbackY = canvasTop() + 12;
+        if (event.button() != 0) return super.mouseClicked(event, doubleClick);
+        if (controlsVisible && super.mouseClicked(event, doubleClick)) return true;
+        if (controlsVisible && event.y() < canvasTop()) return true;
+        int mouseX = (int) event.x();
+        int mouseY = (int) event.y();
+        int fallbackY = 10;
         for (String name : HudRenderer.modules()) {
             if (!CoreConfig.INSTANCE.on(name)) continue;
             int[] position = visiblePosition(name, fallbackY);
@@ -260,6 +233,7 @@ public final class HudEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 290) { controlsVisible = !controlsVisible; init(); return true; }
         if (event.key() == 257 && selectedModule != null) {
             minecraft.setScreen(new ModuleSettingsScreen(this, selectedModule));
             return true;
@@ -274,7 +248,7 @@ public final class HudEditorScreen extends Screen {
             return true;
         }
         if (selectedModule != null && (event.key() == 262 || event.key() == 263 || event.key() == 264 || event.key() == 265)) {
-            int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 12, canvasTop() + 12);
+            int[] pos = CoreConfig.INSTANCE.pos(selectedModule, 10, 10);
             int amount = CoreConfig.INSTANCE.snap();
             int x = pos[0], y = pos[1];
             if (event.key() == 262) x += amount;
@@ -288,7 +262,7 @@ public final class HudEditorScreen extends Screen {
     }
 
     private int[] visiblePosition(String name, int fallbackY) {
-        int[] pos = CoreConfig.INSTANCE.pos(name, 12, fallbackY);
+        int[] pos = CoreConfig.INSTANCE.pos(name, 10, fallbackY);
         return new int[]{Math.max(0, Math.min(width - HudRenderer.boxWidth(name), pos[0])),
                 Math.max(0, Math.min(height - HudRenderer.boxHeight(name), pos[1]))};
     }
@@ -298,15 +272,6 @@ public final class HudEditorScreen extends Screen {
         CoreConfig.INSTANCE.savePositions();
         draggingModule = null;
         super.removed();
-    }
-
-    private void drawButton(GuiGraphics graphics, int mouseX, int mouseY, int x, int y, int w, int h, String text, boolean primary, int accent) {
-        boolean hover = inside(mouseX, mouseY, x, y, w, h);
-        int fill = primary ? EternalUi.alpha(accent, hover ? 84 : 58) : hover ? 0xFF181C22 : 0xFF11151A;
-        graphics.fill(x, y, x + w, y + h, fill);
-        graphics.renderOutline(x, y, w, h, primary || hover ? EternalUi.alpha(accent, 122) : 0x3B4A515C);
-        if (hover) graphics.fill(x, y, x + w, y + 1, 0x3DFFFFFF);
-        graphics.drawCenteredString(font, text, x + w / 2, y + 10, primary || hover ? EternalUi.TEXT : 0xFFC5C9D0);
     }
 
     private static boolean inside(int mouseX, int mouseY, int x, int y, int w, int h) {

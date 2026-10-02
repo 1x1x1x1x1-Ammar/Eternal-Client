@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Download, ExternalLink, Filter, FolderPlus, Gauge, LockKeyhole, PackageOpen, Search, ShieldCheck, Sparkles, Trash2, ToggleLeft, ToggleRight, TrendingUp, Zap } from 'lucide-react';
 import { useEternalStore } from '../store/useEternalStore.js';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 import { call, api } from '../lib/api.js';
 import eternalLogo from '../../assets/logo.svg';
 
@@ -24,7 +25,7 @@ const sorts = [
 
 export default function Mods() {
   const instances = useEternalStore(s => s.instances);
-  const [id, setId] = useState(instances[0]?.id || '');
+  const [id, setId] = useSelectedInstance();
   const [mods, setMods] = useState([]);
   const [type, setType] = useState('mod');
   const [world, setWorld] = useState('');
@@ -49,11 +50,6 @@ export default function Mods() {
   const canInstall = Boolean(current && !locked && !needsLoader && (type !== 'datapack' || world));
   const enabledCount = useMemo(() => mods.filter(mod => mod.enabled).length, [mods]);
   const managedCount = useMemo(() => mods.filter(mod => mod.managed).length, [mods]);
-
-  useEffect(() => {
-    if (!instances.length) return setId('');
-    if (!instances.some(item => item.id === id)) setId(instances[0].id);
-  }, [instances, id]);
 
   async function load() {
     if (!id || (type === 'datapack' && !world)) return setMods([]);

@@ -12,7 +12,7 @@ test('v1.1 Studio is routed and its CSS loads last', () => {
   assert.match(app, /import Studio from '.\/pages\/Studio\.jsx'/);
   assert.match(app, /path="\/studio" element=\{<Studio \/>\}/);
   assert.match(sidebar, /\['\/studio', Palette, 'Studio'\]/);
-  assert.match(corePage, /to="\/studio"/);
+  assert.match(corePage, /\/studio\?instance=/);
   assert.ok(main.lastIndexOf("./v11-studio.css") > main.lastIndexOf("./v101-client.css"));
 });
 
@@ -61,8 +61,8 @@ test('ClickGUI 2.0 exposes the real v1.1 customization surface', () => {
   for (const section of ['HUD', 'CLIENT', 'VISUAL', 'STYLE', 'ABOUT']) assert.ok(clickGui.includes(`"${section}"`));
   for (const module of ['Zoom', 'Fullbright', 'ToggleSprint', 'ToggleSneak', 'Perspective', 'Crosshair']) assert.ok(clickGui.includes(`"${module}"`));
   for (const action of ['setPerspectiveKey', 'setCrosshairGap', 'setCrosshairLength', 'setCrosshairThickness', 'setSmoothZoom', 'applyPreset']) assert.ok(clickGui.includes(action));
-  assert.match(clickGui, /OPEN HUD EDITOR/);
-  assert.match(clickGui, /CUSTOMIZATION STUDIO/);
+  assert.match(clickGui, /HUD editor/);
+  assert.match(clickGui, /Customization studio/);
 });
 
 test('premium in-game shell is shared across title, Start, ClickGUI, HUD, HUD Studio and notifications', () => {
@@ -76,9 +76,9 @@ test('premium in-game shell is shared across title, Start, ClickGUI, HUD, HUD St
 
   for (const helper of ['backdrop', 'veil', 'glass', 'accentRail', 'livingAccent', 'progress']) assert.match(ui, new RegExp(` ${helper}\\(`));
   for (const phrase of ['ETERNAL', 'Installed mods', 'Singleplayer', 'Multiplayer']) assert.ok(title.includes(phrase));
-  for (const phrase of ['WELCOME BACK', 'QUICK MODULES', 'HUD WORKSPACE', 'ClickGUI 2.0']) assert.ok(home.includes(phrase));
-  for (const phrase of ['PLAY YOUR WAY', 'VISUAL LAB', 'STYLE + LAYOUT', 'BUILT AS A REAL CLIENT']) assert.ok(click.includes(phrase));
-  for (const phrase of ['HUD STUDIO', 'HUD CANVAS', 'INSPECTOR', 'AUTO-SAVE']) assert.ok(editor.includes(phrase));
+  for (const phrase of ['Quick modules', 'HUD editor', 'Installed mods', 'Resume game']) assert.ok(home.includes(phrase));
+  for (const phrase of ['CLIENT', 'VISUAL', 'STYLE', 'ABOUT']) assert.ok(click.includes(phrase));
+  for (const phrase of ['HUD STUDIO', 'HUD CANVAS', 'INSPECTOR', 'savePositions']) assert.ok(editor.includes(phrase));
   assert.match(title, /EternalUi\.landscape/);
   assert.match(editor, /EternalUi\.veil/);
   assert.match(hud, /EternalUi\.livingAccent/);

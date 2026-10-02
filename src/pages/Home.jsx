@@ -1,137 +1,120 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Crosshair as CrosshairIcon, Activity, Boxes, CheckCircle2, ChevronRight, Cloud, Cpu, DownloadCloud, Gauge, Keyboard, MapPin, PackageOpen,
-  Play, Radio, Server, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Square,
-  Terminal, UserRound, Users, WandSparkles, Wrench, Zap
-} from 'lucide-react';
+import { Activity, Boxes, ChevronRight, DownloadCloud, FolderOpen, Keyboard, PackageOpen, Play, Server, Settings2, ShieldCheck, SlidersHorizontal, Square } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEternalStore } from '../store/useEternalStore.js';
 import { call, api } from '../lib/api.js';
+import { keyName, launchStatus, recentTransfers } from '../lib/launcherView.js';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 import MinecraftHead from '../components/MinecraftHead.jsx';
 import eternalLogo from '../../assets/logo.svg';
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: .045, delayChildren: .04 } }
-};
-const rise = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: .24, ease: [0.2, 0.8, 0.2, 1] } }
-};
-
-function ProfileCard({ instance, running, event }) {
-  const navigate = useNavigate();
-  const refresh = useEternalStore(s => s.refreshInstances);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  async function launch() {
-    setError(''); setBusy(true);
-    try {
-      await call(api.instances.launch({ instanceId: instance.id }));
-      setTimeout(refresh, 1000);
-    } catch (e) { setError(e.message); }
-    finally { setBusy(false); }
-  }
-
-  return <motion.div className={`profile-card beta8-profile-card premium-profile-card ${running ? 'running' : ''}`} whileHover={{ y: -2 }} transition={{ duration: .14 }}>
-    <div className="profile-icon premium-profile-icon"><Boxes /></div>
-    <div className="profile-copy"><b>{instance.name}</b><span>{instance.minecraftVersion} · {instance.loader}</span><small>{instance.playtimeSeconds ? `${Math.floor(instance.playtimeSeconds / 3600)}h ${Math.floor((instance.playtimeSeconds % 3600) / 60)}m played` : 'Ready to play'}</small></div>
-    <div className="profile-status">{running ? <><i className="green-dot"/><span>{event?.message || 'Minecraft running'}</span></> : <><i className="premium-idle-dot"/><span>{instance.lastPlayedAt ? `Last played ${new Date(instance.lastPlayedAt).toLocaleString()}` : 'Never launched'}</span></>}</div>
-    <button className={running ? 'secondary' : 'play-btn'} disabled={busy} onClick={launch}><Play fill={!running ? 'currentColor' : 'none'} />{busy ? 'Starting…' : running ? 'Launch another' : 'Play'}</button>
-    {running && <button className="danger-icon" onClick={() => call(api.instances.stop(instance.id))} title="Stop all processes for this profile"><Square /></button>}
-    <button className="icon-btn" onClick={() => navigate('/library')} title="Profile settings"><Settings2 /></button>
-    {error && <div className="beta8-profile-error">{error}</div>}
-  </motion.div>;
-}
-
-const featureTiles = [
-  ['/library', Boxes, 'Instances', 'Isolated profiles with their own mods, saves and settings'],
-  ['/mods', PackageOpen, 'Mod Hub', 'Discover and install version-matched Modrinth content'],
-  ['/servers', Server, 'Servers', 'Live ping, saved servers and one-click joining'],
-  ['/core', ShieldCheck, 'Eternal Core', 'Your real in-game HUD, ClickGUI, zoom and utilities']
-];
-const capabilityTiles = [
-  ['/developer', Gauge, 'Performance first', 'Real launcher and runtime diagnostics'],
-  ['/mods', PackageOpen, 'Verified installs', 'Hashes and required dependencies resolved'],
-  ['/servers', Server, 'Quick join', 'Server state, ping and direct launch'],
-  ['/core', ShieldCheck, 'In-game client', 'Persistent modules and HUD editor'],
-  ['/core', SlidersHorizontal, 'Full customization', 'Keybinds, layouts, opacity and accent'],
-  ['/downloads', Cloud, 'Live transfers', 'Only real build and download activity']
-];
-
 export default function Home() {
   const navigate = useNavigate();
-  const accounts = useEternalStore(s => s.accounts);
-  const activeId = useEternalStore(s => s.activeAccountId);
-  const instances = useEternalStore(s => s.instances);
-  const running = useEternalStore(s => s.running);
-  const events = useEternalStore(s => s.launchEvents);
-  const downloads = useEternalStore(s => s.downloadEvents);
-  const appVersion = useEternalStore(s => s.appVersion);
-  const [selectedId, setSelectedId] = useState('');
+  const { accounts, activeAccountId, instances, running, launchEvents, downloadEvents, settings, patchSettings, refreshInstances } = useEternalStore();
+  const [selectedId, setSelectedId] = useSelectedInstance();
   const [launchError, setLaunchError] = useState('');
   const [launching, setLaunching] = useState(false);
-
-  const account = accounts.find(a => a.id === activeId) || null;
-  const recent = useMemo(() => [...instances].sort((a, b) => new Date(b.lastPlayedAt || 0) - new Date(a.lastPlayedAt || 0)).slice(0, 4), [instances]);
+  const [stopping, setStopping] = useState(false);
+  const [core, setCore] = useState(null);
+  const [ram, setRam] = useState(settings?.ramMb || 6144);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState('');
+  const account = accounts.find(item => item.id === activeAccountId) || null;
+  const selected = instances.find(item => item.id === selectedId) || null;
+  const savedMemory = selected?.ramMb || settings?.ramMb || 6144;
+  useEffect(() => { setRam(savedMemory); }, [selectedId, savedMemory]);
+  useEffect(() => { setSaved(''); setLaunchError(''); }, [selectedId]);
+  const selectedRunning = Boolean(selected && running.some(item => item.instanceId === selected.id));
+  const selectedEvent = selected ? launchEvents[selected.id] : null;
+  const selectedBusy = ['VALIDATING', 'RESOLVING_LOADER', 'DOWNLOADING', 'PREPARING_MODS', 'STARTING_JVM'].includes(selectedEvent?.state);
+  const supportedCore = selected?.loader === 'fabric' && selected?.minecraftVersion === '1.21.11';
+  const activity = useMemo(() => recentTransfers(downloadEvents), [downloadEvents]);
 
   useEffect(() => {
-    if (!instances.length) return setSelectedId('');
-    if (!instances.some(i => i.id === selectedId)) setSelectedId(recent[0]?.id || instances[0].id);
-  }, [instances, recent, selectedId]);
-
-  const selected = instances.find(i => i.id === selectedId) || recent[0] || instances[0] || null;
-  const selectedRunning = selected ? running.some(r => r.instanceId === selected.id) : false;
-  const runningProcesses = running.reduce((total, item) => total + Number(item.count || item.pids?.length || 1), 0);
-  const supportedCore = selected?.loader === 'fabric' && selected?.minecraftVersion === '1.21.11';
-  const selectedEvent = selected ? events[selected.id] : null;
-  const selectedBusy = selectedEvent && ['VALIDATING', 'RESOLVING_LOADER', 'DOWNLOADING', 'PREPARING_MODS', 'STARTING_JVM'].includes(selectedEvent.state);
+    let current = true;
+    setCore(null);
+    if (supportedCore) Promise.all([call(api.core.status(selected.id)), call(api.core.config(selected.id))])
+      .then(([status, config]) => { if (current) setCore({ status, config }); })
+      .catch(error => { if (current) setCore({ error: error.message }); });
+    return () => { current = false; };
+  }, [selected?.id, supportedCore, selectedRunning]);
 
   async function playSelected() {
     setLaunchError('');
     if (!selected) return navigate('/library');
+    if (!account) return navigate('/accounts');
     setLaunching(true);
     try { await call(api.instances.launch({ instanceId: selected.id })); }
     catch (error) { setLaunchError(error.message); }
     finally { setLaunching(false); }
   }
-
-  const settings = useEternalStore(s => s.settings) || {};
-  const patchSettings = useEternalStore(s => s.patchSettings);
-  const [ram, setRam] = useState(settings.ramMb || 6144);
-  const [saved, setSaved] = useState('');
-  useEffect(() => setRam(settings.ramMb || 6144), [settings.ramMb]);
-  async function saveMemory() {
-    try { await patchSettings({ ramMb: ram }); setSaved('Launch memory saved'); }
+  async function stopSelected() {
+    setStopping(true); setLaunchError('');
+    try { await call(api.instances.stop(selected.id)); await useEternalStore.getState().refreshRuntime(); }
     catch (error) { setLaunchError(error.message); }
+    finally { setStopping(false); }
   }
+  async function saveMemory() {
+    setSaving(true); setSaved('');
+    try {
+      if (selected) {
+        await call(api.instances.patch({ instanceId: selected.id, patch: { ramMb: ram } }));
+        await refreshInstances();
+      } else await patchSettings({ ramMb: ram });
+      setSaved('Memory saved');
+    }
+    catch (error) { setLaunchError(error.message); }
+    finally { setSaving(false); }
+  }
+  const coreLabel = !selected ? 'Select an instance' : !supportedCore ? 'Core needs Fabric 1.21.11'
+    : core?.error ? 'Could not read Core status' : !core ? 'Checking Core...'
+    : core.status.needsUpdate && core.status.stagedExists ? `Core ${core.status.stagedVersion || ''} will update on launch`
+    : core.status.installedValid ? `Core ${core.status.installedVersion || ''} installed`
+    : core.status.stagedExists ? 'Core will install on launch' : 'Core is not available in this build';
+
   return <div className="et-home">
     <section className="et-launchbar" aria-label="Launch setup">
-      <button className="et-account-choice" onClick={() => navigate('/accounts')}><MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={40}/><span><small>ACCOUNT</small><b>{account?.username || 'Add an account'}</b><em>{account?.type === 'microsoft' ? 'Microsoft account' : 'Offline profile'}</em></span></button>
-      <label><small>INSTANCE</small><select aria-label="Selected instance" value={selectedId} onChange={e => setSelectedId(e.target.value)}>{!instances.length && <option value="">Create an instance</option>}{instances.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <div><small>MINECRAFT</small><b>{selected?.minecraftVersion || '—'}</b></div>
-      <div><small>LOADER</small><b>{selected?.loader || '—'}</b></div>
-      <button className="et-play" onClick={playSelected} disabled={launching || selectedBusy}><Play fill="currentColor"/>{launching || selectedBusy ? 'Starting…' : selected ? selectedRunning ? 'Launch another' : 'Play' : 'Create instance'}</button>
+      <button className="et-account-choice" onClick={() => navigate('/accounts')}>
+        <MinecraftHead skinUrl={account?.skinUrl || ''} username={account?.username || '?'} size={36}/>
+        <span><small>ACCOUNT</small><b>{account?.username || 'Add an account'}</b><em>{account ? account.type === 'microsoft' ? 'Microsoft' : 'Offline account' : 'No account selected'}</em></span>
+      </button>
+      <label><small>INSTANCE</small><select aria-label="Selected instance" disabled={saving} value={selected?.id || ''} onChange={event => setSelectedId(event.target.value)}>
+        {!instances.length && <option value="">Create an instance</option>}{instances.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+      </select></label>
+      <div><small>MINECRAFT</small><b>{selected?.minecraftVersion || 'Not selected'}</b></div>
+      <div><small>LOADER</small><b>{selected?.loader || 'Not selected'}</b></div>
+      <button className="et-play" onClick={playSelected} disabled={launching || selectedBusy || stopping}><Play fill="currentColor"/>{launching || selectedBusy ? 'Starting...' : !selected ? 'Create instance' : !account ? 'Add account' : selectedRunning ? 'Launch another' : 'Play'}</button>
     </section>
     {launchError && <div className="release-error" role="alert">{launchError}</div>}
     <section className="et-landscape">
-      <div><img src={eternalLogo} alt=""/><h1>ETERNAL <strong>CLIENT</strong></h1><span>PLAY · CREATE · CUSTOMIZE · EXPLORE</span><p>Your worlds. Your loadouts.<br/>Everything in one place.</p></div>
-      <button onClick={() => navigate('/studio')} className="et-hero-link">OPEN STUDIO <ChevronRight/></button>
+      <div><img src={eternalLogo} alt=""/><h1>ETERNAL <strong>CLIENT</strong></h1><p>{selected ? selected.name : 'Your Minecraft launcher'}</p><span>{selected ? `${selected.minecraftVersion} / ${selected.loader}` : 'Create an instance to get started'}</span></div>
+      <button onClick={() => navigate(`/studio?instance=${encodeURIComponent(selected?.id || '')}`)} className="et-hero-link">Open Studio <ChevronRight/></button>
     </section>
     <section className="et-home-grid">
-      <article className="et-panel"><header>SELECTED INSTANCE <button aria-label="Manage instance" onClick={() => navigate('/library')}><Settings2/></button></header>
-        <div className="et-instance-name"><Boxes/><div><h2>{selected?.name || 'Your first adventure'}</h2><p>{selected ? selected.minecraftVersion + ' · ' + selected.loader : 'Create an isolated Minecraft instance to get started.'}</p></div></div>
-        <div className="et-facts"><span><ShieldCheck/>{supportedCore ? 'Eternal Core compatible' : 'Core requires Fabric 1.21.11'}</span><span><Activity/>{selectedRunning ? 'Minecraft is running' : 'Ready when you are'}</span><span><Keyboard/>Right Shift · Modules / H · HUD editor</span></div>
-        <button className="secondary" onClick={() => navigate('/library')}>Manage instances <ChevronRight/></button>
+      <article className="et-panel"><header>SELECTED INSTANCE <button title="Manage instance" aria-label="Manage instance" onClick={() => navigate('/library')}><Settings2/></button></header>
+        <div className="et-instance-name"><Boxes/><div><h2>{selected?.name || 'No instance yet'}</h2><p>{selected ? `${selected.minecraftVersion} / ${selected.loader}` : 'Each instance keeps its own worlds, mods and settings.'}</p></div></div>
+        <div className="et-facts"><span><ShieldCheck/>{coreLabel}</span><span role="status"><Activity/>{launchStatus({ selected, account, running: selectedRunning, event: selectedEvent })}</span>
+          {core?.config && <span><Keyboard/>{keyName(core.config.openKey)}: Modules / {keyName(core.config.hudEditorKey)}: HUD editor</span>}
+          {selected?.lastPlayedAt && <span>Last played {new Date(selected.lastPlayedAt).toLocaleString()}</span>}
+          {core?.error && <span>{core.error}</span>}
+        </div>
+        <div className="et-instance-actions"><button className="secondary" onClick={() => navigate('/library')}>Manage <ChevronRight/></button>
+          {selected && <button className="secondary" onClick={() => call(api.instances.openFolder(selected.id)).catch(error => setLaunchError(error.message))}><FolderOpen/>Folder</button>}
+          {selectedRunning && <button className="secondary" disabled={stopping} onClick={stopSelected}><Square/>{stopping ? 'Stopping...' : 'Stop'}</button>}
+        </div>
       </article>
-      <article className="et-panel"><header>LAUNCH OPTIONS <SlidersHorizontal/></header><label className="et-memory"><span>Default memory <b>{(ram / 1024).toFixed(1)} GB</b></span><input aria-label="Default memory allocation" type="range" min="1024" max="16384" step="512" value={ram} onChange={e => { setRam(Number(e.target.value)); setSaved(''); }} onPointerUp={saveMemory} onKeyUp={saveMemory} onBlur={saveMemory}/><small>1 GB <span>16 GB</span></small></label><p>Per-instance memory overrides this default. Leave room for Windows and other apps.</p>
-        <label className="et-checkbox"><input type="checkbox" checked={Boolean(settings.reducedMotion)} onChange={e => patchSettings({ reducedMotion:e.target.checked }).catch(error => setLaunchError(error.message))}/>Reduced motion</label>
-        <button className="secondary" onClick={() => navigate('/settings')}>Java, display &amp; launcher settings <ChevronRight/></button><small role="status">{saved}</small>
+      <article className="et-panel"><header>LAUNCH OPTIONS <SlidersHorizontal/></header>
+        <label className="et-memory"><span>{selected ? 'Instance memory' : 'Default memory'} <b>{(ram / 1024).toFixed(1)} GB</b></span><input aria-label="Memory allocation" type="range" min="1024" max="32768" step="512" disabled={saving} value={ram} onChange={event => { setRam(Number(event.target.value)); setSaved(''); }}/><small>1 GB <span>32 GB</span></small></label>
+        <p>{selected ? `Applies to ${selected.name} on its next launch.` : 'Default for new instances.'} Leave memory for your operating system and other apps.</p>
+        <button className="secondary" disabled={saving || ram === savedMemory} onClick={saveMemory}>{saving ? 'Saving...' : 'Save memory'}</button>
+        <label className="et-checkbox"><input type="checkbox" checked={Boolean(settings?.reducedMotion)} onChange={event => patchSettings({ reducedMotion: event.target.checked }).catch(error => setLaunchError(error.message))}/>Reduced motion</label>
+        <button className="secondary" onClick={() => navigate('/settings')}>Java &amp; display settings <ChevronRight/></button><small role="status">{saved}</small>
       </article>
-      <article className="et-panel"><header>RECENT ACTIVITY <button onClick={() => navigate('/downloads')}>View all</button></header><div className="et-activity">{downloads.slice(0,4).map((event,index) => <div key={event.id || index}><DownloadCloud/><span><b>{event.name || 'Download'}</b><small>{event.message || event.state}</small></span></div>)}{!downloads.length && <p>No downloads this session. Explore Mod Hub to find your next mod or pack.</p>}</div><button className="secondary" onClick={() => navigate('/mods')}><PackageOpen/>Explore Mod Hub</button></article>
+      <article className="et-panel"><header>RECENT ACTIVITY <button onClick={() => navigate('/downloads')}>View all</button></header><div className="et-activity">
+        {activity.map((event, index) => <div key={event.id || index}><DownloadCloud/><span><b>{event.name || 'Download'}</b><small>{event.message || event.state}</small></span></div>)}
+        {!activity.length && <p>No downloads this session.</p>}
+      </div><button className="secondary" onClick={() => navigate('/mods')}><PackageOpen/>Explore Mod Hub</button></article>
     </section>
-    <section className="et-shortcuts">{[['/studio',CrosshairIcon,'Modules & settings','Build your PvP workspace'],['/mods',PackageOpen,'Mod Hub','Mods, resource packs, datapacks, shaders'],['/servers',Server,'Multiplayer','Your saved servers and live pings']].map(([to,Icon,title,description]) => <button key={to} onClick={() => navigate(to)}><Icon/><span><b>{title}</b><small>{description}</small></span><ChevronRight/></button>)}</section>
+    <section className="et-shortcuts">{[['/studio', SlidersHorizontal, 'Modules & settings', 'Configure the selected instance'], ['/mods', PackageOpen, 'Mod Hub', 'Mods, packs and shaders'], ['/servers', Server, 'Multiplayer', 'Saved servers and live pings']].map(([to, Icon, title, description]) => <button key={to} onClick={() => navigate(`${to}?instance=${encodeURIComponent(selectedId)}`)}><Icon/><span><b>{title}</b><small>{description}</small></span><ChevronRight/></button>)}</section>
   </div>;
 }

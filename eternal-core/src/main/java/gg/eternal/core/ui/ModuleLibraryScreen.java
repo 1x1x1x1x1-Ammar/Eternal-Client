@@ -15,14 +15,14 @@ public final class ModuleLibraryScreen extends EternalScreen {
     private int category, page;
     private List<String> shown = List.of();
     private int columns, rows, cardWidth;
+    private MenuLayout layout;
     private EternalButton categoryButton;
     private static final String[] CATEGORIES = {"All modules", "Combat", "HUD", "Movement", "Visual", "Performance", "Utilities"};
     public ModuleLibraryScreen(Screen parent) { super("Modules", parent); }
     @Override protected void init() {
         clearWidgets();
-        columns = Math.max(1, Math.min(4, (width - 24) / 172));
-        rows = Math.max(1, (height - 156) / 76);
-        cardWidth = (width - 24 - (columns - 1) * 8) / columns;
+        layout = MenuLayout.modules(width, height);
+        columns = layout.columns(); rows = layout.rows(); cardWidth = layout.cellWidth();
         int controls = width < 420 ? 92 : 130;
         var search = new EditBox(font, 12, 44, Math.max(70, width - controls - 32), 20, Component.literal("Search modules"));
         search.setHint(Component.literal("Search modules..."));
@@ -48,7 +48,7 @@ public final class ModuleLibraryScreen extends EternalScreen {
         page = Math.max(0, Math.min(page, Math.max(0, (shown.size() - 1) / size)));
         for (int i = page * size; i < Math.min(shown.size(), (page + 1) * size); i++) {
             String name = shown.get(i);
-            int index = i - page * size, x = 12 + index % columns * (cardWidth + 8), y = 102 + index / columns * 76;
+            int index = i - page * size, x = layout.cellX(index), y = layout.cellY(index);
             button(x + 8, y + 45, Math.max(50, cardWidth - 91), CoreConfig.INSTANCE.on(name) ? "Enabled" : "Disabled", CoreConfig.INSTANCE.on(name), () -> { CoreConfig.INSTANCE.toggle(name); rebuildCards(); });
             button(x + cardWidth - 76, y + 45, 68, "Settings", false, () -> minecraft.setScreen(new ModuleSettingsScreen(this, name)));
         }
@@ -73,7 +73,7 @@ public final class ModuleLibraryScreen extends EternalScreen {
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         int size = columns * rows;
         for (int i = page * size; i < Math.min(shown.size(), (page + 1) * size); i++) {
-            int index = i - page * size, x = 12 + index % columns * (cardWidth + 8), y = 102 + index / columns * 76;
+            int index = i - page * size, x = layout.cellX(index), y = layout.cellY(index);
             graphics.fill(x, y, x + cardWidth, y + 70, 0xED161B23);
             graphics.renderOutline(x, y, cardWidth, 70, 0xFF343B46);
             String name = shown.get(i);

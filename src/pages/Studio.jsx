@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Aperture, Check, ChevronRight, Crosshair, Eye, FolderOpen, Gauge, Image, Keyboard,
@@ -10,6 +10,7 @@ import { api, call } from '../lib/api.js';
 import { combatPresets, combatPatch } from '../lib/combatPresets.js';
 import { createSerialQueue } from '../../shared/serialQueue.js';
 import ModuleSettingsPanel from '../components/ModuleSettingsPanel.jsx';
+import { useSelectedInstance } from '../lib/useSelectedInstance.js';
 
 const moduleCatalog = [
   ['Watermark', 'HUD', Sparkles, 'Eternal identity chip'],
@@ -97,8 +98,7 @@ function RangeSetting({ title, description, min, max, step = 1, value, suffix = 
 export default function Studio() {
   const instances = useEternalStore(state => state.instances);
   const running = useEternalStore(state => state.running);
-  const compatible = useMemo(() => instances.filter(item => item.loader === 'fabric' && item.minecraftVersion === '1.21.11'), [instances]);
-  const [instanceId, setInstanceId] = useState(compatible[0]?.id || instances[0]?.id || '');
+  const [instanceId, setInstanceId] = useSelectedInstance();
   const [tab, setTab] = useState('MODULES');
   const [config, setConfig] = useState(null);
   const [profiles, setProfiles] = useState([]);
@@ -121,11 +121,6 @@ export default function Studio() {
 
   const selected = instances.find(item => item.id === instanceId);
   const isRunning = Boolean(selected && running.some(row => row.instanceId === selected.id));
-
-  useEffect(() => {
-    if (!instances.length) return setInstanceId('');
-    if (!instances.some(item => item.id === instanceId)) setInstanceId(compatible[0]?.id || instances[0].id);
-  }, [instances, compatible, instanceId]);
 
   async function loadStudio(id = instanceId) {
     const revision = ++loadRevision.current;
@@ -152,6 +147,12 @@ export default function Studio() {
   }
 
   useEffect(() => { setConfig(null); setNotice(''); loadStudio(instanceId); return () => { loadRevision.current++; }; }, [instanceId]);
+
+  useEffect(() => {
+    const refresh = () => { if (!saving && pendingWrites.current === 0) loadStudio(instanceId); };
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [instanceId, saving]);
 
   async function patch(patchValue, successMessage = '') {
     if (!instanceId || !config) return;
@@ -310,11 +311,11 @@ export default function Studio() {
       <div className="v11-panel-head"><div><span>HUD 2.0</span><h2>Visual system.</h2><p>Persistent Core settings shared by launcher-managed and standalone play.</p></div></div>
       <div className="v11-appearance-grid">
         <article className="v11-preview-card" style={{ '--studio-accent': accent }}>
-          <div className="v11-preview-top"><span>LIVE PREVIEW</span><i>{Math.round(config.hudAlpha / 255 * 100)}% OPACITY</i></div>
+          <div className="v11-preview-top"><span>APPEARANCE</span><i>{Math.round(config.hudAlpha / 255 * 100)}% OPACITY</i></div>
           <div className="v11-hud-preview">
             <span className="v11-preview-chip brand"><i/>ETERNAL <b>CORE</b></span>
-            <span className="v11-preview-chip one"><i/>FPS <b>240</b></span>
-            <span className="v11-preview-chip two"><i/>PING <b>32ms</b></span>
+            <span className="v11-preview-chip one"><i/>FPS <b>{config.enabled?.FPS ? 'Enabled' : 'Disabled'}</b></span>
+            <span className="v11-preview-chip two"><i/>PING <b>{config.enabled?.Ping ? 'Enabled' : 'Disabled'}</b></span>
             <div className="v11-preview-keys"><i>W</i><i>A</i><i>S</i><i>D</i></div>
             <div className="v11-preview-gridlines" />
           </div>

@@ -70,19 +70,15 @@ test('Core V1.1 opens premium real-function screens through the crash-safe Minec
   assert.match(core, /HudEditorScreen::new/);
   assert.match(core, /mc\.execute/);
   assert.match(core, /screenOpenQueued/);
-  assert.match(home, /Component\.literal\("Eternal Start"\)/);
-  for (const token of ['WELCOME BACK', 'QUICK MODULES', 'HUD WORKSPACE', 'ClickGUI 2.0']) assert.match(home, new RegExp(token));
-  assert.match(home, /EternalCore\.openClickGui\(\)/);
-  assert.match(home, /EternalCore\.openHudEditor\(\)/);
-  assert.match(home, /CoreConfig\.INSTANCE\.toggle\(QUICK_MODULES\[i\]\)/);
-  assert.match(home, /applyPreset\("DEFAULT"/);
-  assert.match(home, /applyPreset\("COMPACT"/);
-  assert.match(home, /applyPreset\("CORNERS"/);
+  assert.match(home, /super\("Eternal Start", null\)/);
+  assert.match(home, /new ModuleLibraryScreen\(this\)/);
+  assert.match(home, /new HudEditorScreen\(\)/);
+  assert.match(home, /CoreConfig\.INSTANCE\.toggle\(module\)/);
   assert.match(home, /HudRenderer\.value\("FPS"\)/);
   assert.match(home, /HudRenderer\.value\("Ping"\)/);
-  assert.match(home, /isPauseScreen\(\)/);
-  assert.match(editor, /"MODULES"/);
-  assert.match(editor, /EternalCore\.openClickGui\(\)/);
+  assert.match(read('eternal-core/src/main/java/gg/eternal/core/ui/EternalScreen.java'), /isPauseScreen\(\)/);
+  assert.match(editor, /"Modules"/);
+  assert.match(editor, /new ModuleLibraryScreen\(this\)/);
 });
 
 test('stable release intentionally excludes portable ZIP', () => {

@@ -29,7 +29,7 @@ public final class ModuleSettingsScreen extends EternalScreen {
         int half = (width - 32) / 2;
         button(12, 44, half, config.on(module) ? "Enabled" : "Disabled", config.on(module), () -> { config.toggle(module); init(); });
         button(20 + half, 44, half, binding ? "Press key / Del clears" : "Toggle key: " + (config.number(module, "keybind") == 0 ? "None" : ClickGuiScreen.keyName(config.number(module, "keybind"))), false, () -> { binding = true; init(); });
-        rows = Math.max(1, (height - 138) / 28);
+        rows = MenuLayout.list(width, height, 76, 28).rows();
         page = Math.max(0, Math.min(page, Math.max(0, (rules.size() - 1) / rows)));
         for (int i = page * rows; i < Math.min(rules.size(), (page + 1) * rows); i++) {
             var entry = rules.get(i);

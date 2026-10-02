@@ -145,15 +145,19 @@
   }
 
   const fallback = {
-    version: 'v1.2.0',
-    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal.Client.Setup.1.2.0.exe',
-    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal-Core-Standalone-1.2.0.jar'
+    version: 'v1.2.1',
+    installer: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal.Client.Setup.1.2.1.exe',
+    core: 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.1/Eternal-Core-Standalone-1.2.1.jar'
   };
 
-  const applyRelease = (version, installer, core) => {
+  const applyRelease = (version, installer, core, linux = null) => {
     document.querySelectorAll('[data-release-version]').forEach(el => { el.textContent = version; });
     document.querySelectorAll('#hero-download,#download-installer').forEach(el => { el.href = installer; });
     document.querySelectorAll('#core-download,#download-core').forEach(el => { el.href = core; });
+    document.querySelectorAll('[data-linux-download]').forEach(link => {
+      link.href = linux || `https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/tag/${version}`;
+      link.querySelector('strong').textContent = linux ? `Download Linux ${version}` : `Linux ${version} release files`;
+    });
   };
   applyRelease(fallback.version, fallback.installer, fallback.core);
 
@@ -163,30 +167,15 @@
       if (!data || data.draft || data.prerelease || !/^v\d+\.\d+\.\d+$/.test(data.tag_name)) return;
       const exe = data.assets?.find(asset => /Eternal\.Client\.Setup\..*\.exe$/i.test(asset.name));
       const jar = data.assets?.find(asset => /Eternal-Core-Standalone-.*\.jar$/i.test(asset.name));
+      const deb = data.assets?.find(asset => asset.name === `Eternal.Client.${data.tag_name.slice(1)}.linux-amd64.deb` && asset.size > 0);
       const prefix = `https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/${data.tag_name}/`;
       // Keep the version and both downloads together if a release is incomplete.
       if (exe?.browser_download_url?.startsWith(prefix) && jar?.browser_download_url?.startsWith(prefix)) {
-        applyRelease(data.tag_name, exe.browser_download_url, jar.browser_download_url);
+        applyRelease(data.tag_name, exe.browser_download_url, jar.browser_download_url,
+          deb?.browser_download_url?.startsWith(prefix) ? deb.browser_download_url : null);
       }
     })
     .catch(() => {});
-
-  // Linux can ship after Windows. Enable its direct download only after the
-  // matching asset is present on the published release.
-  if (document.querySelector('[data-linux-download]')) {
-    fetch('https://api.github.com/repos/1x1x1x1x1-Ammar/Eternal-Client/releases/tags/v1.2.0', { headers: { Accept: 'application/vnd.github+json' } })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (!data || data.draft || data.prerelease || data.tag_name !== 'v1.2.0') return;
-        const expected = 'https://github.com/1x1x1x1x1-Ammar/Eternal-Client/releases/download/v1.2.0/Eternal.Client.1.2.0.linux-amd64.deb';
-        const deb = data.assets?.find(asset => asset.name === 'Eternal.Client.1.2.0.linux-amd64.deb' && asset.browser_download_url === expected && asset.size > 0);
-        if (!deb) return;
-        document.querySelectorAll('[data-linux-download]').forEach(link => {
-          link.href = expected;
-          link.querySelector('strong').textContent = 'Download Linux v1.2.0';
-        });
-      }).catch(() => {});
-  }
 
   // Same catalog as the launcher and Core; this only previews it on the website.
   const presetButtons = [...document.querySelectorAll('[data-preset]')];
