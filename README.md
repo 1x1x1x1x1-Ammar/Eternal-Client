@@ -16,7 +16,7 @@
   <a href="https://github.com/1x1x1x1x1-Ammar/Eternal-Client/issues">Report an issue</a>
 </p>
 
-<p align="center"><img src="website/assets/launcher-v120.webp" width="1100" alt="Eternal launcher with castle landscape, account and instance selection, and launch settings"><br><sub>Launcher interface preview with a demo profile and simulated game connection.</sub></p>
+<p align="center"><img src="website/assets/launcher-v121.png" width="1100" alt="Eternal launcher with castle landscape, account and instance selection, and launch settings"><br><sub>Launcher interface preview with a demo profile and simulated game connection.</sub></p>
 
 ## One workspace. Your Minecraft.
 
@@ -47,7 +47,7 @@ Eternal pairs a Windows/Linux launcher with **Eternal Core**, a Fabric mod that 
 - **More information in play:** potion effects, target distance, biome, world time, inventory space and sprint status join the combat readouts.
 - **Core navigation:** a custom startup title screen, searchable module cards, a loaded Fabric mod browser, and themed native world/server selection.
 
-<p align="center"><img src="website/assets/module-settings-v120.webp" width="1000" alt="Armor Durability settings with HUD scale, opacity, color, toggle key and automatic save feedback"><br><sub>Launcher settings preview from automated UI checks; displayed HUD values are examples.</sub></p>
+<p align="center"><img src="website/assets/module-settings-v121.png" width="1000" alt="Armor Durability settings with HUD scale, opacity, color, toggle key and automatic save feedback"><br><sub>Launcher settings preview from automated UI checks; the preview uses saved appearance settings. Game telemetry appears inside Minecraft.</sub></p>
 
 ### Five PvP loadouts
 

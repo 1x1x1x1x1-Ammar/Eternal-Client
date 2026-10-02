@@ -6,7 +6,7 @@ import path from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve('website');
 const output = path.resolve('build/website-checks');
-const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.svg':'image/svg+xml', '.webp':'image/webp' };
+const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.svg':'image/svg+xml', '.webp':'image/webp', '.png':'image/png' };
 const server = http.createServer(async (req, res) => {
   const file = path.resolve(root, '.' + new URL(req.url, 'http://localhost').pathname);
   if (!file.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
@@ -50,7 +50,7 @@ try {
         }
         await page.locator('[data-lightbox]').first().click();
         await page.waitForFunction(() => document.getElementById('artModal').classList.contains('show'));
-        assert.match(await page.locator('[data-art-image]').getAttribute('src'), /launcher-v120.webp$/);
+        assert.match(await page.locator('[data-art-image]').getAttribute('src'), /launcher-v121.png$/);
         await page.locator('#artModal .btn-close').click();
         if (width === 1440) {
           await page.locator('#loadouts').scrollIntoViewIfNeeded();
